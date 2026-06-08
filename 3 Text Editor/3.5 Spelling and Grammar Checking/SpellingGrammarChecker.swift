@@ -8,10 +8,6 @@ import AppKit
 /// Only active when `EditorViewModel.spellCheckActive` is `true`.
 /// All `NSSpellChecker` calls and `NSTextStorage` attribute mutations are on
 /// `@MainActor` — required by AppKit.
-///
-/// ISS-004: Spell-check locale should come from `SettingsStore` (Foundation 2.3).
-/// Falling back to the system default locale until that setting exists.
-/// (Guide failure mode: "locale not supported → fall back to system default locale.")
 @MainActor
 public final class SpellingGrammarChecker {
 
@@ -19,18 +15,17 @@ public final class SpellingGrammarChecker {
 
     private weak var textView:  NSTextView?
     private weak var viewModel: EditorViewModel?
+    private let settings: SettingsStore
     private let debounce = DebounceTimer()
-
-    // ISS-004: local default — replace with SettingsStore when Foundation 2.3 is ready.
-    private let debounceInterval: TimeInterval = 0.40
 
     /// `NSSpellChecker` document tag that identifies this editing session.
     /// Exposed so `QuickfixPresenter` can share the same tag.
     public let spellDocumentTag: Int = NSSpellChecker.uniqueSpellDocumentTag()
 
-    public init(textView: NSTextView, viewModel: EditorViewModel) {
+    public init(textView: NSTextView, viewModel: EditorViewModel, settings: SettingsStore) {
         self.textView  = textView
         self.viewModel = viewModel
+        self.settings  = settings
     }
 
     deinit {
@@ -43,7 +38,7 @@ public final class SpellingGrammarChecker {
     /// Call on every `NSTextStorage` change when `spellCheckActive` is `true`.
     public func onTextChange() {
         guard viewModel?.spellCheckActive == true else { return }
-        debounce.schedule(delay: debounceInterval) { [weak self] in
+        debounce.schedule(delay: settings.spellCheckDebounceInterval) { [weak self] in
             Task { @MainActor [weak self] in
                 self?.runCheck()
             }
@@ -64,7 +59,9 @@ public final class SpellingGrammarChecker {
         let fullRange  = NSRange(location: 0, length: (text as NSString).length)
         let checker    = NSSpellChecker.shared
 
-        // ISS-004: `language: nil` → NSSpellChecker uses the system default locale.
+        if let locale = settings.spellCheckLocale {
+            checker.setLanguage(locale)
+        }
         let results = checker.check(
             text,
             range:                  fullRange,

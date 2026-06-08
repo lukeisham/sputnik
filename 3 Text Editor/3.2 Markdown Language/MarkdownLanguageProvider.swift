@@ -5,11 +5,6 @@ import AppKit
 /// Debounced via Foundation 2.7 `DebounceTimer` (SC-3, no re-implementation here).
 /// Suggestions render through the shared `GhostTextOverlay` from 3.1 (SC-2).
 /// Pattern analysis runs on `Task(priority: .utility)` (SW-1, SR-4).
-///
-/// ISS-004: `suggestionsEnabled` and `debounceInterval` should come from `SettingsStore`
-/// (Foundation 2.3). Using local defaults until that seam is ready:
-///   debounceInterval = 0.25 s
-///   suggestionsEnabled = true (always active when mode is .markdown)
 @MainActor
 public final class MarkdownLanguageProvider {
 
@@ -17,21 +12,20 @@ public final class MarkdownLanguageProvider {
 
     private weak var textView: NSTextView?
     private weak var ghostOverlay: GhostTextOverlay?
-
-    // ISS-004: local default — replace with SettingsStore.markdownDebounceInterval when ready.
-    private let debounceInterval: TimeInterval = 0.25
+    private let settings: SettingsStore
     private let debounce = DebounceTimer()
 
-    public init(textView: NSTextView, ghostOverlay: GhostTextOverlay) {
+    public init(textView: NSTextView, ghostOverlay: GhostTextOverlay, settings: SettingsStore) {
         self.textView     = textView
         self.ghostOverlay = ghostOverlay
+        self.settings     = settings
     }
 
     // MARK: - Public interface
 
     /// Call on every keypress while `EditorMode` is `.markdown`.
     public func onKeypress() {
-        debounce.schedule(delay: debounceInterval) { [weak self] in
+        debounce.schedule(delay: settings.markdownDebounceInterval) { [weak self] in
             Task { @MainActor [weak self] in
                 await self?.generateSuggestion()
             }

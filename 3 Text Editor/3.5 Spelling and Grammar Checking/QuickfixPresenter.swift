@@ -11,10 +11,12 @@ public final class QuickfixPresenter {
 
     private weak var textView: NSTextView?
     private let spellDocumentTag: Int
+    private let settings: SettingsStore
 
-    public init(textView: NSTextView, spellDocumentTag: Int) {
-        self.textView        = textView
+    public init(textView: NSTextView, spellDocumentTag: Int, settings: SettingsStore) {
+        self.textView         = textView
         self.spellDocumentTag = spellDocumentTag
+        self.settings         = settings
     }
 
     // MARK: - Public interface
@@ -33,7 +35,7 @@ public final class QuickfixPresenter {
         let candidates = NSSpellChecker.shared.guesses(
             forWordRange:           range,
             in:                     storage.string,
-            language:               nil,    // system default locale (ISS-004)
+            language:               settings.spellCheckLocale,
             inSpellDocumentWithTag: spellDocumentTag
         ) ?? []
 

@@ -12,7 +12,7 @@ Own all user-configurable preferences — appearance, editor behaviour, and spel
 ```
   macOS Settings Window  (SwiftUI Settings scene)
   ┌───────────────────────────────────────────┐
-  │  [Appearance]  [Editor]  [Grammar]        │
+  │  [Appearance]  [Editor]  [Grammar]  [Terminal]  │
   │                                           │
   │  Appearance:  theme ● light ○ dark ○ auto │
   │               font  [SF Mono     ▾] 13pt  │
@@ -44,7 +44,8 @@ Own all user-configurable preferences — appearance, editor behaviour, and spel
 - **Key types:**
   - `SettingsStore` — `@Observable @MainActor` class; single instance created at app launch alongside `AppState` and injected via `.environment(settingsStore)` <!-- assumed -->
   - `AppTheme` — enum: `.light`, `.dark`, `.system` <!-- assumed -->
-  - `EditorFont` — struct wrapping `NSFont` name and point size <!-- assumed -->
+  - `EditorFont` — struct wrapping PostScript font name and point size <!-- assumed -->
+  - `TerminalColor` — lightweight RGBA struct, `Codable`; extracted from module 7 so Foundation owns it without importing Terminal
 - **Threading model:** `SettingsStore` is `@MainActor`. All property changes are on the main thread; `PersistenceService` writes are dispatched with `Task(priority: .utility)` so UI is never blocked by a `UserDefaults` write.
 - **Data flow:** User changes a setting in the Settings window → `SettingsStore` property updates → `@Observable` propagates the change to any view observing it → `PersistenceService` persists the new value asynchronously.
 - **State owned:**
@@ -55,6 +56,18 @@ Own all user-configurable preferences — appearance, editor behaviour, and spel
   - `wordWrapEnabled: Bool`
   - `spellCheckEnabled: Bool`
   - `grammarCheckEnabled: Bool`
+  - `terminalFontName: String`
+  - `terminalFontSize: Double`
+  - `terminalScrollbackLimit: Int`
+  - `terminalForeground: TerminalColor`
+  - `terminalBackground: TerminalColor`
+  - `editorMaxFileSizeBytes: Int`
+  - `markdownDebounceInterval: TimeInterval`
+  - `asciiDebounceInterval: TimeInterval`
+  - `htmlDebounceInterval: TimeInterval`
+  - `spellCheckDebounceInterval: TimeInterval`
+  - `asciiTriggerKey: String`
+  - `spellCheckLocale: String?`
 - **Dependencies:** `PersistenceService` (2.5) for read/write to `UserDefaults`. No other module dependencies.
 - **Failure modes:**
   - `UserDefaults` returns nil on first launch → `SettingsStore` falls back to hardcoded defaults; no crash.

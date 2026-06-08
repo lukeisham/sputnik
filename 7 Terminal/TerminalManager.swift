@@ -41,17 +41,17 @@ public final class TerminalManager: ObservableObject, TerminalLifecycle {
 
     // MARK: - Session lifecycle
 
-    /// Starts a new Zsh session rooted at `directory`.
+    /// Starts a new Zsh session rooted at `directory` using the supplied terminal `profile`.
     ///
     /// Cleans up any previous session first. On PTY or launch failure, sets
     /// `pendingAlert` for `TerminalView` to present via `SputnikAlert`.
-    public func startSession(directory: URL? = nil) async {
+    public func startSession(directory: URL? = nil, profile: TerminalProfile = .default) async {
         await stopSession()
 
         let sess = TerminalSession()
         let emu  = TerminalEmulator(
             cols: 80, rows: 24,
-            profile: .default // ISS-002: use local default until SettingsStore (2.3) exposes terminal fields
+            profile: profile
         )
         self.session  = sess
         self.emulator = emu

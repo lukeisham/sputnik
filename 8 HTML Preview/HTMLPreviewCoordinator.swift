@@ -24,6 +24,13 @@ public final class HTMLPreviewCoordinator: NSObject, WKNavigationDelegate {
     /// web view, and the app-level router singleton (SW-2).
     weak var router: (any InterPanelRouter)?
 
+    /// When `false`, all link clicks are suppressed — the preview becomes read-only.
+    /// Toggled by the `[🔗]` button in `HTMLPreviewPanel`.
+    var isLinkNavigationEnabled: Bool = true
+
+    /// Called when a navigation fails; the panel can surface this as an error banner.
+    var onLoadError: ((String) -> Void)?
+
     // MARK: - Init
 
     /// Creates the coordinator.
@@ -48,6 +55,12 @@ public final class HTMLPreviewCoordinator: NSObject, WKNavigationDelegate {
         // Initial `loadHTMLString` call arrives as `.other` navigation type; allow it.
         if navigationAction.navigationType == .other {
             decisionHandler(.allow)
+            return
+        }
+
+        // When link navigation is disabled, cancel all user-initiated navigations.
+        guard isLinkNavigationEnabled else {
+            decisionHandler(.cancel)
             return
         }
 
@@ -76,19 +89,32 @@ public final class HTMLPreviewCoordinator: NSObject, WKNavigationDelegate {
             decisionHandler(.cancel)
             // Log to console in debug builds only.
             #if DEBUG
-            print("[HTMLPreview] Blocked navigation to \(url.absoluteString)")
+                print("[HTMLPreview] Blocked navigation to \(url.absoluteString)")
             #endif
         }
     }
 
-    /// Logs navigation failures without crashing; the web view shows its own error page.
+    /// Logs navigation failures and surfaces the error to the panel for UI display.
     public func webView(
         _ webView: WKWebView,
         didFail navigation: WKNavigation,
         withError error: any Error
     ) {
+        onLoadError?(error.localizedDescription)
         #if DEBUG
-        print("[HTMLPreview] Navigation failed: \(error.localizedDescription)")
+            print("[HTMLPreview] Navigation failed: \(error.localizedDescription)")
+        #endif
+    }
+
+    /// Logs provisional navigation failures (e.g. DNS / network errors before a page loads).
+    public func webView(
+        _ webView: WKWebView,
+        didFailProvisionalNavigation navigation: WKNavigation,
+        withError error: any Error
+    ) {
+        onLoadError?(error.localizedDescription)
+        #if DEBUG
+            print("[HTMLPreview] Provisional navigation failed: \(error.localizedDescription)")
         #endif
     }
 }

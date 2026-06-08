@@ -1,11 +1,13 @@
 ---
 module: 8 HTML Preview
-status: draft
+status: complete
 last_updated: 2026-06-08
+plan: 1 Setup/Plans Completed/2026-06-08 8 HTML Preview Complete HTML Preview module.md
+<!-- Updated: panel implemented, Fit Width bug fixed, module complete -->
 ---
 
 ## Purpose
-Render the active editor tab's HTML (supporting the **HTML Living Standard**) to a live, scroll-synced web preview, and intercept link clicks so that local links open as new editor tabs rather than navigating the preview away from the file the editor is showing.
+Render the active editor tab's HTML (supporting the **HTML Living Standard**) to a live, scroll-synced web preview, and intercept link clicks so that internal links (other Sputnik-compatible files like `.html`, `.md`, `.pdf`) open as new editor tabs within the app, while external URLs (`http`/`https`) open in the user's default web browser.
 
 ## Diagram
 
@@ -33,22 +35,22 @@ Render the active editor tab's HTML (supporting the **HTML Living Standard**) to
                                          │  local .md / .pdf / …  → .cancel,     │       │
                                          │     InterPanelRouter.open(url)        │       └─▶ routed to 4 / 5
                                          │  http(s) / target=_blank → .cancel,   │
-                                         │     NSWorkspace.shared.open(url)  ─────┼─▶ system browser
+                                         │     NSWorkspace.shared.open(url)  ─────┼─▶ default browser
                                          └──────────────────────────────────────┘
 ```
 
 ## Technical Summary
 - **Framework(s):** WebKit (`WKWebView`, `WKNavigationDelegate`), SwiftUI (`NSViewRepresentable`), AppKit. Target rendering is the **HTML Living Standard** (WebKit/Safari).
 - **Key types:**
-  - `HTMLPreviewView` — `NSViewRepresentable` wrapping a single `WKWebView`; observes `AppState.activeDocumentID` and re-renders when the active document changes or its text mutates (SW-3: AppKit bridge is justified because `WKWebView` has no SwiftUI equivalent) <!-- assumed -->
-  - `HTMLPreviewCoordinator` — the `NSViewRepresentable.Coordinator`; conforms to `WKNavigationDelegate` and owns the link-navigation policy; holds a `weak` reference to the router, never a strong `self` capture in delegate callbacks (SW-2) <!-- assumed -->
-  - `LinkNavigationPolicy` — pure function `decide(for: URL, targetIsBlank: Bool, workspace: URL?) -> Decision` returning `.allowInPage` / `.openAsTab(URL)` / `.openExternally(URL)`; unit-testable in isolation, no WebKit types in its signature <!-- assumed -->
+  - `HTMLPreviewView` — `NSViewRepresentable` wrapping a single `WKWebView`; observes `AppState.activeDocumentID` and re-renders when the active document changes or its text mutates (SW-3: AppKit bridge is justified because `WKWebView` has no SwiftUI equivalent)
+  - `HTMLPreviewCoordinator` — the `NSViewRepresentable.Coordinator`; conforms to `WKNavigationDelegate` and owns the link-navigation policy; holds a `weak` reference to the router, never a strong `self` capture in delegate callbacks (SW-2)
+  - `LinkNavigationPolicy` — pure function `decide(for: URL, targetIsBlank: Bool, currentBaseURL: URL?) -> Decision` returning `.allowInPage` / `.openAsTab(URL)` / `.openExternally(URL)` / `.block`; unit-testable in isolation, no WebKit types in its signature
   - Consumes Foundation types only: `DocumentSession` and `activeDocumentID` (2.2), `InterPanelRouter` (2.1), `FileType` (2.1) — this module owns no document state of its own (SR-1)
 - **Threading model:** All `WKWebView` calls and the render path are `@MainActor`. Re-render is triggered by observing `activeDocumentID` and the active session's debounced text (debounce lives in 3.4, not here). HTML string assembly is trivial and stays on the main thread; no background Task is needed for preview itself.
 - **Data flow:**
   - *Render:* `activeDocumentID` changes (or active `.html` session text changes) → `HTMLPreviewView` reads the active `DocumentSession.text` → `webView.loadHTMLString(text, baseURL:)` with `baseURL` set to the file's directory so relative `src`/`href` resolve.
   - *Sync:* the preview never tracks a file URL directly — it renders **whatever document is active**. Switching editor tabs switches the preview with no extra binding (see Failure modes / SR-1). This is the answer to "which preview syncs to which editor": there is one active document, and the preview is a pure function of it.
-  - *Link click:* `WKNavigationDelegate.webView(_:decidePolicyFor:decisionHandler:)` → `LinkNavigationPolicy.decide(…)` → in-page anchors `.allow`; local files `.cancel` + `InterPanelRouter.open(url)` (opens/raises a tab via Foundation 2.1); external `http(s)` or `target="_blank"` `.cancel` + `NSWorkspace.shared.open(url)`.
+  - *Link click:* `WKNavigationDelegate.webView(_:decidePolicyFor:decisionHandler:)` → `LinkNavigationPolicy.decide(…)` → in-page `#anchor` scrolls in place (`.allow`); internal local files (`.html`, `.md`, `.pdf`, and other Sputnik-compatible types) are opened as **new editor tabs** within the app via `InterPanelRouter.open(url)` (`.cancel` + route to Foundation 2.1); external `http(s)` URLs or `target="_blank"` links are opened in the user's **default web browser** via `NSWorkspace.shared.open(url)` (`.cancel`).
 - **State owned:** None persistent. Holds only the live `WKWebView` instance and its coordinator; the document text and active-tab identity are owned by Foundation `AppState` (2.2). This keeps the panel disposable and low-RAM (SR-3) — closing the panel releases the web view.
 - **Dependencies:** Foundation 2.2 (`AppState.activeDocumentID`, `DocumentSession`); Foundation 2.1 (`InterPanelRouter.open(_:)`, `FileType`); Text Editor 3.4 (source of `.html` text + the "Render as HTML" command); Foundation 2.4 (placeholder/empty-state styling, `SputnikAlert` for load errors).
 - **Failure modes:**
@@ -59,12 +61,18 @@ Render the active editor tab's HTML (supporting the **HTML Living Standard**) to
   - Web content tries to navigate the top frame on its own (meta refresh, script) → treated like any navigation: same `LinkNavigationPolicy` applies, so it cannot silently desync the preview from the editor.
 
 ## Spec Reference
-> Extracted verbatim from `readme.md`:
+> Extracted from `README.md` — the original entry for this module:
 
 ```
-Foundation → Text Editor Window → Project File Tree → Markdown Preview → PDF Viewer → HTML Preview → Terminal
+Foundation → Text Editor Window → Terminal → Project File Tree → Markdown Preview → PDF Viewer → HTML Preview → Resources
 
-8 | HTML Preview | Live HTML preview, synced to editor
+8. HMTL PREVIEW
+```
+
+> Module map entry (from `CLAUDE.md`):
+
+```
+| 8 | HTML Preview | Live HTML preview, synced to editor |
 ```
 
 > Related editor spec the preview is driven by:

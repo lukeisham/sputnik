@@ -8,8 +8,8 @@ public enum EncodingGuard {
 
     /// Maximum file size (in bytes) this editor will attempt to open.
     ///
-    /// ISS-004: the real limit should come from `SettingsStore`; using 10 MB as a local
-    /// default until Foundation 2.3 exposes an `editorMaxFileSizeBytes` setting.
+    /// Callers should pass `SettingsStore.editorMaxFileSizeBytes`; this constant
+    /// is the fallback for contexts where settings are unavailable.
     public static let defaultMaxBytes: Int = 10 * 1024 * 1024  // 10 MB
 
     // MARK: - Errors

@@ -19,8 +19,10 @@ public struct ContentView: View {
         VStack(spacing: 0) {
             // Main three-column area
             HStack(spacing: 1) {
-                // Left slot
-                slotPlaceholder(position: .left, color: .blue.opacity(0.10))
+                // Left slot — Project File Tree (module 6)
+                FileTreePanel()
+                    .frame(width: 240)
+                    .frame(maxHeight: .infinity)
 
                 // Centre column — tab bar + upper panel + optional lower panel
                 VStack(spacing: 0) {
@@ -35,11 +37,12 @@ public struct ContentView: View {
                             appState.openDocuments.remove(at: index)
                             if wasActive {
                                 // Activate the neighbour closest to the removed tab.
-                                appState.activeDocumentID = appState.openDocuments
-                                    .indices
-                                    .contains(max(0, index - 1))
-                                        ? appState.openDocuments[max(0, index - 1)].id
-                                        : appState.openDocuments.first?.id
+                                appState.activeDocumentID =
+                                    appState.openDocuments
+                                        .indices
+                                        .contains(max(0, index - 1))
+                                    ? appState.openDocuments[max(0, index - 1)].id
+                                    : appState.openDocuments.first?.id
                             }
                         }
                     }
@@ -48,11 +51,13 @@ public struct ContentView: View {
 
                     slotPlaceholder(position: .centerUpper, color: .green.opacity(0.10))
 
-                    slotPlaceholder(position: .centerLower, color: .purple.opacity(0.10))
+                    MarkdownPreviewPanel()
                 }
 
-                // Right slot
-                slotPlaceholder(position: .right, color: .orange.opacity(0.10))
+                // Right slot — help panels or PDF/HTML preview stack.
+                // When a help topic is requested, the matching help panel replaces the
+                // normal document preview stack.
+                rightColumn
             }
 
             Divider()
@@ -64,6 +69,37 @@ public struct ContentView: View {
     }
 
     // MARK: - Private helpers
+
+    /// Right-column content: shows the requested help panel when `requestedHelpTopic`
+    /// is set, or the PDF/HTML preview stack otherwise.
+    ///
+    /// All five views are kept in the view tree at all times via opacity so that each
+    /// panel's `@State` (loaded topics, scroll position) survives topic switches without
+    /// re-triggering the async index load.
+    @ViewBuilder
+    private var rightColumn: some View {
+        let topic = appState.requestedHelpTopic
+        ZStack {
+            VStack(spacing: 0) {
+                PDFViewerPanel()
+                Divider()
+                HTMLPreviewPanel()
+            }
+            .opacity(topic == nil || topic == .sputnik ? 1 : 0)
+
+            ASCIIArtHelpPanelView()
+                .opacity(topic == .asciiArt ? 1 : 0)
+
+            MarkdownHelpPanelView()
+                .opacity(topic == .markdown ? 1 : 0)
+
+            HTMLHelpPanelView()
+                .opacity(topic == .html ? 1 : 0)
+
+            GrammarHelpPanelView()
+                .opacity(topic == .grammar ? 1 : 0)
+        }
+    }
 
     private func slotPlaceholder(position: PanelPosition, color: Color) -> some View {
         ZStack {

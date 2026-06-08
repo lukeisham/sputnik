@@ -1,0 +1,100 @@
+{
+  "topics": [
+    {
+      "id": "punctuation/commas",
+      "title": "Commas",
+      "category": "punctuation",
+      "body": "## Commas\n\nCommas separate clauses, items in a list, and set off introductory or parenthetical elements.\n\n### Serial (Oxford) Comma\n✅ I bought apples, oranges, and bananas.\n❌ I bought apples oranges and bananas.\n\n### Introductory Phrases\n✅ After the meeting, we went to lunch.\n❌ After the meeting we went to lunch.\n\n### Coordinating Conjunctions\n✅ She wanted to go, but she was tired.\n❌ She wanted to go but she was tired.\n\n### Non-restrictive Clauses\n✅ My brother, who lives in Paris, is visiting.\n❌ My brother who lives in Paris is visiting.\n\n### Direct Address\n✅ Let's eat, Grandma!\n❌ Let's eat Grandma!",
+      "searchTerms": ["comma", "commas", "coma", "comma usage", "oxford comma", "serial comma", "oxford", "punctuation", "listing", "list"],
+      "relatedTopics": ["punctuation/semicolons", "style/conciseness"]
+    },
+    {
+      "id": "punctuation/semicolons",
+      "title": "Semicolons",
+      "category": "punctuation",
+      "body": "## Semicolons\n\nA semicolon connects closely related independent clauses without a coordinating conjunction. It is stronger than a comma but weaker than a period.\n\n### Connecting Related Clauses\n✅ I have a big test tomorrow; I can't go out tonight.\n❌ I have a big test tomorrow, I can't go out tonight.\n\n### With Conjunctive Adverbs\n✅ She studied hard; therefore, she passed.\n❌ She studied hard, therefore, she passed.\n\n### Complex Lists\n✅ We visited Paris, France; Rome, Italy; and Berlin, Germany.\n❌ We visited Paris, France, Rome, Italy, and Berlin, Germany.",
+      "searchTerms": ["semicolon", "semicolons", "semi-colon", "semi-colons", "semi colon", "semi", ";", "semicolan", "semi-colan"],
+      "relatedTopics": ["punctuation/commas", "style/conciseness"]
+    },
+    {
+      "id": "punctuation/apostrophes",
+      "title": "Apostrophes",
+      "category": "punctuation",
+      "body": "## Apostrophes\n\nApostrophes show possession or form contractions. They are **never** used to make words plural.\n\n### Possessives\n✅ The dog's leash (one dog)\n✅ The dogs' park (many dogs)\n❌ The dog's are barking (apostrophe for plural — wrong)\n\n### Contractions\n✅ It's raining outside. (it is)\n✅ Don't forget your keys.\n❌ Its raining outside. (missing apostrophe)\n\n### Its vs It's\n✅ The cat licked its paw. (possessive — no apostrophe)\n❌ The cat licked it's paw. (it is paw? — wrong)\n\n### Common Mistakes\n✅ The 1990s / CDs / FAQs (plurals — no apostrophe)\n❌ The 1990's / CD's / FAQ's (grocer's apostrophe — wrong)",
+      "searchTerms": ["apostrophe", "apostrophes", "apostrophy", "apostrophies", "apostrafy", "possessive", "possessives", "contraction", "contractions", "its", "it's", "its vs it's", "apostrophe s"],
+      "relatedTopics": ["spelling/your-vs-youre", "spelling/their-there-theyre"]
+    },
+    {
+      "id": "grammar/subject-verb-agreement",
+      "title": "Subject-Verb Agreement",
+      "category": "grammar",
+      "body": "## Subject-Verb Agreement\n\nThe subject and verb in a sentence must agree in number: singular subjects take singular verbs, and plural subjects take plural verbs.\n\n### Basic Agreement\n✅ The cat runs fast. (singular)\n✅ The cats run fast. (plural)\n❌ The cat run fast.\n\n### Intervening Phrases\n✅ The box of chocolates is on the table.\n❌ The box of chocolates are on the table.\n\n### Indefinite Pronouns\n✅ Everyone knows the answer.\n❌ Everyone know the answer.\n\n### Compound Subjects with Or/Nor\n✅ Neither the teacher nor the students were late.\n✅ Neither the students nor the teacher was late.",
+      "searchTerms": ["subject verb", "subject-verb", "agreement", "singular", "plural", "verb agreement", "subject", "verb", "sva", "subject verb agreement", "subj verb", "agreemant"],
+      "relatedTopics": ["grammar/verb-tense", "grammar/pronouns"]
+    },
+    {
+      "id": "grammar/verb-tense",
+      "title": "Verb Tense Consistency",
+      "category": "grammar",
+      "body": "## Verb Tense Consistency\n\nVerb tense indicates when an action takes place: past, present, or future. Within a sentence or paragraph, verb tenses should remain consistent.\n\n### Stay in One Tense\n✅ She walked to the store and bought milk.\n❌ She walked to the store and buys milk.\n\n### Past Perfect for Earlier Events\n✅ He had already left when I arrived.\n❌ He already left when I had arrived.\n\n### General Truths Stay Present\n✅ The study showed that water boils at 100°C.\n❌ The study showed that water boiled at 100°C.\n\n### Literary Present\n✅ Shakespeare writes about love and jealousy.\n❌ Shakespeare wrote about love and jealousy. (unless in historical context)",
+      "searchTerms": ["tense", "tenses", "verb tense", "past tense", "present tense", "future tense", "consistency", "tense consistency", "tence", "tence consistency", "verb tence", "past", "present", "future"],
+      "relatedTopics": ["grammar/subject-verb-agreement", "grammar/pronouns"]
+    },
+    {
+      "id": "grammar/pronouns",
+      "title": "Pronouns",
+      "category": "grammar",
+      "body": "## Pronouns\n\nPronouns replace nouns and must agree with their antecedents in number, gender, and case.\n\n### Subject vs Object Case\n✅ She and I went to the park. (subject)\n❌ Me and her went to the park.\n\n### After Prepositions\n✅ The gift is for you and me.\n❌ The gift is for you and I.\n\n### Object of Verb\n✅ They asked him and me to help.\n❌ They asked him and I to help.\n\n### Pronoun Agreement\n✅ Every student should bring their book. (modern accepted usage)\n✅ Every student should bring his or her book. (formal traditional)",
+      "searchTerms": ["pronoun", "pronouns", "i vs me", "me vs i", "pronooun", "pronoouns", "case", "pronoun case", "i me", "me i", "pronoan", "i or me", "me or i"],
+      "relatedTopics": ["usage/who-vs-whom", "grammar/subject-verb-agreement"]
+    },
+    {
+      "id": "style/active-vs-passive",
+      "title": "Active vs Passive Voice",
+      "category": "style",
+      "body": "## Active vs Passive Voice\n\nIn active voice, the subject performs the action. In passive voice, the subject receives the action. Active voice is generally clearer and more direct.\n\n### Active Voice (Preferred)\n✅ The researcher conducted the experiment.\n✅ The committee made the decision.\n\n### Passive Voice (Use Sparingly)\n❌ The experiment was conducted by the researcher.\n❌ The decision was made by the committee.\n\n### When Passive Is Acceptable\n✅ My bike was stolen. (doer unknown — passive works)\n✅ The building was constructed in 1920. (focus is on the building)",
+      "searchTerms": ["active", "passive", "active voice", "passive voice", "voice", "active vs passive", "active passive", "passiv", "activ", "passive sentance"],
+      "relatedTopics": ["style/conciseness", "grammar/verb-tense"]
+    },
+    {
+      "id": "style/conciseness",
+      "title": "Conciseness",
+      "category": "style",
+      "body": "## Conciseness\n\nConcise writing eliminates unnecessary words without sacrificing meaning. Every word should earn its place.\n\n### Cut Filler Words\n✅ We must finish the report today.\n❌ It is important that we make sure we finish the report at some point today.\n\n### Avoid Redundancy\n✅ The meeting was a success.\n❌ The meeting was an absolutely essential and completely necessary success.\n\n### Replace Phrases with Single Words\n✅ Because it rained, the game was cancelled.\n❌ Due to the fact that it was raining, the game was cancelled.\n\n### Use Strong Verbs\n✅ She decided to leave early.\n❌ She made the decision to leave early.",
+      "searchTerms": ["concise", "conciseness", "wordy", "wordiness", "redundant", "redundancy", "cut words", "brevity", "concis", "wordyness", "fluff", "filler", "filler words", "trim"],
+      "relatedTopics": ["style/active-vs-passive", "punctuation/semicolons"]
+    },
+    {
+      "id": "spelling/their-there-theyre",
+      "title": "Their / There / They're",
+      "category": "spelling",
+      "body": "## Their / There / They're\n\nThese three words sound identical but have completely different meanings.\n\n### Their (Possessive)\n✅ Their house is on the corner.\n❌ There house is on the corner.\n\n### There (Location or Existence)\n✅ There are three cookies left.\n✅ Put it over there.\n❌ Their are three cookies left.\n\n### They're (They Are)\n✅ They're going to the movies.\n❌ Their going to the movies.\n\n### Quick Test\nCan you replace it with \"they are\"? → Use **they're**\nIs it about ownership? → Use **their**\nIs it a place or existence? → Use **there**",
+      "searchTerms": ["their", "there", "theyre", "they're", "thier", "thare", "theyr", "ther", "theire", "thaer", "thayre", "theyre", "they are", "theres", "theirs"],
+      "relatedTopics": ["spelling/your-vs-youre", "punctuation/apostrophes", "spelling/affect-vs-effect"]
+    },
+    {
+      "id": "spelling/affect-vs-effect",
+      "title": "Affect vs Effect",
+      "category": "spelling",
+      "body": "## Affect vs Effect\n\nThese two words are frequently confused. *Affect* is usually a verb; *effect* is usually a noun.\n\n### Affect (Verb = Influence)\n✅ The weather affects my mood.\n✅ The news affected her deeply.\n❌ The weather effects my mood.\n\n### Effect (Noun = Result)\n✅ The effect was immediate.\n✅ The policy had a positive effect.\n❌ The affect was immediate.\n\n### Effect (Verb = Bring About — Rare)\n✅ The new CEO will effect meaningful change.\n\n### Quick Test\nCan you replace it with \"influence\"? → Use **affect**\nCan you replace it with \"result\" or \"outcome\"? → Use **effect**",
+      "searchTerms": ["affect", "effect", "affect vs effect", "affect effect", "afect", "efect", "affekt", "effekt", "affect or effect", "effect or affect", "affacted", "effected"],
+      "relatedTopics": ["spelling/their-there-theyre", "spelling/your-vs-youre"]
+    },
+    {
+      "id": "spelling/your-vs-youre",
+      "title": "Your vs You're",
+      "category": "spelling",
+      "body": "## Your vs You're\n\nThese two words sound identical but serve different grammatical functions.\n\n### Your (Possessive)\n✅ Your book is on the table.\n✅ Is this your car?\n❌ You're book is on the table.\n\n### You're (You Are)\n✅ You're going to love this.\n✅ I think you're right.\n❌ Your going to love this.\n\n### Quick Test\nCan you replace it with \"you are\"? → Use **you're**\nIs it about ownership? → Use **your**",
+      "searchTerms": ["your", "youre", "you're", "ur", "yore", "yor", "yuor", "youre", "your vs youre", "youre vs your", "you are"],
+      "relatedTopics": ["spelling/their-there-theyre", "punctuation/apostrophes"]
+    },
+    {
+      "id": "usage/who-vs-whom",
+      "title": "Who vs Whom",
+      "category": "usage",
+      "body": "## Who vs Whom\n\n*Who* is a subject pronoun (like *he, she*); *whom* is an object pronoun (like *him, her*).\n\n### Who (Subject — Does the Action)\n✅ Who wrote the letter?\n✅ The person who called earlier left a message.\n❌ Whom wrote the letter?\n\n### Whom (Object — Receives the Action)\n✅ To whom should I address this?\n✅ The person whom you called is not available.\n❌ To who should I address this?\n\n### The Him Test\nRephrase: if *him* sounds right → **whom**; if *he* sounds right → **who**.\n\n✅ *He* wrote the letter → **Who** wrote the letter?\n✅ Give it to *him* → To **whom** should I give it?",
+      "searchTerms": ["who", "whom", "who vs whom", "whome", "hoo", "whom usage", "formal", "who or whom", "whom or who", "whomever", "whoever"],
+      "relatedTopics": ["grammar/pronouns", "spelling/affect-vs-effect"]
+    }
+  ]
+}

@@ -1,0 +1,103 @@
+{
+  "topics": [
+    {
+      "id": "basics/getting-started",
+      "title": "Getting Started with Markdown",
+      "category": "basics",
+      "body": "## Getting Started\n\nMarkdown is a lightweight markup language that you can use to format text. Created by John Gruber in 2004, it's designed to be easy to read and write in plain text, then converted to HTML.\n\n### Why Markdown?\n- **Readable:** The source looks like plain text — no angle brackets or complex syntax.\n- **Portable:** `.md` files open in any text editor.\n- **Versatile:** Used for READMEs, documentation, notes, blog posts, and more.\n\n### Basic Principles\n1. Write in plain text with simple punctuation for formatting.\n2. A Markdown processor converts it to HTML or rich text.\n3. Sputnik uses **CommonMark** with **GFM extensions** (tables, strikethrough, task lists).\n\n### Your First Markdown File\nCreate a `.md` file and start typing. Use `#` for headings, `**` for bold, and blank lines to separate paragraphs.\n\n> **Tip:** Open the Markdown Preview panel (`View > Markdown Preview`) to see your rendered output live as you edit.",
+      "searchTerms": ["intro", "beginner", "start", "tutorial", "overview", "what is", "basics"],
+      "relatedTopics": ["basics/headings", "formatting/bold-and-italic"],
+      "exampleCode": "# My First Markdown Document\n\nHello, **world**! This is *Markdown*.\n\n- Easy to write\n- Easy to read\n- Converts to HTML"
+    },
+    {
+      "id": "basics/headings",
+      "title": "Headings",
+      "category": "basics",
+      "body": "## Headings\n\nHeadings create a document hierarchy and improve readability. Markdown supports six heading levels, matching HTML's `<h1>` through `<h6>`.\n\n### Syntax\n```markdown\n# Heading 1\n## Heading 2\n### Heading 3\n#### Heading 4\n##### Heading 5\n###### Heading 6\n```\n\n### Best Practices\n- Use **one `# Heading 1`** per document (the title).\n- Nest headings logically: don't jump from `##` to `####`.\n- Headings appear in the Markdown Preview's outline/table of contents.\n\n### Alternative Syntax\nHeadings 1 and 2 can also be written with underlines:\n```\nHeading 1\n=========\n\nHeading 2\n---------\n```\n\n> **Sputnik tip:** Right-click any heading in the editor and select \"Look Up Help\" to jump here instantly.",
+      "searchTerms": ["heading", "headings", "h1", "h2", "h3", "h4", "h5", "h6", "title", "header", "hash", "#"],
+      "relatedTopics": ["basics/getting-started", "formatting/bold-and-italic"],
+      "exampleCode": "# Document Title\n\n## Section One\nContent here...\n\n### Sub-section\nMore detailed content."
+    },
+    {
+      "id": "formatting/bold-and-italic",
+      "title": "Bold & Italic",
+      "category": "formatting",
+      "body": "## Bold & Italic\n\nEmphasise text with bold and italic formatting. Markdown offers multiple syntaxes for each.\n\n### Italic\nWrap text in single asterisks or underscores:\n```markdown\n*italic text*  or  _italic text_\n```\n\n### Bold\nWrap text in double asterisks or underscores:\n```markdown\n**bold text**  or  __bold text__\n```\n\n### Bold + Italic\nCombine three asterisks or underscores:\n```markdown\n***bold and italic***  or  ___bold and italic___\n```\n\n### Rules\n- Use the **same delimiter** to open and close (don't mix `*` and `_` in the same span).\n- Delimiters **must touch** the enclosed text (no space after opening `*`).\n- Mid-word emphasis is supported: `un**believable**` → un**believable**.\n\n> **Common mistake:** `* text*` won't render as italic because of the space after `*`.",
+      "searchTerms": ["bold", "italic", "emphasis", "strong", "asterisk", "underscore", "formatting", "**", "*", "__", "_"],
+      "relatedTopics": ["basics/headings", "formatting/code"],
+      "exampleCode": "This is **important** and this is *subtle*.\n\nYou can also use ___both together___ for\nmaximum emphasis."
+    },
+    {
+      "id": "formatting/links",
+      "title": "Links",
+      "category": "formatting",
+      "body": "## Links\n\nMarkdown supports inline links, reference-style links, and autolinks.\n\n### Inline Links\n```markdown\n[link text](https://example.com \"Optional title\")\n```\nThe title attribute (hover tooltip) is optional.\n\n### Reference-Style Links\nUseful for documents with many links — keep the source clean:\n```markdown\n[link text][ref-id]\n\n[ref-id]: https://example.com \"Optional title\"\n```\n\n### Autolinks\nWrap a URL or email in angle brackets:\n```markdown\n<https://example.com>\n<user@example.com>\n```\n\n### URLs with Special Characters\nEncode spaces and parentheses: `https://example.com/page%20name`.\n\n> **GFM extension:** URLs typed directly in text (without brackets) are auto-linked in GFM.",
+      "searchTerms": ["link", "links", "url", "hyperlink", "href", "anchor", "reference", "a tag"],
+      "relatedTopics": ["formatting/images", "advanced/gfm-extensions"],
+      "exampleCode": "Visit [Sputnik](https://sputnik.app) for more info.\n\nEmail us at <hello@sputnik.app>.\n\n[See the docs][docs]\n\n[docs]: https://docs.sputnik.app"
+    },
+    {
+      "id": "formatting/images",
+      "title": "Images",
+      "category": "formatting",
+      "body": "## Images\n\nImages are like links but with a leading `!`.\n\n### Inline Images\n```markdown\n![alt text](path/to/image.png \"Optional title\")\n```\n\n### Reference-Style Images\n```markdown\n![alt text][img-ref]\n\n[img-ref]: path/to/image.png\n```\n\n### Image Dimensions\nStandard Markdown doesn't support width/height. Use HTML for sizing:\n```html\n<img src=\"image.png\" width=\"400\" alt=\"Description\">\n```\n\n> **Sputnik tip:** Drag an image from the Project File Tree into the editor to insert it with the correct relative path.",
+      "searchTerms": ["image", "images", "img", "picture", "photo", "screenshot", "alt", "src"],
+      "relatedTopics": ["formatting/links", "basics/headings"],
+      "exampleCode": "![Sputnik logo](logo.png)\n\nSee the screenshot below:\n\n![App screenshot](screenshots/main.png)"
+    },
+    {
+      "id": "formatting/lists",
+      "title": "Lists",
+      "category": "formatting",
+      "body": "## Lists\n\n### Unordered Lists\nUse `-`, `*`, or `+` followed by a space:\n```markdown\n- Item one\n- Item two\n  - Nested item\n```\n\n### Ordered Lists\nUse numbers followed by a period:\n```markdown\n1. First step\n2. Second step\n   1. Sub-step\n```\n\n### Nested Lists\nIndent by **4 spaces** or **1 tab** to nest.\n\n### Task Lists (GFM)\n```markdown\n- [x] Completed task\n- [ ] Pending task\n- [ ] Another task\n```\n\n> **Tip:** Mix list markers to distinguish levels: use `-` for top level, `*` for second level.",
+      "searchTerms": ["list", "lists", "bullet", "ordered", "unordered", "numbered", "task", "checklist", "todo", "nested", "ol", "ul", "li"],
+      "relatedTopics": ["advanced/gfm-extensions", "formatting/bold-and-italic"],
+      "exampleCode": "## Shopping List\n\n- Fruits\n  - Apples\n  - Bananas\n- Vegetables\n  - Carrots\n  - Broccoli\n\n## Steps\n\n1. Unpack\n2. Assemble\n3. Enjoy"
+    },
+    {
+      "id": "formatting/code",
+      "title": "Inline Code & Code Blocks",
+      "category": "formatting",
+      "body": "## Inline Code & Code Blocks\n\n### Inline Code\nWrap text in single backticks:\n```markdown\nUse the `print()` function in Python.\n```\n\nTo display a literal backtick inside code, use double backticks:\n```markdown\n`` Use backticks: `code` here ``\n```\n\n### Fenced Code Blocks\nUse triple backticks with an optional language tag:\n````markdown\n```swift\nfunc greet(name: String) {\n    print(\"Hello, \\(name)!\")\n}\n```\n````\n\n### Indented Code Blocks\nIndent each line by 4 spaces or 1 tab:\n```\n    This is a code block.\n    No backticks needed.\n```\n\n> **Sputnik tip:** Code blocks with a language tag get syntax highlighting in the Markdown Preview.",
+      "searchTerms": ["code", "backtick", "syntax", "highlight", "fenced", "pre", "code block", "source", "programming", "```", "`"],
+      "relatedTopics": ["advanced/gfm-extensions", "formatting/bold-and-italic"],
+      "exampleCode": "Here's some inline `code` in a sentence.\n\n```python\ndef fibonacci(n):\n    a, b = 0, 1\n    for _ in range(n):\n        yield a\n        a, b = b, a + b\n```"
+    },
+    {
+      "id": "advanced/tables",
+      "title": "Tables",
+      "category": "advanced",
+      "body": "## Tables (GFM)\n\nTables are a GFM extension. They use pipes (`|`) and hyphens (`-`) to define columns and alignment.\n\n### Basic Table\n```markdown\n| Name  | Role       |\n|-------|-----------|\n| Ada   | Engineer   |\n| Bo    | Designer   |\n```\n\n### Column Alignment\nControl alignment with colons in the separator row:\n```markdown\n| Left   | Center | Right  |\n|:-------|:------:|-------:|\n| Text   | Text   | 123    |\n```\n\n### Rules\n- Pipe characters at the outer edges are **optional**.\n- Each row must have the same number of cells.\n- Use `\\|` to include a literal pipe in a cell.\n- The header row and separator row are **required**.\n\n> **Sputnik tip:** Copy a table from Numbers or Excel and paste it into the editor — Sputnik auto-formats it as a Markdown table.",
+      "searchTerms": ["table", "tables", "column", "row", "cell", "pipe", "|", "alignment", "tabular", "spreadsheet", "grid"],
+      "relatedTopics": ["advanced/gfm-extensions", "formatting/lists"],
+      "exampleCode": "| Feature     | Supported | Notes         |\n|------------|:---------:|--------------:|\n| Tables      | ✅        | GFM extension |\n| Alignment   | ✅        | Left/Center/Right |\n| Nesting     | ❌        | Not supported |"
+    },
+    {
+      "id": "advanced/blockquotes",
+      "title": "Blockquotes",
+      "category": "advanced",
+      "body": "## Blockquotes\n\nBlockquotes indent and style quoted text. Use `>` at the start of each line.\n\n### Single Paragraph\n```markdown\n> This is a blockquote.\n```\n\n### Multi-Paragraph\nAdd `>` on blank lines between paragraphs:\n```markdown\n> First paragraph.\n>\n> Second paragraph.\n```\n\n### Nested Blockquotes\nUse multiple `>` characters:\n```markdown\n> Outer quote\n>> Nested quote\n>>> Deeply nested\n```\n\n### Blockquotes with Other Elements\nBlockquotes can contain headings, lists, and code:\n```markdown\n> ## Quoted Heading\n>\n> - List item\n> - Another item\n>\n> ```\n> code inside quote\n> ```\n```\n\n> **Tip:** Blockquotes are great for callouts, testimonials, and quoting external sources.",
+      "searchTerms": ["blockquote", "quote", "block", ">", "indent", "citation", "callout", "testimonial"],
+      "relatedTopics": ["formatting/lists", "advanced/horizontal-rules"],
+      "exampleCode": "> The best way to predict the\n> future is to invent it.\n>\n> — Alan Kay"
+    },
+    {
+      "id": "advanced/horizontal-rules",
+      "title": "Horizontal Rules",
+      "category": "advanced",
+      "body": "## Horizontal Rules\n\nCreate a thematic break with three or more of the same character on a line.\n\n### Syntax\nAny of these produce a `<hr>`:\n```markdown\n---\n***\n___\n```\n\nYou can also use spaces between characters:\n```markdown\n* * *\n- - -\n_ _ _\n```\n\n### Rules\n- Must be on their **own line**.\n- Must have **3 or more** characters.\n- Blank lines before and after are optional but recommended for readability.\n\n### Common Pitfall\nA line of hyphens directly under text is interpreted as a **Setext heading** (level 2), not a horizontal rule:\n```\nThis is a heading\n-----------------\n```\nTo prevent this, add a blank line above the hyphens.",
+      "searchTerms": ["rule", "hr", "horizontal", "divider", "separator", "thematic", "---", "break", "line"],
+      "relatedTopics": ["advanced/blockquotes", "formatting/images"],
+      "exampleCode": "Section One\n\n---\n\nSection Two\n\n***\n\nSection Three"
+    },
+    {
+      "id": "advanced/gfm-extensions",
+      "title": "GFM Extensions",
+      "category": "advanced",
+      "body": "## GitHub Flavored Markdown (GFM) Extensions\n\nSputnik supports GFM extensions on top of CommonMark:\n\n### Strikethrough\n```markdown\n~~deleted text~~\n```\n\n### Tables\n```markdown\n| Col A | Col B |\n|-------|-------|\n| Val 1 | Val 2 |\n```\n\n### Task Lists\n```markdown\n- [x] Done\n- [ ] To-do\n```\n\n### Autolinks\nURLs typed directly become clickable links.\n\n### Footnotes (selected variants)\n```markdown\nSentence with a footnote.[^1]\n\n[^1]: The footnote content.\n```\n\n### Disallowed Raw HTML\nSputnik strips raw HTML for security in the Markdown Preview — use only Markdown syntax.",
+      "searchTerms": ["gfm", "github", "flavored", "extension", "strikethrough", "task", "autolink", "footnote", "~~", "emoji"],
+      "relatedTopics": ["advanced/tables", "formatting/lists", "formatting/code"],
+      "exampleCode": "### GFM in Action\n\n~~Outdated info~~\n\n- [x] Implement login\n- [ ] Add tests\n- [ ] Write docs\n\nVisit https://sputnik.app\n\nThis is auto-linked in GFM."
+    }
+  ]
+}

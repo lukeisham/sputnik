@@ -1,0 +1,179 @@
+{
+  "records": [
+    {
+      "id": "arrow-001",
+      "title": "Right Arrow",
+      "tags": ["arrow", "right", "direction", "pointer", "line"],
+      "category": "Arrows",
+      "filename": "Arrows/simple_right.txt"
+    },
+    {
+      "id": "arrow-002",
+      "title": "Double Right Arrow",
+      "tags": ["arrow", "right", "double", "emphasis", "thick"],
+      "category": "Arrows",
+      "filename": "Arrows/double_right.txt"
+    },
+    {
+      "id": "arrow-003",
+      "title": "Up-Down Arrow",
+      "tags": ["arrow", "up", "down", "vertical", "bidirectional"],
+      "category": "Arrows",
+      "filename": "Arrows/up_down.txt"
+    },
+    {
+      "id": "arrow-004",
+      "title": "Left-Right Arrow",
+      "tags": ["arrow", "left", "right", "bidirectional", "horizontal"],
+      "category": "Arrows",
+      "filename": "Arrows/left_right.txt"
+    },
+    {
+      "id": "arrow-005",
+      "title": "Corner Arrow (Right-Down)",
+      "tags": ["arrow", "corner", "turn", "right", "down", "flow"],
+      "category": "Arrows",
+      "filename": "Arrows/corner_right_down.txt"
+    },
+    {
+      "id": "deco-001",
+      "title": "Star Border",
+      "tags": ["star", "border", "box", "decorative", "frame"],
+      "category": "Decorative",
+      "filename": "Decorative/star_border.txt"
+    },
+    {
+      "id": "deco-002",
+      "title": "Wave Line",
+      "tags": ["wave", "line", "tilde", "divider", "decorative"],
+      "category": "Decorative",
+      "filename": "Decorative/wave_line.txt"
+    },
+    {
+      "id": "deco-003",
+      "title": "Diamond Row",
+      "tags": ["diamond", "row", "pattern", "decorative"],
+      "category": "Decorative",
+      "filename": "Decorative/diamond_row.txt"
+    },
+    {
+      "id": "deco-004",
+      "title": "Floral Corner Pattern",
+      "tags": ["floral", "corner", "pattern", "dots", "decorative"],
+      "category": "Decorative",
+      "filename": "Decorative/floral_corner.txt"
+    },
+    {
+      "id": "deco-005",
+      "title": "Heart Row",
+      "tags": ["heart", "row", "love", "decorative", "pattern"],
+      "category": "Decorative",
+      "filename": "Decorative/heart_row.txt"
+    },
+    {
+      "id": "div-001",
+      "title": "Single Line Divider",
+      "tags": ["divider", "line", "single", "separator", "horizontal"],
+      "category": "Dividers",
+      "filename": "Dividers/single_line.txt"
+    },
+    {
+      "id": "div-002",
+      "title": "Double Line Divider",
+      "tags": ["divider", "line", "double", "separator", "thick"],
+      "category": "Dividers",
+      "filename": "Dividers/double_line.txt"
+    },
+    {
+      "id": "div-003",
+      "title": "Dashed Divider",
+      "tags": ["divider", "dashed", "separator", "light"],
+      "category": "Dividers",
+      "filename": "Dividers/dashed.txt"
+    },
+    {
+      "id": "div-004",
+      "title": "Dotted Divider",
+      "tags": ["divider", "dotted", "separator", "subtle"],
+      "category": "Dividers",
+      "filename": "Dividers/dotted.txt"
+    },
+    {
+      "id": "div-005",
+      "title": "Star Divider",
+      "tags": ["divider", "star", "separator", "decorative"],
+      "category": "Dividers",
+      "filename": "Dividers/star_divider.txt"
+    },
+    {
+      "id": "frame-001",
+      "title": "Single-Line Box",
+      "tags": ["box", "frame", "single", "border", "rectangle"],
+      "category": "Frames",
+      "filename": "Frames/single_box.txt"
+    },
+    {
+      "id": "frame-002",
+      "title": "Double-Line Box",
+      "tags": ["box", "frame", "double", "border", "rectangle", "thick"],
+      "category": "Frames",
+      "filename": "Frames/double_box.txt"
+    },
+    {
+      "id": "frame-003",
+      "title": "Rounded Box",
+      "tags": ["box", "frame", "rounded", "border", "soft"],
+      "category": "Frames",
+      "filename": "Frames/rounded_box.txt"
+    },
+    {
+      "id": "frame-004",
+      "title": "Thick-Line Box",
+      "tags": ["box", "frame", "thick", "bold", "border"],
+      "category": "Frames",
+      "filename": "Frames/thick_box.txt"
+    },
+    {
+      "id": "frame-005",
+      "title": "Shadow Box",
+      "tags": ["box", "frame", "shadow", "depth", "3d"],
+      "category": "Frames",
+      "filename": "Frames/shadow_box.txt"
+    },
+    {
+      "id": "sym-001",
+      "title": "Checkmark",
+      "tags": ["check", "tick", "done", "complete", "yes"],
+      "category": "Symbols",
+      "filename": "Symbols/checkmark.txt"
+    },
+    {
+      "id": "sym-002",
+      "title": "Warning Triangle",
+      "tags": ["warning", "alert", "caution", "triangle", "danger"],
+      "category": "Symbols",
+      "filename": "Symbols/warning.txt"
+    },
+    {
+      "id": "sym-003",
+      "title": "Info Badge",
+      "tags": ["info", "information", "badge", "note", "tip"],
+      "category": "Symbols",
+      "filename": "Symbols/info.txt"
+    },
+    {
+      "id": "sym-004",
+      "title": "Star",
+      "tags": ["star", "favourite", "favorite", "rating", "important"],
+      "category": "Symbols",
+      "filename": "Symbols/star.txt"
+    },
+    {
+      "id": "sym-005",
+      "title": "Heart",
+      "tags": ["heart", "love", "like", "favourite", "favorite"],
+      "category": "Symbols",
+      "filename": "Symbols/heart.txt"
+    }
+  ]
+}

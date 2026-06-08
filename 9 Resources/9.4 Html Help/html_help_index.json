@@ -1,0 +1,112 @@
+{
+  "topics": [
+    {
+      "id": "elements/div-and-span",
+      "title": "Div & Span",
+      "category": "elements",
+      "body": "`<div>` is a block-level container for grouping content and creating page sections. `<span>` is an inline container for wrapping text or other inline elements without breaking the flow. Use `<div>` for structural layout and `<span>` for styling or scripting small inline portions.",
+      "searchTerms": ["div", "span", "container", "block", "inline", "layout"],
+      "relatedTopics": ["attributes/class-and-id", "attributes/style"],
+      "exampleHTML": "<div style=\"background:#e0e0e0;padding:12px;border-radius:6px\">\n  <strong>Block container</strong>\n  <span style=\"color:#2563eb;font-weight:600\">Inline text</span>\n</div>"
+    },
+    {
+      "id": "elements/headings",
+      "title": "Headings",
+      "category": "elements",
+      "body": "HTML provides six heading levels: `<h1>` through `<h6>`. `<h1>` is the top-level heading (use only one per page), and `<h6>` is the least important. Headings create a document outline and improve accessibility for screen readers.",
+      "searchTerms": ["h1", "h2", "h3", "h4", "h5", "h6", "heading", "title", "outline"],
+      "relatedTopics": ["guides/best-practices"],
+      "exampleHTML": "<h1 style=\"margin:0;font-size:20px\">Heading 1</h1>\n<h2 style=\"margin:4px 0;font-size:17px\">Heading 2</h2>\n<h3 style=\"margin:4px 0;font-size:15px\">Heading 3</h3>"
+    },
+    {
+      "id": "elements/links",
+      "title": "Links",
+      "category": "elements",
+      "body": "The `<a>` (anchor) element creates hyperlinks. The `href` attribute specifies the URL. Use `target=\"_blank\"` to open in a new tab (pair with `rel=\"noopener noreferrer\"` for security). Links can wrap text, images, or block elements.",
+      "searchTerms": ["a", "anchor", "href", "link", "hyperlink", "url", "target", "rel"],
+      "relatedTopics": ["attributes/class-and-id", "events/onclick-and-events"],
+      "exampleHTML": "<a href=\"#\" style=\"color:#2563eb;font-weight:600;text-decoration:none\">Clickable link</a>\n<br><br>\n<a href=\"#\" style=\"color:#7c3aed\">Another link</a>"
+    },
+    {
+      "id": "elements/images",
+      "title": "Images",
+      "category": "elements",
+      "body": "The `<img>` element embeds images. Always include the `alt` attribute for accessibility. Use `loading=\"lazy\"` to defer off-screen images. Specify `width` and `height` to prevent layout shift during loading.",
+      "searchTerms": ["img", "image", "src", "alt", "loading", "lazy", "picture"],
+      "relatedTopics": ["attributes/class-and-id", "guides/best-practices"],
+      "exampleHTML": "<img src=\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='80'%3E%3Crect fill='%23cbd5e1' width='200' height='80' rx='8'/%3E%3Ctext fill='%23334155' x='50%25' y='50%25' text-anchor='middle' dy='.3em' font-family='system-ui' font-size='14'%3E🖼️ Placeholder%3C/text%3E%3C/svg%3E\" alt=\"Placeholder image\" style=\"max-width:100%;border-radius:8px\">"
+    },
+    {
+      "id": "elements/tables",
+      "title": "Tables",
+      "category": "elements",
+      "body": "Tables use `<table>`, `<tr>` (rows), `<td>` (data cells), and `<th>` (header cells). Wrap header rows in `<thead>` and body rows in `<tbody>` for semantic clarity. Use `<caption>` for an accessible table title.",
+      "searchTerms": ["table", "tr", "td", "th", "thead", "tbody", "caption", "row", "cell"],
+      "relatedTopics": ["attributes/class-and-id", "guides/best-practices"],
+      "exampleHTML": "<table style=\"border-collapse:collapse;width:100%;font-size:13px\">\n  <thead><tr style=\"background:#e2e8f0\">\n    <th style=\"padding:6px 10px;text-align:left\">Name</th>\n    <th style=\"padding:6px 10px;text-align:left\">Role</th>\n  </tr></thead>\n  <tbody>\n    <tr><td style=\"padding:6px 10px\">Ada</td><td style=\"padding:6px 10px\">Engineer</td></tr>\n    <tr><td style=\"padding:6px 10px\">Bo</td><td style=\"padding:6px 10px\">Designer</td></tr>\n  </tbody>\n</table>"
+    },
+    {
+      "id": "elements/forms",
+      "title": "Forms",
+      "category": "elements",
+      "body": "Forms collect user input with `<form>`. Common controls: `<input>` (text, email, checkbox, radio), `<button>`, `<select>` with `<option>`, and `<textarea>`. Use `<label>` with `for` attribute to link labels to inputs for accessibility.",
+      "searchTerms": ["form", "input", "button", "select", "textarea", "label", "checkbox", "radio"],
+      "relatedTopics": ["attributes/class-and-id", "events/onclick-and-events"],
+      "exampleHTML": "<form style=\"font-size:13px\">\n  <label style=\"display:block;margin-bottom:2px;font-weight:600\">Name</label>\n  <input type=\"text\" placeholder=\"Enter name\" style=\"padding:6px;border:1px solid #cbd5e1;border-radius:4px;width:200px\">\n  <button type=\"button\" style=\"margin-top:8px;padding:6px 14px;background:#2563eb;color:white;border:none;border-radius:4px;cursor:default\">Submit</button>\n</form>"
+    },
+    {
+      "id": "elements/lists",
+      "title": "Lists",
+      "category": "elements",
+      "body": "Unordered lists (`<ul>`) use bullet points. Ordered lists (`<ol>`) use numbers. Each item is an `<li>`. Definition lists (`<dl>`) pair `<dt>` terms with `<dd>` descriptions. Nest lists for hierarchical structures.",
+      "searchTerms": ["ul", "ol", "li", "dl", "dt", "dd", "list", "bullet", "ordered"],
+      "relatedTopics": ["elements/div-and-span", "attributes/class-and-id"],
+      "exampleHTML": "<ul style=\"font-size:13px\">\n  <li>First bullet point</li>\n  <li>Second bullet point\n    <ul>\n      <li>Nested item A</li>\n      <li>Nested item B</li>\n    </ul>\n  </li>\n</ul>"
+    },
+    {
+      "id": "attributes/class-and-id",
+      "title": "Class & ID",
+      "category": "attributes",
+      "body": "`class` targets multiple elements with shared styles (reusable). `id` uniquely identifies a single element — use for anchors, JavaScript targeting, or specific style overrides. IDs have higher CSS specificity than classes.",
+      "searchTerms": ["class", "id", "selector", "css", "specificity", "style"],
+      "relatedTopics": ["attributes/style", "globals/data-attributes"],
+      "exampleHTML": "<div id=\"unique-card\" class=\"card rounded\" style=\"padding:12px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:6px;font-size:13px\">\n  <strong>id:</strong> unique-card<br>\n  <strong>class:</strong> card rounded\n</div>"
+    },
+    {
+      "id": "attributes/style",
+      "title": "Style Attribute",
+      "category": "attributes",
+      "body": "The `style` attribute applies inline CSS directly to an element. Use sparingly — prefer external stylesheets or `<style>` blocks. Inline styles are useful for dynamic values or quick prototyping but hurt maintainability at scale.",
+      "searchTerms": ["style", "inline", "css", "property", "color", "font"],
+      "relatedTopics": ["attributes/class-and-id", "guides/best-practices"],
+      "exampleHTML": "<p style=\"color:#dc2626;font-weight:700;font-size:15px;margin:0\">Red bold text</p>\n<p style=\"color:#16a34a;font-style:italic;font-size:13px;margin:4px 0 0\">Green italic text</p>"
+    },
+    {
+      "id": "globals/data-attributes",
+      "title": "Data Attributes",
+      "category": "globals",
+      "body": "`data-*` attributes store custom data on any HTML element. They are ignored by browsers but accessible via JavaScript (`element.dataset`). Use them to embed application state, configuration values, or metadata without polluting other attributes.",
+      "searchTerms": ["data", "dataset", "custom", "attribute", "metadata", "data-"],
+      "relatedTopics": ["attributes/class-and-id", "events/onclick-and-events"],
+      "exampleHTML": "<div data-user-id=\"42\" data-role=\"admin\" style=\"padding:10px;background:#fef3c7;border-radius:6px;font-size:13px\">\n  data-user-id = \"42\"<br>\n  data-role = \"admin\"\n</div>"
+    },
+    {
+      "id": "events/onclick-and-events",
+      "title": "Click & Events",
+      "category": "events",
+      "body": "Event attributes like `onclick`, `onmouseover`, `onchange`, and `onsubmit` attach JavaScript handlers directly to elements. Modern practice prefers `addEventListener` in scripts, but inline handlers remain common for quick prototyping.",
+      "searchTerms": ["onclick", "onmouseover", "onchange", "onsubmit", "event", "handler", "javascript"],
+      "relatedTopics": ["elements/links", "elements/forms"],
+      "exampleHTML": "<button onclick=\"alert('Clicked!')\" style=\"padding:8px 16px;background:#2563eb;color:white;border:none;border-radius:4px;font-size:13px\">\n  Click me\n</button>"
+    },
+    {
+      "id": "guides/best-practices",
+      "title": "Best Practices",
+      "category": "guides",
+      "body": "Write semantic HTML: use elements for their intended purpose (`<nav>` for navigation, `<main>` for content, `<article>` for self-contained pieces). Always include `lang` on `<html>`, use `alt` on images, and ensure keyboard navigability. Validate your markup with the W3C validator.",
+      "searchTerms": ["semantic", "accessibility", "a11y", "best", "practice", "lang", "alt", "validator", "seo"],
+      "relatedTopics": ["elements/headings", "elements/images", "elements/tables"],
+      "exampleHTML": "<!DOCTYPE html>\n<html lang=\"en\">\n<head><meta charset=\"UTF-8\"><title>Semantic Demo</title></head>\n<body style=\"font-family:system-ui;font-size:13px;margin:20px\">\n  <header><h1 style=\"font-size:18px;margin:0\">Page Title</h1></header>\n  <main style=\"margin-top:12px\"><p>Main content area.</p></main>\n  <footer style=\"margin-top:12px;color:#64748b\"><small>© 2026</small></footer>\n</body>\n</html>"
+    }
+  ]
+}

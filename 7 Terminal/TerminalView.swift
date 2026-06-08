@@ -6,25 +6,29 @@ import SwiftUI
 /// bottom-pinned slot. It composes `TerminalRenderer`, hosts the profile chrome,
 /// wires keystroke routing through `KeyEncoder` → `TerminalManager`, and
 /// renders disabled/placeholder states on PTY or launch failure via `SputnikAlert`.
-///
-/// **ISS-002:** `TerminalProfile` is loaded from a local default because
-/// `SettingsStore` (2.3) does not yet expose terminal fields. When 2.3 is updated,
-/// replace `TerminalProfile.default` with a property read from
-/// `@Environment(SettingsStore.self)`.
 public struct TerminalView: View {
 
     // MARK: - Environment
 
     @Environment(AppState.self) private var appState
+    @Environment(SettingsStore.self) private var settings
 
     // MARK: - State
 
     @StateObject private var manager = TerminalManager()
-
-    // ISS-002: local default until SettingsStore (2.3) exposes terminal fields.
-    @State private var profile: TerminalProfile = .default
-
     @State private var showAlert: Bool = false
+
+    // MARK: - Computed profile
+
+    private var profile: TerminalProfile {
+        TerminalProfile(
+            fontName:            settings.terminalFontName,
+            fontSize:            settings.terminalFontSize,
+            foreground:          settings.terminalForeground,
+            background:          settings.terminalBackground,
+            scrollbackLineLimit: settings.terminalScrollbackLimit
+        )
+    }
 
     // MARK: - Body
 
@@ -35,7 +39,7 @@ public struct TerminalView: View {
         }
         .background(profile.swiftUIBackground)
         .task {
-            await manager.startSession(directory: appState.activeWorkspaceDirectory)
+            await manager.startSession(directory: appState.activeWorkspaceDirectory, profile: profile)
         }
         .onChange(of: appState.activeWorkspaceDirectory) { _, newValue in
             manager.syncWorkingDirectory(newValue)
@@ -61,27 +65,16 @@ public struct TerminalView: View {
 
     // MARK: - Sub-views
 
-    /// Profile selector chrome displayed above the terminal surface.
+    /// Profile label chrome displayed above the terminal surface.
     private var profileChrome: some View {
         HStack {
             Text("Terminal")
                 .font(.system(size: 11, weight: .medium))
                 .foregroundStyle(.secondary)
             Spacer()
-            Menu {
-                Button("Default") { profile = .default }
-            } label: {
-                HStack(spacing: 4) {
-                    Text("Profile: Default")
-                        .font(.system(size: 11))
-                    Image(systemName: "chevron.down")
-                        .font(.system(size: 9))
-                }
+            Text("Profile: Default")
+                .font(.system(size: 11))
                 .foregroundStyle(.secondary)
-            }
-            .menuStyle(.borderlessButton)
-            .fixedSize()
-
             shellExitedBadge
         }
         .padding(.horizontal, 8)

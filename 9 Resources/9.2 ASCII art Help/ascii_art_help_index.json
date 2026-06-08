@@ -1,0 +1,104 @@
+{
+  "topics": [
+    {
+      "id": "basics/getting-started",
+      "title": "Getting Started with ASCII Art",
+      "category": "basics",
+      "body": "Learn the fundamentals of creating and inserting ASCII art in Sputnik. This guide covers the editor's monospaced mode, the ASCII Library browser, and how to preview your art before inserting it into a document.",
+      "searchTerms": ["intro", "beginner", "start", "tutorial", "first steps", "overview"],
+      "relatedTopics": ["basics/drawing-shapes", "basics/using-borders"],
+      "relatedArtIDs": [],
+      "exampleCode": null
+    },
+    {
+      "id": "basics/drawing-shapes",
+      "title": "Drawing Shapes",
+      "category": "basics",
+      "body": "Master the art of drawing boxes, triangles, and other geometric shapes using box-drawing characters. Understand how to maintain alignment in a monospaced grid and avoid common spacing pitfalls.",
+      "searchTerms": ["box", "triangle", "rectangle", "geometry", "shape", "outline", "grid"],
+      "relatedTopics": ["basics/getting-started", "techniques/frames-and-boxes"],
+      "relatedArtIDs": ["frame-001", "frame-002", "frame-003"],
+      "exampleCode": "  ┌─────────┐      ┌─────────┐\n  │  Before  │  →   │  After   │\n  └─────────┘      └─────────┘"
+    },
+    {
+      "id": "basics/using-borders",
+      "title": "Using Borders",
+      "category": "basics",
+      "body": "Decorative borders frame your content and add visual hierarchy. Explore single-line, double-line, and rounded borders, and learn when to use each style for maximum impact.",
+      "searchTerms": ["border", "outline", "edge", "frame", "surround", "wrap"],
+      "relatedTopics": ["basics/drawing-shapes", "techniques/decorative-patterns"],
+      "relatedArtIDs": ["frame-004", "frame-005", "deco-001"],
+      "exampleCode": "  ╭─────────╮      ╔═════════╗\n  │  Rounded │  vs  ║  Bold   ║\n  ╰─────────╯      ╚═════════╝"
+    },
+    {
+      "id": "techniques/arrows-and-direction",
+      "title": "Arrows and Direction",
+      "category": "techniques",
+      "body": "Use arrow art to indicate flow, direction, and relationships in diagrams. Covers left, right, up, down, and corner arrows from the ASCII Library's Arrows collection.",
+      "searchTerms": ["arrow", "direction", "flow", "pointer", "diagram", "navigation", "up", "down", "left", "right"],
+      "relatedTopics": ["techniques/dividers-and-separators", "examples/header-design"],
+      "relatedArtIDs": ["arrow-001", "arrow-002", "arrow-003", "arrow-004", "arrow-005"],
+      "exampleCode": "  Start ●───→ ●───→ ●───→ End\n                ↓\n              Branch"
+    },
+    {
+      "id": "techniques/frames-and-boxes",
+      "title": "Frames and Boxes",
+      "category": "techniques",
+      "body": "Frame your content with single-line, double-line, thick, rounded, and shadow boxes. Learn which frame style communicates the right tone for notes, warnings, and callouts.",
+      "searchTerms": ["frame", "box", "container", "panel", "callout", "note", "warning"],
+      "relatedTopics": ["basics/drawing-shapes", "techniques/symbols-and-icons"],
+      "relatedArtIDs": ["frame-001", "frame-002", "frame-003", "frame-004", "frame-005"],
+      "exampleCode": "  ┌─────────────┐    ╔═════════════╗\n  │ Simple note  │    ║  Important! ║\n  └─────────────┘    ╚═════════════╝"
+    },
+    {
+      "id": "techniques/dividers-and-separators",
+      "title": "Dividers and Separators",
+      "category": "techniques",
+      "body": "Organise your document into clear sections with ASCII dividers. Choose from single, double, dashed, dotted, and star dividers to match your document's tone.",
+      "searchTerms": ["divider", "separator", "section", "horizontal rule", "line", "break"],
+      "relatedTopics": ["techniques/decorative-patterns", "examples/header-design"],
+      "relatedArtIDs": ["div-001", "div-002", "div-003", "div-004", "div-005"],
+      "exampleCode": "  ─────────────────  (single)\n  ═════════════════  (double)\n  ─ ─ ─ ─ ─ ─ ─ ─  (dashed)"
+    },
+    {
+      "id": "techniques/symbols-and-icons",
+      "title": "Symbols and Icons",
+      "category": "techniques",
+      "body": "Add visual emphasis with checkmarks, warning triangles, info badges, stars, and hearts. Symbols draw attention to key points without cluttering your layout.",
+      "searchTerms": ["symbol", "icon", "checkmark", "warning", "info", "star", "heart", "badge"],
+      "relatedTopics": ["techniques/frames-and-boxes", "examples/cat-art"],
+      "relatedArtIDs": ["sym-001", "sym-002", "sym-003", "sym-004", "sym-005"],
+      "exampleCode": "  ✓ Task completed\n  ⚠ Warning: check config\n  ℹ Note: updated daily"
+    },
+    {
+      "id": "techniques/decorative-patterns",
+      "title": "Decorative Patterns",
+      "category": "techniques",
+      "body": "Enhance your documents with star borders, wave lines, diamond rows, floral corners, and heart rows. Decorative patterns add personality to headers, footers, and section breaks.",
+      "searchTerms": ["decorative", "pattern", "ornament", "flourish", "wave", "diamond", "floral", "heart"],
+      "relatedTopics": ["basics/using-borders", "techniques/dividers-and-separators"],
+      "relatedArtIDs": ["deco-001", "deco-002", "deco-003", "deco-004", "deco-005"],
+      "exampleCode": "  ✿ ✿ ✿ ✿ ✿ ✿ ✿\n  ♥ ♥ ♥ ♥ ♥ ♥ ♥\n  ◇ ◇ ◇ ◇ ◇ ◇ ◇"
+    },
+    {
+      "id": "examples/cat-art",
+      "title": "Example: Cat Art",
+      "category": "examples",
+      "body": "Follow a step-by-step example of composing a simple cat using ASCII symbols. Learn how to layer characters, maintain proportions, and build recognisable figures from basic shapes.",
+      "searchTerms": ["cat", "animal", "example", "composition", "figure", "tutorial", "step by step"],
+      "relatedTopics": ["techniques/symbols-and-icons", "examples/header-design"],
+      "relatedArtIDs": ["sym-004", "sym-005"],
+      "exampleCode": "  /\\___/\\\n (  o o  )\n (  =^=  )\n  (______)"
+    },
+    {
+      "id": "examples/header-design",
+      "title": "Example: Header Design",
+      "category": "examples",
+      "body": "Design an eye-catching section header by combining dividers, text, and decorative elements. This example demonstrates how to layer multiple art pieces into a cohesive header block.",
+      "searchTerms": ["header", "title", "section", "design", "banner", "heading", "layout"],
+      "relatedTopics": ["techniques/dividers-and-separators", "techniques/decorative-patterns"],
+      "relatedArtIDs": ["div-001", "div-005", "deco-001"],
+      "exampleCode": "  ╔══════════════════╗\n  ║  SECTION TITLE   ║\n  ╚══════════════════╝\n  ────────────────────"
+    }
+  ]
+}

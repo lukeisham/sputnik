@@ -6,9 +6,6 @@ import AppKit
 /// Debounced via Foundation 2.7 `DebounceTimer` (SC-3).
 /// Renders through the shared `GhostTextOverlay` from 3.1 (SC-2, SC-8).
 /// Pattern analysis runs on `Task(priority: .utility)` (SR-4).
-///
-/// ISS-004: `debounceInterval` and `asciiTriggerKey` should come from `SettingsStore`
-/// (Foundation 2.3). Local default: 0.15 s, trigger key = Tab (built into GhostTextOverlay).
 @MainActor
 public final class ASCIIArtLanguageProvider {
 
@@ -17,26 +14,26 @@ public final class ASCIIArtLanguageProvider {
     private weak var textView: NSTextView?
     private weak var ghostOverlay: GhostTextOverlay?
     let blockCompletion: BlockCompletion
-
-    // ISS-004: local default — replace with SettingsStore.asciiDebounceInterval when ready.
-    private let debounceInterval: TimeInterval = 0.15
+    private let settings: SettingsStore
     private let debounce = DebounceTimer()
 
     public init(
         textView: NSTextView,
         ghostOverlay: GhostTextOverlay,
-        blockCompletion: BlockCompletion
+        blockCompletion: BlockCompletion,
+        settings: SettingsStore
     ) {
-        self.textView       = textView
-        self.ghostOverlay   = ghostOverlay
+        self.textView        = textView
+        self.ghostOverlay    = ghostOverlay
         self.blockCompletion = blockCompletion
+        self.settings        = settings
     }
 
     // MARK: - Public interface
 
     /// Call on every keypress while `EditorMode` is `.asciiArt`.
     public func onKeypress() {
-        debounce.schedule(delay: debounceInterval) { [weak self] in
+        debounce.schedule(delay: settings.asciiDebounceInterval) { [weak self] in
             Task { @MainActor [weak self] in
                 await self?.generateSuggestion()
             }

@@ -10,4 +10,10 @@ public enum PanelID: String, Codable, Sendable, CaseIterable, Hashable {
     case markdownPreview
     case htmlPreview
     case pdfViewer
+
+    // MARK: Help panels (module 9 Resources)
+    case asciiArtHelp
+    case markdownHelp
+    case htmlHelp
+    case grammarHelp
 }

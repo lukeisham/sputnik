@@ -5,30 +5,27 @@ import AppKit
 /// Only active when `EditorViewModel.htmlModeActive` is `true` (SC-10 gate).
 /// Debounced via Foundation 2.7 `DebounceTimer` (SC-3).
 /// Renders through the shared `GhostTextOverlay` from 3.1 (SC-2).
-///
-/// ISS-004: `debounceInterval` and `suggestionsEnabled` should come from `SettingsStore`
-/// (Foundation 2.3). Using local defaults until that setting is exposed.
 @MainActor
 public final class HTMLLanguageProvider {
 
     // MARK: - Dependencies
 
-    private weak var textView:    NSTextView?
+    private weak var textView:     NSTextView?
     private weak var ghostOverlay: GhostTextOverlay?
-    private weak var viewModel:   EditorViewModel?
+    private weak var viewModel:    EditorViewModel?
+    private let settings: SettingsStore
     private let debounce = DebounceTimer()
-
-    // ISS-004: local default — replace with SettingsStore when Foundation 2.3 is ready.
-    private let debounceInterval: TimeInterval = 0.20
 
     public init(
         textView:     NSTextView,
         ghostOverlay: GhostTextOverlay,
-        viewModel:    EditorViewModel
+        viewModel:    EditorViewModel,
+        settings:     SettingsStore
     ) {
         self.textView     = textView
-        self.ghostOverlay  = ghostOverlay
+        self.ghostOverlay = ghostOverlay
         self.viewModel    = viewModel
+        self.settings     = settings
     }
 
     // MARK: - Public interface
@@ -36,7 +33,7 @@ public final class HTMLLanguageProvider {
     /// Call on every keypress in `.html` mode.
     public func onKeypress() {
         guard viewModel?.htmlModeActive == true else { ghostOverlay?.clear(); return }
-        debounce.schedule(delay: debounceInterval) { [weak self] in
+        debounce.schedule(delay: settings.htmlDebounceInterval) { [weak self] in
             Task { @MainActor [weak self] in
                 await self?.generateSuggestion()
             }

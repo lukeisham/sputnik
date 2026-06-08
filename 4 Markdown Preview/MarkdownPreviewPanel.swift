@@ -1,0 +1,283 @@
+import SwiftUI
+
+/// Top-level SwiftUI view for the Markdown Preview panel.
+///
+/// Assembles the header bar (document title + overflow menu), toolbar (Fit Width,
+/// Font Size, Link toggle), and the `MarkdownRenderView` content area. Observes
+/// `AppState.activeDocument` via `@Environment` and drives the render pipeline
+/// through `MarkdownPreviewViewModel`.
+///
+/// **State-driven content:**
+/// - Active + `.markdown` → renders the Markdown via `MarkdownRenderView`.
+/// - Active + not `.markdown` → shows a placeholder with the active filename.
+/// - No active document → shows an empty-state placeholder.
+/// - Render error → subtle warning banner + plain-text fallback already rendered.
+///
+/// **Layout:** Occupies the `centerLower` slot by default.
+public struct MarkdownPreviewPanel: View {
+
+    // MARK: - Environment
+
+    @Environment(AppState.self) private var appState
+
+    // MARK: - State
+
+    @State private var viewModel = MarkdownPreviewViewModel()
+    @State private var fitWidth: Bool = true
+    @State private var linksEnabled: Bool = true
+
+    /// The coordinator for this panel, created once on init and wired into `MarkdownRenderView`.
+    private let coordinator: MarkdownPreviewCoordinator
+
+    // MARK: - Init
+
+    /// Creates the Markdown Preview panel.
+    /// - Parameter router: The app's `InterPanelRouter` instance. `nil` disables
+    ///   tab-open behaviour for link clicks (preview becomes read-only).
+    public init(router: (any InterPanelRouter)? = nil) {
+        self.coordinator = MarkdownPreviewCoordinator(router: router)
+    }
+
+    // MARK: - Body
+
+    public var body: some View {
+        VStack(spacing: 0) {
+            headerBar
+            Divider()
+            toolbar
+            Divider()
+            contentArea
+        }
+        .background(SputnikColor.editorBackground)
+        .task {
+            viewModel.configure(appState: appState)
+        }
+        .onChange(of: appState.activeDocument?.text ?? "") { _, newValue in
+            triggerRender(markdown: newValue)
+        }
+        .onChange(of: appState.activeDocumentID) { _, _ in
+            handleActiveDocumentChange()
+        }
+        .onAppear {
+            handleActiveDocumentChange()
+        }
+    }
+
+    // MARK: - Header bar
+
+    private var headerBar: some View {
+        HStack(spacing: SputnikSpacing.sm) {
+            // Panel title + current document filename.
+            Text("MARKDOWN PREVIEW")
+                .font(.system(size: SputnikFont.caption, weight: .semibold, design: .default))
+                .foregroundStyle(SputnikColor.secondaryText)
+
+            if let name = appState.activeDocument?.url?.lastPathComponent {
+                Text("—")
+                    .foregroundStyle(SputnikColor.tertiaryText)
+                Text(name)
+                    .font(.system(size: SputnikFont.caption, weight: .medium, design: .default))
+                    .foregroundStyle(SputnikColor.primaryText)
+                    .lineLimit(1)
+                    .truncationMode(.middle)
+            }
+
+            Spacer()
+
+            // Overflow menu: Reveal in Finder.
+            Menu {
+                if let url = appState.activeDocument?.url {
+                    Button("Reveal in Finder") {
+                        NSWorkspace.shared.activateFileViewerSelecting([url])
+                    }
+                } else {
+                    Text("No file to reveal")
+                        .foregroundStyle(SputnikColor.tertiaryText)
+                }
+            } label: {
+                Image(systemName: "ellipsis")
+                    .font(.system(size: SputnikFont.caption))
+                    .foregroundStyle(SputnikColor.secondaryText)
+            }
+            .menuStyle(.borderlessButton)
+            .frame(width: 24, height: 24)
+            .disabled(appState.activeDocument?.url == nil)
+        }
+        .padding(.horizontal, SputnikSpacing.md)
+        .padding(.vertical, SputnikSpacing.sm)
+    }
+
+    // MARK: - Toolbar
+
+    private var toolbar: some View {
+        HStack(spacing: SputnikSpacing.xs) {
+            // Fit Width toggle.
+            Button {
+                fitWidth.toggle()
+            } label: {
+                Image(systemName: "arrow.left.and.right.righttriangle.left.righttriangle.right")
+                    .font(.system(size: SputnikFont.caption))
+            }
+            .help("Fit Width")
+            .buttonStyle(.borderless)
+            .foregroundStyle(fitWidth ? SputnikColor.accent : SputnikColor.secondaryText)
+
+            // Font Size cycle button.
+            Menu {
+                ForEach([0.8, 1.0, 1.2, 1.5], id: \.self) { scale in
+                    Button {
+                        viewModel.fontScale = CGFloat(scale)
+                    } label: {
+                        HStack {
+                            Text("\(Int(scale * 100))%")
+                            if viewModel.fontScale == CGFloat(scale) {
+                                Image(systemName: "checkmark")
+                            }
+                        }
+                    }
+                }
+            } label: {
+                Image(systemName: "textformat.size")
+                    .font(.system(size: SputnikFont.caption))
+            }
+            .help("Font Size")
+            .buttonStyle(.borderless)
+            .foregroundStyle(SputnikColor.secondaryText)
+            .menuIndicator(.hidden)
+
+            // Link toggle.
+            Button {
+                linksEnabled.toggle()
+                coordinator.linksEnabled = linksEnabled
+            } label: {
+                Image(systemName: "link")
+                    .font(.system(size: SputnikFont.caption))
+            }
+            .help(linksEnabled ? "Links Enabled" : "Links Disabled")
+            .buttonStyle(.borderless)
+            .foregroundStyle(linksEnabled ? SputnikColor.accent : SputnikColor.tertiaryText)
+
+            Spacer()
+        }
+        .padding(.horizontal, SputnikSpacing.md)
+        .padding(.vertical, SputnikSpacing.xs)
+    }
+
+    // MARK: - Content area
+
+    @ViewBuilder
+    private var contentArea: some View {
+        let session = appState.activeDocument
+
+        if let session {
+            if session.fileType == .markdown || session.fileType == .ascii {
+                // Render error banner.
+                if let error = viewModel.renderError {
+                    errorBanner(error)
+                }
+
+                // Wrapping text view with width layout.
+                if fitWidth {
+                    ScrollView(.vertical) {
+                        MarkdownRenderView(
+                            renderedString: viewModel.renderedString,
+                            fontScale: viewModel.fontScale,
+                            coordinator: coordinator
+                        )
+                        .frame(maxWidth: 720)
+                        .frame(maxWidth: .infinity)
+                    }
+                } else {
+                    ScrollView(.vertical) {
+                        MarkdownRenderView(
+                            renderedString: viewModel.renderedString,
+                            fontScale: viewModel.fontScale,
+                            coordinator: coordinator
+                        )
+                    }
+                }
+            } else {
+                // Active document is not Markdown — show placeholder.
+                notMarkdownPlaceholder(session: session)
+            }
+        } else {
+            // No active document.
+            emptyStatePlaceholder
+        }
+    }
+
+    // MARK: - Placeholders
+
+    private func notMarkdownPlaceholder(session: DocumentSession) -> some View {
+        VStack(spacing: SputnikSpacing.sm) {
+            Image(systemName: "doc.text.magnifyingglass")
+                .font(.system(size: 32))
+                .foregroundStyle(SputnikColor.tertiaryText)
+            Text("No Markdown file open")
+                .font(.system(size: SputnikFont.body, weight: .medium))
+                .foregroundStyle(SputnikColor.secondaryText)
+            if let name = session.url?.lastPathComponent {
+                Text("\"\(name)\" is a \(session.fileType.rawValue) file.")
+                    .font(.system(size: SputnikFont.caption))
+                    .foregroundStyle(SputnikColor.tertiaryText)
+            }
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+    }
+
+    private var emptyStatePlaceholder: some View {
+        VStack(spacing: SputnikSpacing.sm) {
+            Image(systemName: "doc.richtext")
+                .font(.system(size: 32))
+                .foregroundStyle(SputnikColor.tertiaryText)
+            Text("Open a Markdown file to preview")
+                .font(.system(size: SputnikFont.body, weight: .medium))
+                .foregroundStyle(SputnikColor.secondaryText)
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+    }
+
+    // MARK: - Error banner
+
+    private func errorBanner(_ message: String) -> some View {
+        HStack(spacing: SputnikSpacing.xs) {
+            Image(systemName: "exclamationmark.triangle.fill")
+                .font(.system(size: SputnikFont.caption))
+                .foregroundStyle(Color.yellow)
+            Text("Parse warning: \(message)")
+                .font(.system(size: SputnikFont.caption))
+                .foregroundStyle(SputnikColor.secondaryText)
+            Spacer()
+        }
+        .padding(.horizontal, SputnikSpacing.md)
+        .padding(.vertical, SputnikSpacing.xs)
+        .background(Color.yellow.opacity(0.10))
+    }
+
+    // MARK: - Render trigger
+
+    /// Initiates a Markdown render when the active session's text changes.
+    private func triggerRender(markdown: String) {
+        guard let session = appState.activeDocument,
+            session.fileType == .markdown || session.fileType == .ascii
+        else { return }
+        viewModel.render(markdown: markdown, fontScale: viewModel.fontScale)
+    }
+
+    /// Handles a change in the active document — clears stale state and triggers
+    /// a render if the new session is Markdown.
+    private func handleActiveDocumentChange() {
+        guard let session = appState.activeDocument else {
+            viewModel.renderedString = AttributedString()
+            viewModel.renderError = nil
+            return
+        }
+
+        if session.fileType == .markdown || session.fileType == .ascii {
+            viewModel.render(markdown: session.text, fontScale: viewModel.fontScale)
+        } else {
+            viewModel.renderedString = AttributedString()
+            viewModel.renderError = nil
+        }
+    }
+}

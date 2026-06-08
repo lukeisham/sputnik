@@ -1,6 +1,6 @@
+import AppKit
 import SwiftUI
 import WebKit
-import AppKit
 
 /// Live HTML preview panel — renders the active `.html` editor tab in a `WKWebView`.
 ///
@@ -32,19 +32,36 @@ public struct HTMLPreviewView: NSViewRepresentable {
     /// Held weakly inside `HTMLPreviewCoordinator` to avoid retain cycles (SW-2).
     private let router: (any InterPanelRouter)?
 
+    /// Whether link-click navigation is enabled. Toggled from `HTMLPreviewPanel` toolbar.
+    private let isLinkNavigationEnabled: Bool
+
+    /// Callback for load failures, surfaced as an error banner in the panel.
+    private let onLoadError: ((String) -> Void)?
+
     // MARK: - Init
 
     /// Creates the HTML preview view.
-    /// - Parameter router: The app's `InterPanelRouter` instance. `nil` disables
-    ///   tab-open behaviour for link clicks (preview becomes read-only).
-    public init(router: (any InterPanelRouter)? = nil) {
+    /// - Parameters:
+    ///   - router:                  The app's `InterPanelRouter` instance.
+    ///   - isLinkNavigationEnabled: Whether link clicks open files/URLs. Default `true`.
+    ///   - onLoadError:             Optional callback when navigation fails.
+    public init(
+        router: (any InterPanelRouter)? = nil,
+        isLinkNavigationEnabled: Bool = true,
+        onLoadError: ((String) -> Void)? = nil
+    ) {
         self.router = router
+        self.isLinkNavigationEnabled = isLinkNavigationEnabled
+        self.onLoadError = onLoadError
     }
 
     // MARK: - NSViewRepresentable
 
     public func makeCoordinator() -> HTMLPreviewCoordinator {
-        HTMLPreviewCoordinator(router: router)
+        let c = HTMLPreviewCoordinator(router: router)
+        c.isLinkNavigationEnabled = isLinkNavigationEnabled
+        c.onLoadError = onLoadError
+        return c
     }
 
     public func makeNSView(context: Context) -> WKWebView {
@@ -71,6 +88,10 @@ public struct HTMLPreviewView: NSViewRepresentable {
         // Resolve the baseURL to the file's directory so relative `src`/`href` resolve.
         let baseURL: URL? = session.url.map { $0.deletingLastPathComponent() }
         context.coordinator.currentBaseURL = baseURL
+
+        // Push the latest toggle + error handler state into the coordinator.
+        context.coordinator.isLinkNavigationEnabled = isLinkNavigationEnabled
+        context.coordinator.onLoadError = onLoadError
 
         webView.loadHTMLString(session.text, baseURL: baseURL)
     }

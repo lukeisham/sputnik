@@ -77,12 +77,6 @@ App_Sputnik/
 
 Each module has a **Module Guide** in `1 Setup/Module Guides/<N> <Name>/`. See [Module Guide Format](#module-guide-format) below.
 
-> **Module numbers are stable identifiers, not the build sequence.** The numbers above name each module permanently; they do not imply the order of implementation. The build order is defined separately in `readme.md`:
->
-> **Foundation (2) → Text Editor (3) → Project File Tree (6) → Markdown Preview (4) → PDF Viewer (5) → HTML Preview (8) → Terminal (7)**
->
-> When an instruction says "build module N," it means the module with identifier N — follow the build order above to decide *when*, not the numeric order.
-
 ---
 
 ## Agent Skills

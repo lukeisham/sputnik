@@ -20,19 +20,22 @@ public struct PanelLayout: Codable, Sendable, Equatable {
     /// Values outside 0…1 are clamped to safe bounds when applied to the view.
     public var sizes: [PanelPosition: CGFloat]
 
-    /// The default layout: File Tree left, Text Editor centre-upper, empty right, PDF lower-centre.
+    /// The default layout: File Tree left, Text Editor centre-upper, pdfViewer centre-lower,
+    /// markdownPreview right.
+    /// Help panels (9.2–9.5) share the `.right` slot since only one is visible at a time;
+    /// when no help is open the right slot falls back to markdownPreview.
     public static let `default` = PanelLayout(
         assignments: [
-            .left:        .fileTree,
+            .left: .fileTree,
             .centerUpper: .textEditor,
-            .right:       .markdownPreview,
-            .centerLower: .pdfViewer
+            .right: .markdownPreview,
+            .centerLower: .pdfViewer,
         ],
         sizes: [
-            .left:        0.20,
+            .left: 0.20,
             .centerUpper: 0.55,
-            .right:       0.25,
-            .centerLower: 0.40
+            .right: 0.25,
+            .centerLower: 0.40,
         ]
     )
 
