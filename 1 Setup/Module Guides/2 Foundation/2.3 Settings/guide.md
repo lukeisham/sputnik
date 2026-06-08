@@ -1,7 +1,7 @@
 ---
 module: 2.3 Foundation – Settings
-status: draft
-last_updated: 2026-06-07
+status: active
+last_updated: 2026-06-08
 ---
 
 ## Purpose

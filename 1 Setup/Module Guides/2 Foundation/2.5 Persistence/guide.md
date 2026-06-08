@@ -1,6 +1,7 @@
 ---
 module: 2.5 Foundation – Persistence
-status: draft
+status: active
+last_updated: 2026-06-08
 ---
 
 ## Purpose

@@ -2,7 +2,7 @@
 plan: Implement Foundation module source
 module: 2 Foundation
 created: 2026-06-08
-status: pending
+status: complete
 related_issues: ISS-001
 ---
 
@@ -27,50 +27,50 @@ All of the following are true by inspection (no build step in scope):
 
 ## Steps
 
-- [ ] 1. **Author the dependency-free value types (2.1, 2.3, 2.4)**
+- [x] 1. **Author the dependency-free value types (2.1, 2.3, 2.4)**
    What: Create the leaf enums/structs that nothing else depends on yet, each in its own file:
    `2.1/FileType.swift` (enum `.text/.markdown/.html/.pdf/.ascii/.binary/.unknown` + an `init(url:)` extension that classifies by extension — grouped per SR-6 same-resource rule),
    `2.3/AppTheme.swift` (`.light/.dark/.system`), `2.3/EditorFont.swift` (`Sendable` struct wrapping font name + point size),
    `2.4/PanelID.swift` (`.fileTree/.textEditor/.markdownPreview/.htmlPreview/.pdfViewer` — Terminal deliberately excluded), `2.4/PanelPosition.swift` (`.left/.centerUpper/.centerLower/.right`), `2.4/FocusMode.swift` (`.dev/.writer/.reader`), `2.4/SputnikAlert.swift` (typed error enum with `title`/`message`).
    Why: These are the shared vocabulary the rest of Foundation references; writing them first means every later file compiles against a real type, not a stub. Defining `FileType` and `FocusMode` once here satisfies SR-1 (single definition) and prevents the kind of duplication that produced ISS-001.
 
-- [ ] 2. **Author the design tokens (2.4)**
+- [x] 2. **Author the design tokens (2.4)**
    What: `2.4/DesignTokens.swift` housing the pure-constant namespaces `SputnikSpacing` and `SputnikFont` (closely related, grouped per SR-6), plus a separate `2.4/SputnikColor.swift` because it carries light/dark resolution logic (a distinct concern → its own file). `SputnikColor` bridges SwiftUI `Color` and AppKit `NSColor` and resolves via the `colorScheme` environment value (no manual refresh).
    Why: 2.4 is the single home of shared visual primitives (SR-1); all other modules consume these. Separating the logic-bearing colour type from the constant namespaces respects SR-6.
 
-- [ ] 3. **Author `PanelLayout` and resolve ISS-001 (2.4 + 2.5)**
+- [x] 3. **Author `PanelLayout` and resolve ISS-001 (2.4 + 2.5)**
    What: `2.4/PanelLayout.swift` — a `Codable, Sendable` struct with `assignments: [PanelPosition: PanelID]` and `sizes: [PanelPosition: CGFloat]`. Then `2.5/LayoutState.swift` — the top-level `Codable, Sendable` struct serialised to `layout.json`, which *contains* a `PanelLayout` plus `visibility`/`focusMode` and `lastOpenFile: URL?`. Add a doc-comment in both files noting `LayoutState` is the persisted root and `PanelLayout` is its panel-arrangement component.
    Why: This directly resolves ISS-001 — the two guide names become one coherent containment relationship (`LayoutState` ⊃ `PanelLayout`) instead of two divergent types, honouring SR-1.
 
-- [ ] 4. **Author the Persistence layer (2.5)**
+- [x] 4. **Author the Persistence layer (2.5)**
    What: `2.5/PersistenceService.swift` — a `@MainActor` protocol (`restore()`, `flushLayout()`, `writeRecovery(for:content:)`, settings read/write) registered in Foundation. `2.5/FilePersistenceService.swift` — the concrete `@MainActor` class: `UserDefaults` for lightweight settings; `~/Library/Application Support/Sputnik/` (resolved once via `FileManager.urls(...)`) for `layout.json` + `recovery/`. Recovery/layout disk writes dispatched with `Task(priority: .utility)`; all I/O wrapped in `do/catch` returning `Result`/`throws` (SR-2). Replace `.gitkeep` in this folder.
    Why: Single durable-data entry point (guide 2.5) so no other module touches storage directly (SR-1). `.utility` QoS keeps writes off the UI path (SR-4/MR-3); explicit error handling satisfies SR-2.
 
-- [ ] 5. **Author the Settings store (2.3)**
+- [x] 5. **Author the Settings store (2.3)**
    What: `2.3/SettingsStore.swift` — `@Observable @MainActor` class owning `theme/editorFont/autoSaveEnabled/lineNumbersEnabled/wordWrapEnabled/spellCheckEnabled/grammarCheckEnabled`. Reads defaults via `PersistenceService` (protocol, injected), falls back to hardcoded defaults when `UserDefaults` is nil or a `Codable` decode fails (no crash). Persists changes through `PersistenceService` on a `.utility` Task.
    Why: Guide 2.3 — one observable preferences store every module reads from; depending on the `PersistenceService` *protocol* (not the concrete service) keeps Foundation an interface layer (SR-1).
 
-- [ ] 6. **Author Global State (2.2)**
+- [x] 6. **Author Global State (2.2)**
    What: `2.2/AppState.swift` — `@Observable @MainActor` class owning `activeWorkspaceDirectory: URL?`, `currentlyOpenFile: URL?`, `currentlyOpenFileType: FileType`, and `focusMode: FocusMode`. Document that the only writer is `InterPanelRouter` (2.1) and all other modules are read-only `@Environment` consumers; background file-system events must hop to `@MainActor` before mutating.
    Why: Guide 2.2 — single thread-safe source of truth. `@MainActor` isolation makes the "main-thread-only writes" rule a compile-time guarantee (SW-1, SR-4).
 
-- [ ] 7. **Author the Inter-panel routing contract (2.1)**
+- [x] 7. **Author the Inter-panel routing contract (2.1)**
    What: `2.1/PanelEvent.swift` — `Sendable` enum (`fileOpened(URL, FileType)`, `directoryChanged(URL)`). `2.1/InterPanelRouter.swift` — `@MainActor` protocol declaring `open(_ file: URL)` and `syncDirectory(_ url: URL)`, plus an `AsyncStream<PanelEvent>` accessor for observers. Protocol only — **no concrete router implementation** (guide 2.1: "registered in Foundation, never implemented here").
    Why: SR-1 — Foundation exposes the routing *protocol* and event vocabulary; the concrete glue is wired up where the app is assembled, not inside Foundation. `AsyncStream` (not callbacks) satisfies SW-1.
 
-- [ ] 8. **Author the Terminal-lifecycle seam (2.6 support)**
+- [x] 8. **Author the Terminal-lifecycle seam (2.6 support)**
    What: `2.6/TerminalLifecycle.swift` — a `@MainActor` protocol with `killAllPTYs() async` that module 7 will implement later. `AppDelegate` will hold a `weak` optional reference to it.
    Why: Guide 2.6 has `AppDelegate` calling `TerminalManager.killAllPTYs()`, but `TerminalManager` is module 7 and out of scope. A Foundation-owned protocol lets the lifecycle code compile and stay decoupled (SR-1) without reaching into module 7 internals.
 
-- [ ] 9. **Author the Utilities (2.7)**
+- [x] 9. **Author the Utilities (2.7)**
    What: `2.7/DebounceTimer.swift` — wraps a single cancellable `Task` using `Task.sleep`; `schedule(delay:work:)` cancels any pending task and starts a fresh one; `cancel()` discards pending work; `CancellationError` swallowed internally. No `DispatchQueue`.
    Why: Guide 2.7 — shared debounce utility for later ghost-text consumers (module 3). Pure Swift Concurrency keeps it composable (SW-1) and dependency-free.
 
-- [ ] 10. **Author the App lifecycle + root view (2.6)**
+- [x] 10. **Author the App lifecycle + root view (2.6)**
    What: `2.6/AppDelegate.swift` — `@MainActor NSObject, NSApplicationDelegate`: `applicationDidFinishLaunching` → `PersistenceService.restore()` (+ crash-recovery dialog hook); `applicationShouldTerminate` → `TerminalLifecycle.killAllPTYs()` returning `.terminateLater` then `replyToApplicationShouldTerminate(true)`; `applicationWillTerminate` → `PersistenceService.flushLayout()`; `weak var mainWindow: NSWindow?`. `2.6/ContentView.swift` — root SwiftUI layout that *reserves* the named slots (`.left/.centerUpper/.centerLower/.right` + pinned Terminal area) with placeholder views, since the real panels are other modules. `2.6/SputnikApp.swift` — `@main struct SputnikApp: App` with `@NSApplicationDelegateAdaptor`, a `WindowGroup` using `.handlesExternalEvents` for single-window enforcement, the `Settings` scene, and `.environment(...)` injection of `AppState` + `SettingsStore`.
    Why: Guide 2.6 (Option B hybrid) — this is the single entry point wiring Foundation together. Building it last means every dependency it injects/calls already exists. `weak` window ref + `[weak self]` in any escaping closures satisfy SW-2.
 
-- [ ] 11. **Cross-file consistency + rules audit**
+- [x] 11. **Cross-file consistency + rules audit**
    What: Re-read all authored files together. Verify: shared types defined once (Success Condition 3); `LayoutState`/`PanelLayout` containment is the only layout representation (SC 4 / ISS-001); zero `!` force-unwraps (SC 5); no `DispatchQueue`/completion handlers, `@MainActor` on UI classes, `Sendable` on cross-`Task` types (SC 6); every type has a `///` doc-comment (SW-4). Fix any drift found.
    Why: SR-1/SR-6 violations between files only become visible when the set is read as a whole; this pass is the in-scope substitute for a compiler (no build target exists yet).
 
@@ -109,10 +109,10 @@ All of the following are true by inspection (no build step in scope):
 - `1 Setup/Module Guides/2 Foundation/2.4 …/guide.md` & `2.5 …/guide.md` — `status`/`last_updated` + naming reconciliation (closeout)
 
 ## Closeout
-- [ ] Re-read the Purpose statement — does the outcome match it exactly?
-- [ ] Success Condition verified (Step 11 inspection pass — all 8 points confirmed)
-- [ ] ISS-001 marked Resolved in `Issues.md`
-- [ ] Module Guide(s) 2.1–2.7 updated (`status` + `last_updated`); 2.4/2.5 layout naming reconciled
+- [x] Re-read the Purpose statement — does the outcome match it exactly?
+- [x] Success Condition verified (Step 11 inspection pass — all 8 points confirmed)
+- [x] ISS-001 marked Resolved in `Issues.md`
+- [x] Module Guide(s) 2.1–2.7 updated (`status` + `last_updated`); 2.4/2.5 layout naming reconciled
 - [ ] Changes committed: `[2 Foundation] Implement Foundation module source`
 - [ ] Pushed to GitHub
 - [ ] Plan moved to Plans Completed/

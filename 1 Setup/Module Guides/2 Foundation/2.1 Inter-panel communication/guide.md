@@ -1,7 +1,7 @@
 ---
 module: 2.1 Foundation – Inter-panel Communication
-status: draft
-last_updated: 2026-06-07
+status: active
+last_updated: 2026-06-08
 ---
 
 ## Purpose

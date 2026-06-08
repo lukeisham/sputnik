@@ -1,0 +1,71 @@
+import AppKit
+
+/// Handles app-level lifecycle events that SwiftUI's `App` protocol cannot express.
+///
+/// Registered in `SputnikApp` via `@NSApplicationDelegateAdaptor`. Three responsibilities only:
+/// 1. **Launch** — restore layout and surface crash-recovery dialogs.
+/// 2. **Termination gate** — request a clean PTY shutdown via `TerminalLifecycle`, returning
+///    `.terminateLater` until the PTYs confirm they are dead.
+/// 3. **Flush** — write layout state to disk in `applicationWillTerminate`.
+@MainActor
+public final class AppDelegate: NSObject, NSApplicationDelegate {
+
+    // MARK: - Dependencies (set by SputnikApp after construction)
+
+    /// The concrete persistence service; set before `applicationDidFinishLaunching` fires.
+    public var persistenceService: (any PersistenceService)?
+
+    /// The terminal lifecycle handler; set by module 7 during its own startup.
+    /// `weak` because module 7 owns the concrete object.
+    public weak var terminalLifecycle: (any TerminalLifecycle)?
+
+    /// The current layout state; refreshed from `persistenceService.restore()` at launch.
+    public var layoutState: LayoutState = .default
+
+    /// A weak reference to the main window; obtained once after launch. Used by the
+    /// Foundation UI layer for layout restoration and toolbar config.
+    public weak var mainWindow: NSWindow?
+
+    // MARK: - NSApplicationDelegate
+
+    public func applicationDidFinishLaunching(_ notification: Notification) {
+        mainWindow = NSApp.windows.first
+
+        guard let persistence = persistenceService else { return }
+
+        Task {
+            layoutState = await persistence.restore()
+
+            let pendingNames = persistence.pendingRecoveryNames()
+            for name in pendingNames {
+                let alert = SputnikAlert.recoveryAvailable(filename: name)
+                presentAlert(alert)
+            }
+        }
+    }
+
+    public func applicationShouldTerminate(_ sender: NSApplication) -> NSApplication.TerminateReply {
+        guard let terminal = terminalLifecycle else { return .terminateNow }
+
+        Task {
+            await terminal.killAllPTYs()
+            NSApp.replyToApplicationShouldTerminate(true)
+        }
+        return .terminateLater
+    }
+
+    public func applicationWillTerminate(_ notification: Notification) {
+        persistenceService?.flushLayout(layoutState)
+    }
+
+    // MARK: - Private helpers
+
+    private func presentAlert(_ alert: SputnikAlert) {
+        let panel = NSAlert()
+        panel.messageText = alert.title
+        panel.informativeText = alert.message
+        panel.alertStyle = .warning
+        panel.addButton(withTitle: "OK")
+        panel.runModal()
+    }
+}

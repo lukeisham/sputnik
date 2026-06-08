@@ -1,7 +1,7 @@
 ---
 module: 2.4 Foundation – UI and UX
-status: draft
-last_updated: 2026-06-07
+status: active
+last_updated: 2026-06-08
 ---
 
 ## Purpose
@@ -53,7 +53,7 @@ Focus Modes (panel toggles hide/show; positions are preserved):
   - `SputnikColor` — color set bridging `Color` (SwiftUI) and `NSColor` (AppKit), with light/dark variants driven by `SettingsStore.theme` <!-- assumed -->
   - `PanelID` — enum identifying each panel: `.fileTree`, `.textEditor`, `.markdownPreview`, `.htmlPreview`, `.pdfViewer`; Terminal is excluded — it is not relocatable <!-- assumed -->
   - `PanelPosition` — enum of named slots: `.left`, `.centerUpper`, `.centerLower`, `.right` <!-- assumed -->
-  - `PanelLayout` — `Codable` struct with two maps: `assignments: [PanelPosition: PanelID]` (which panel is in which slot) and `sizes: [PanelPosition: CGFloat]` (split proportions); owned by `PersistenceService` (2.5) <!-- assumed -->
+  - `PanelLayout` — `Codable, Sendable` struct with two maps: `assignments: [PanelPosition: PanelID]` (which panel is in which slot) and `sizes: [PanelPosition: CGFloat]` (split proportions). **Component of `LayoutState`** (2.5) — not persisted standalone. See ISS-001 resolution.
   - `FocusMode` — enum: `.dev`, `.writer`, `.reader`; stored in `AppState` (2.2) <!-- assumed -->
   - `SputnikAlert` — typed error enum with associated `title: String` and `message: String`; all error dialogs are constructed from this type so presentation is consistent <!-- assumed -->
 - **Threading model:** All UI work is `@MainActor`. Design tokens are pure value types with no threading concerns. Panel resize and relocation events update `PanelLayout` synchronously on the main thread; the subsequent `PersistenceService` write is `Task(priority: .utility)`.
