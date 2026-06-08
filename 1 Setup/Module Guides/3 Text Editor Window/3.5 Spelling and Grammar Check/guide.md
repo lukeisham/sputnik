@@ -1,7 +1,7 @@
 ---
 module: 3.5 Spelling and Grammar Check
-status: draft
-last_updated: 2026-06-07
+status: active
+last_updated: 2026-06-08
 ---
 
 ## Purpose

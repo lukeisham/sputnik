@@ -1,6 +1,6 @@
 ---
 module: 3.3 ASCII art
-status: draft
+status: active
 last_updated: 2026-06-08
 ---
 
