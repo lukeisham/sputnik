@@ -1,6 +1,6 @@
 ---
 module: 7 Terminal
-status: draft
+status: active
 last_updated: 2026-06-08
 ---
 
