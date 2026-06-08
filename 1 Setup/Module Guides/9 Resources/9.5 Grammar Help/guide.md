@@ -5,7 +5,7 @@ last_updated: 2026-06-08
 ---
 
 ## Purpose
-Provide a comprehensive grammar, punctuation, and style reference that opens as a **dedicated panel with tabbed navigation** — analogous to how HTML Preview (8) or PDF Viewer (5) occupy their own panel slot. Each topic you navigate to (from the sidebar, search, or right-click lookup) opens as a **new tab** inside the Grammar Help panel, so you can flip between multiple open references. The panel operates in three triggering modes: (1) opened directly from the menu or toolbar; (2) context-sensitive lookup triggered by right-clicking a word or phrase in the Text Editor (3.1/3.5); and (3) context-sensitive lookup triggered by right-clicking a word or phrase in the **Markdown Preview** (Module 4) — making Grammar Help the only help module with dual-panel context lookup.
+Provide a comprehensive library of detailed English Grammar notes and style references that opens as a **dedicated panel with tabbed navigation** — analogous to how HTML Preview (8) or PDF Viewer (5) occupy their own panel slot. Each topic you navigate to (from the sidebar, search, or right-click lookup) opens as a **new tab** inside the Grammar Help panel, so you can flip between multiple open references. The panel operates in three triggering modes: (1) opened directly from the menu or toolbar; (2) context-sensitive lookup triggered by right-clicking a word or phrase in the Text Editor (3.1/3.5); and (3) context-sensitive lookup triggered by right-clicking a word or phrase in the **Markdown Preview** (Module 4) — making Grammar Help the only help module with dual-panel context lookup.
 
 ## Diagram
 
@@ -49,6 +49,7 @@ Provide a comprehensive grammar, punctuation, and style reference that opens as 
 
 ## Technical Summary
 - **Framework(s):** SwiftUI, Foundation
+- **Grammar Content:** Includes a built-in library of detailed English Grammar notes covering punctuation, syntax, usage, and style, with interactive "correct" (✅) vs "incorrect" (❌) examples.
 - **Key types:**
   - `GrammarHelpPanelView` — top-level SwiftUI view that registers as a panel in Foundation 2.4 (UI/UX) and manages a tab bar + the topic content area <!-- assumed -->
   - `GrammarHelpTabView` — individual tab content wrapping `GrammarHelpContentView` for a single topic. Tabs are identified by topic ID. <!-- assumed -->

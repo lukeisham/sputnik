@@ -5,7 +5,7 @@ last_updated: 2026-06-08
 ---
 
 ## Purpose
-Provide a complete Markdown syntax reference that opens as a **dedicated panel with tabbed navigation** — analogous to how HTML Preview (8) or PDF Viewer (5) occupy their own panel slot. Each topic you navigate to (from the sidebar, search, or right-click lookup) opens as a **new tab** inside the Markdown Help panel, so you can flip between multiple open references. The panel operates in two triggering modes: (1) opened directly from the menu or toolbar; and (2) context-sensitive lookup triggered by right-clicking a Markdown element, keyword, or selection in the Text Editor (3.2), which opens or raises the panel and creates a tab for the matched topic.
+Provide a comprehensive library of detailed Markdown notes and syntax references (targeting **CommonMark** and **GitHub Flavored Markdown**) that opens as a **dedicated panel with tabbed navigation** — analogous to how HTML Preview (8) or PDF Viewer (5) occupy their own panel slot. Each topic you navigate to (from the sidebar, search, or right-click lookup) opens as a **new tab** inside the Markdown Help panel, so you can flip between multiple open references. The panel operates in two triggering modes: (1) opened directly from the menu or toolbar; and (2) context-sensitive lookup triggered by right-clicking a Markdown element, keyword, or selection in the Text Editor (3.2), which opens or raises the panel and creates a tab for the matched topic.
 
 ## Diagram
 
@@ -48,7 +48,8 @@ Provide a complete Markdown syntax reference that opens as a **dedicated panel w
 | **Panel state** | Remembers open tabs and active tab across session restarts via `PersistenceService` (2.5) | Tabs persist; closing the panel collapses it but preserves its tab state |
 
 ## Technical Summary
-- **Framework(s):** SwiftUI, Foundation
+- **Framework(s):** SwiftUI, Foundation, Apple's **Swift Markdown** (CommonMark parsing)
+- **Markdown Content:** Includes a built-in library of detailed Markdown notes covering **CommonMark** and **GFM** syntax, formatting, lists, and tables, with interactive 'source' vs 'rendered' examples.
 - **Key types:**
   - `MarkdownHelpPanelView` — top-level SwiftUI view that registers as a panel in Foundation 2.4 (UI/UX) and manages a tab bar + the topic content area <!-- assumed -->
   - `MarkdownHelpTabView` — individual tab content wrapping `MarkdownHelpContentView` for a single topic. Tabs are identified by topic ID. <!-- assumed -->

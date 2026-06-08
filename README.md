@@ -1,16 +1,16 @@
 Sputnik App
 
-## PURPOSE 
+### PURPOSE 
 
-Sputnik is a native macOS development environment that coordinates six concurrent views — a Project File Tree, a Text Editor (Text, Markdown, ASCII art and HTML), a Markdown preview synchronized to the editor, a PDF viewer, a HTML preview also synchronized to the editor, and an integrated Zsh Terminal — within a unified, crash-resistant, memory-efficient minimalist layout.
+Sputnik is a native macOS development environment that coordinates six concurrent views — a Project File Tree, a Text Editor (Text, Markdown, ASCII art and HTML), a Markdown preview synchronized to the editor, a PDF viewer, a HTML preview also synchronized to the editor, and an integrated Zsh Terminal — within a unified, crash-resistant, memory-efficient minimalist layout, with interactive help guides. (Markdown, ASCII art, Grammar and HTML)
 
-## BULID ORDER
+### BULID ORDER
 
 "numbers are identity, not sequence."
 
-Foundation → Text Editor Window → Project File Tree → Markdown Preview → PDF Viewer → HTML Preview → Terminal
+Foundation → Text Editor Window → Terminal → Project File Tree → Markdown Preview → PDF Viewer → HTML Preview → Resources 
 
-## GITHUB
+### GITHUB
 
 https://github.com/lukeisham/sputnik.git
 

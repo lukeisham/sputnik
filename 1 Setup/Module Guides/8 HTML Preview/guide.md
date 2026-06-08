@@ -5,7 +5,7 @@ last_updated: 2026-06-08
 ---
 
 ## Purpose
-Render the active editor tab's HTML to a live, scroll-synced web preview, and intercept link clicks so that local links open as new editor tabs rather than navigating the preview away from the file the editor is showing.
+Render the active editor tab's HTML (supporting the **HTML Living Standard**) to a live, scroll-synced web preview, and intercept link clicks so that local links open as new editor tabs rather than navigating the preview away from the file the editor is showing.
 
 ## Diagram
 
@@ -38,7 +38,7 @@ Render the active editor tab's HTML to a live, scroll-synced web preview, and in
 ```
 
 ## Technical Summary
-- **Framework(s):** WebKit (`WKWebView`, `WKNavigationDelegate`), SwiftUI (`NSViewRepresentable`), AppKit
+- **Framework(s):** WebKit (`WKWebView`, `WKNavigationDelegate`), SwiftUI (`NSViewRepresentable`), AppKit. Target rendering is the **HTML Living Standard** (WebKit/Safari).
 - **Key types:**
   - `HTMLPreviewView` — `NSViewRepresentable` wrapping a single `WKWebView`; observes `AppState.activeDocumentID` and re-renders when the active document changes or its text mutates (SW-3: AppKit bridge is justified because `WKWebView` has no SwiftUI equivalent) <!-- assumed -->
   - `HTMLPreviewCoordinator` — the `NSViewRepresentable.Coordinator`; conforms to `WKNavigationDelegate` and owns the link-navigation policy; holds a `weak` reference to the router, never a strong `self` capture in delegate callbacks (SW-2) <!-- assumed -->

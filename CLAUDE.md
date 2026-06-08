@@ -2,7 +2,7 @@
 
 ## What Is Sputnik?
 
-Sputnik is a native macOS development environment that coordinates six concurrent views — a Project File Tree, a Text Editor (Text, Markdown, ASCII art and HTML), a Markdown preview synchronized to the editor, a PDF viewer, a HTML preview also synchronized to the editor, and an integrated Zsh Terminal — within a unified, crash-resistant, memory-efficient minimalist layout.
+Sputnik is a native macOS development environment that coordinates six concurrent views — a Project File Tree, a Text Editor (Text, Markdown, ASCII art and HTML), a Markdown preview synchronized to the editor, a PDF viewer, a HTML preview also synchronized to the editor, and an integrated Zsh Terminal — within a unified, crash-resistant, memory-efficient minimalist layout, with interactive help guides. (Markdown, ASCII art, Grammar and HTML)
 
 ---
 
@@ -73,6 +73,7 @@ App_Sputnik/
 | 6 | Project File Tree | Folder tree, file operations, drag-and-drop |
 | 7 | Terminal | PTY-hosted Zsh, ANSI rendering, scrollback |
 | 8 | HTML Preview | Live HTML preview, synced to editor |
+| 9 | Resources | Help guides for HTML, Markdown, Grammar and ASCII art plus the ASCII library |
 
 Each module has a **Module Guide** in `1 Setup/Module Guides/<N> <Name>/`. See [Module Guide Format](#module-guide-format) below.
 

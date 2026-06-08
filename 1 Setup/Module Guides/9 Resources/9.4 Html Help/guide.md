@@ -5,7 +5,7 @@ last_updated: 2026-06-08
 ---
 
 ## Purpose
-Provide a complete HTML reference that opens as a **dedicated panel with tabbed navigation** — analogous to how HTML Preview (8) or PDF Viewer (5) occupy their own panel slot. Each topic you navigate to (from the sidebar, search, or right-click lookup) opens as a **new tab** inside the HTML Help panel, so you can flip between multiple open references. The panel operates in two triggering modes: (1) opened directly from the menu or toolbar; and (2) context-sensitive lookup triggered by right-clicking an HTML element or attribute name in the Text Editor (3.4), which opens or raises the panel and creates a tab for the matched topic.
+Provide a comprehensive library of detailed HTML notes and tag references (based on the **HTML Living Standard**) that opens as a **dedicated panel with tabbed navigation** — analogous to how HTML Preview (8) or PDF Viewer (5) occupy their own panel slot. Each topic you navigate to (from the sidebar, search, or right-click lookup) opens as a **new tab** inside the HTML Help panel, so you can flip between multiple open references. The panel operates in two triggering modes: (1) opened directly from the menu or toolbar; and (2) context-sensitive lookup triggered by right-clicking an HTML element or attribute name in the Text Editor (3.4), which opens or raises the panel and creates a tab for the matched topic.
 
 ## Diagram
 
@@ -50,6 +50,7 @@ Provide a complete HTML reference that opens as a **dedicated panel with tabbed 
 
 ## Technical Summary
 - **Framework(s):** SwiftUI, Foundation, WebKit (for live demos)
+- **HTML Content:** Includes a built-in library of detailed HTML notes based on the **HTML Living Standard**, covering tags, attributes, structure, and best practices, with interactive code examples.
 - **Key types:**
   - `HTMLHelpPanelView` — top-level SwiftUI view that registers as a panel in Foundation 2.4 (UI/UX) and manages a tab bar + the topic content area <!-- assumed -->
   - `HTMLHelpTabView` — individual tab content wrapping `HTMLHelpContentView` for a single topic. Tabs are identified by topic ID. <!-- assumed -->
