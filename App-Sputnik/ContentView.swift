@@ -1,4 +1,12 @@
 import SwiftUI
+import FoundationModule
+import TextEditorModule
+import MarkdownPreviewModule
+import PDFViewerModule
+import FileTreeModule
+import TerminalModule
+import HTMLPreviewModule
+import ResourcesModule
 
 /// Root layout wiring every named panel slot and the pinned Terminal strip.
 ///

@@ -1,9 +1,6 @@
-// SputnikApp has moved to App-Sputnik/SputnikApp.swift (app assembly layer).
-// The @main entry point must live in the executable target, not a library.
-// This file is intentionally empty so FoundationModule remains @main-free.
-
 import AppKit
 import SwiftUI
+import FoundationModule
 
 /// The single app entry point.
 ///
