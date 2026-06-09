@@ -20,6 +20,7 @@ public struct SputnikApp: App {
     @State private var appState = AppState()
     @State private var settingsStore: SettingsStore
     @State private var processMonitor = ProcessMonitor()  // F-5
+    @State private var router = AppInterPanelRouter()
 
     // MARK: - Init
 
@@ -36,7 +37,7 @@ public struct SputnikApp: App {
 
     public var body: some Scene {
         WindowGroup {
-            ContentView()
+            ContentView(router: router)
                 .environment(appState)
                 .environment(settingsStore)
                 .environment(processMonitor)  // F-5
@@ -68,6 +69,7 @@ public struct SputnikApp: App {
         appDelegate.persistenceService = persistence
         appDelegate.appState = appState  // F-1: needed for SputnikMenuBarController
         appDelegate.processMonitor = processMonitor  // F-5: start/stop polling lifecycle
+        router.configure(appState: appState)
         // terminalLifecycle is wired by module 7 when TerminalManager is created.
     }
 }
