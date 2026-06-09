@@ -57,6 +57,7 @@ public struct SputnikApp: App {
     /// Called once from `ContentView.onAppear`.
     private func wireAppDelegate() {
         appDelegate.persistenceService = persistence
+        appDelegate.appState           = appState   // F-1: needed for SputnikMenuBarController
         // terminalLifecycle is wired by module 7 when TerminalManager is created.
     }
 }
