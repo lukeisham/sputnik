@@ -27,11 +27,19 @@ public final class SettingsStore {
     /// Whether long lines are soft-wrapped. Default: `true`.
     public var wordWrapEnabled: Bool = true
 
-    /// Whether real-time spell checking is active. Default: `true`.
-    public var spellCheckEnabled: Bool = true
+    /// The per-language × per-function writing-assist toggle matrix (ISS-011).
+    /// `spellCheckEnabled` / `grammarCheckEnabled` are computed over this matrix.
+    public var writingAssist: WritingAssistMatrix = .default
 
-    /// Whether real-time grammar checking is active (requires `spellCheckEnabled`). Default: `false`.
-    public var grammarCheckEnabled: Bool = false
+    /// Whether Instant Correct is on for Spelling. Computed over `writingAssist` (ISS-011).
+    public var spellCheckEnabled: Bool {
+        writingAssist.isEnabled(.instantCorrect, for: .spelling)
+    }
+
+    /// Whether Instant Correct is on for Grammar. Computed over `writingAssist` (ISS-011).
+    public var grammarCheckEnabled: Bool {
+        writingAssist.isEnabled(.instantCorrect, for: .grammar)
+    }
 
     // MARK: - Terminal settings
 
@@ -81,8 +89,10 @@ public final class SettingsStore {
         static let autoSave           = "sputnik.settings.autoSave"
         static let lineNumbers        = "sputnik.settings.lineNumbers"
         static let wordWrap           = "sputnik.settings.wordWrap"
+        // Legacy keys kept for migration only; new code reads/writes writingAssist.
         static let spellCheck         = "sputnik.settings.spellCheck"
         static let grammarCheck       = "sputnik.settings.grammarCheck"
+        static let writingAssist      = "sputnik.settings.writingAssist"
         // Terminal
         static let terminalFontName        = "sputnik.settings.terminalFontName"
         static let terminalFontSize        = "sputnik.settings.terminalFontSize"
@@ -137,14 +147,26 @@ public final class SettingsStore {
         persistence.saveSetting(value, forKey: DefaultsKey.wordWrap)
     }
 
-    public func setSpellCheckEnabled(_ value: Bool) {
-        spellCheckEnabled = value
-        persistence.saveSetting(value, forKey: DefaultsKey.spellCheck)
+    /// Replaces the entire writing-assist matrix and persists it.
+    public func setWritingAssistMatrix(_ matrix: WritingAssistMatrix) {
+        writingAssist = matrix
+        persistence.saveSetting(matrix, forKey: DefaultsKey.writingAssist)
     }
 
+    /// Writes a single cell in the writing-assist matrix and persists the result.
+    public func setWritingAssist(_ fn: WritingAssistFunction, for lang: WritingAssistLanguage, to value: Bool) {
+        writingAssist = writingAssist.setting(fn, for: lang, to: value)
+        persistence.saveSetting(writingAssist, forKey: DefaultsKey.writingAssist)
+    }
+
+    /// Convenience wrapper retained for existing consumers — updates `spelling × instantCorrect`.
+    public func setSpellCheckEnabled(_ value: Bool) {
+        setWritingAssist(.instantCorrect, for: .spelling, to: value)
+    }
+
+    /// Convenience wrapper retained for existing consumers — updates `grammar × instantCorrect`.
     public func setGrammarCheckEnabled(_ value: Bool) {
-        grammarCheckEnabled = value
-        persistence.saveSetting(value, forKey: DefaultsKey.grammarCheck)
+        setWritingAssist(.instantCorrect, for: .grammar, to: value)
     }
 
     // MARK: - Terminal mutators
@@ -230,11 +252,19 @@ public final class SettingsStore {
         if let saved: Bool = persistence.loadSetting(forKey: DefaultsKey.wordWrap) {
             wordWrapEnabled = saved
         }
-        if let saved: Bool = persistence.loadSetting(forKey: DefaultsKey.spellCheck) {
-            spellCheckEnabled = saved
-        }
-        if let saved: Bool = persistence.loadSetting(forKey: DefaultsKey.grammarCheck) {
-            grammarCheckEnabled = saved
+        // Load the writing-assist matrix, migrating legacy boolean keys on first run.
+        if let saved: WritingAssistMatrix = persistence.loadSetting(forKey: DefaultsKey.writingAssist) {
+            writingAssist = saved
+        } else {
+            var m = WritingAssistMatrix.default
+            if let legacySpell: Bool = persistence.loadSetting(forKey: DefaultsKey.spellCheck) {
+                m = m.setting(.instantCorrect, for: .spelling, to: legacySpell)
+            }
+            if let legacyGrammar: Bool = persistence.loadSetting(forKey: DefaultsKey.grammarCheck) {
+                m = m.setting(.instantCorrect, for: .grammar, to: legacyGrammar)
+            }
+            writingAssist = m
+            persistence.saveSetting(m, forKey: DefaultsKey.writingAssist)
         }
         // Terminal
         if let saved: String = persistence.loadSetting(forKey: DefaultsKey.terminalFontName) {

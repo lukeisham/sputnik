@@ -18,7 +18,8 @@ public struct GrammarHelpPanelView: View {
         SputnikHelpPanel(
             allTopics: topics,
             categories: categories,
-            persistenceKey: "grammarHelp"
+            persistenceKey: "grammarHelp",
+            helpKind: .grammar
         ) { topic in
             GrammarHelpTopicContentView(topic: topic)
         }

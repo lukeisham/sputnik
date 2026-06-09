@@ -20,6 +20,14 @@ public final class MarkdownPreviewCoordinator: NSObject, NSTextViewDelegate {
     /// When `nil`, all link clicks are silently ignored (links become selection-only).
     public weak var router: (any InterPanelRouter)?
 
+    /// Closure invoked when the user selects "More Context" to request a help panel.
+    /// Wired by `MarkdownPreviewPanel`.
+    public var onRequestHelp: ((HelpRequest?) -> Void)?
+
+    /// The shared help-context resolver, used to build context-menu items.
+    /// Falls back to `SputnikHelpContextResolver.shared` when `nil`.
+    public var helpContextResolver: HelpContextResolving?
+
     /// When `false`, link-click handling is disabled entirely and all clicks
     /// become selection-only gestures. Toggled from the panel toolbar.
     public var linksEnabled: Bool = true
@@ -96,5 +104,54 @@ public final class MarkdownPreviewCoordinator: NSObject, NSTextViewDelegate {
             #endif
             return true
         }
+    }
+
+    // MARK: - Context Menu
+
+    /// Intercepts the right-click context menu and injects "More Context" items for
+    /// Grammar Help and Markdown Help when text is selected.
+    ///
+    /// - Parameters:
+    ///   - textView:      The text view that received the right-click.
+    ///   - menu:          The default context menu.
+    ///   - charIndex:     The character index of the click.
+    ///   - selectedRange: The current selection range.
+    /// - Returns: The modified menu, or `nil` to use the default.
+    public func textView(
+        _ textView: NSTextView,
+        menu: NSMenu,
+        at charIndex: Int,
+        for selectedRange: NSRange
+    ) -> NSMenu? {
+        // Extract the selected text from the text view's storage.
+        guard let storage = textView.textStorage,
+            let selected = storage.attributedSubstring(from: selectedRange)?.string,
+            !selected.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+        else {
+            return menu
+        }
+
+        let fullText = textView.string
+        let resolver = helpContextResolver ?? SputnikHelpContextResolver.shared
+
+        let moreItems = MoreContextMenu.items(
+            forSelectedText: selected,
+            kinds: [.grammar, .markdown],
+            fullText: fullText,
+            cursorOffset: selectedRange.location,
+            resolver: resolver,
+            onRequest: { [weak self] request in
+                self?.onRequestHelp?(request)
+            }
+        )
+
+        guard !moreItems.isEmpty else { return menu }
+
+        let updatedMenu = menu.copy() as? NSMenu ?? menu
+        updatedMenu.insertItem(.separator(), at: 0)
+        for item in moreItems.reversed() {
+            updatedMenu.insertItem(item, at: 0)
+        }
+        return updatedMenu
     }
 }

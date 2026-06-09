@@ -121,7 +121,8 @@ public struct HTMLHelpPanelView: View {
             SputnikHelpPanel(
                 allTopics: topics,
                 categories: categories,
-                persistenceKey: "htmlHelp"
+                persistenceKey: "htmlHelp",
+                helpKind: .html
             ) { topic in
                 htmlTopicContent(topic)
             }

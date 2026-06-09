@@ -26,13 +26,23 @@ public struct HTMLPreviewPanel: View {
     /// The app's inter-panel router, passed through to `HTMLPreviewView`.
     private let router: (any InterPanelRouter)?
 
+    /// The shared help-context resolver, passed through to `HTMLPreviewView`.
+    private let helpContextResolver: HelpContextResolving
+
     // MARK: - Init
 
     /// Creates the HTML Preview panel.
-    /// - Parameter router: The app's `InterPanelRouter` instance. `nil` disables
-    ///   tab-open behaviour for link clicks (preview becomes read-only).
-    public init(router: (any InterPanelRouter)? = nil) {
+    /// - Parameters:
+    ///   - router:                The app's `InterPanelRouter` instance. `nil` disables
+    ///                            tab-open behaviour for link clicks (preview becomes read-only).
+    ///   - helpContextResolver:   Resolver for "More Context" right-click help. Defaults to
+    ///                            `SputnikHelpContextResolver.shared`.
+    public init(
+        router: (any InterPanelRouter)? = nil,
+        helpContextResolver: HelpContextResolving = SputnikHelpContextResolver.shared
+    ) {
         self.router = router
+        self.helpContextResolver = helpContextResolver
     }
 
     // MARK: - Body
@@ -146,7 +156,8 @@ public struct HTMLPreviewPanel: View {
                 HTMLPreviewView(
                     router: router,
                     isLinkNavigationEnabled: isLinkNavigationEnabled,
-                    onLoadError: { message in loadError = message }
+                    onLoadError: { message in loadError = message },
+                    helpContextResolver: helpContextResolver
                 )
                 // Fit Width: centre the preview with a max width of 960 pt.
                 // When disabled, the web view fills the entire panel width.

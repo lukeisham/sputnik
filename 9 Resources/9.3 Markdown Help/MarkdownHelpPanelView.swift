@@ -35,7 +35,8 @@ public struct MarkdownHelpPanelView: View {
             SputnikHelpPanel(
                 allTopics: topics,
                 categories: categories,
-                persistenceKey: "markdownHelp"
+                persistenceKey: "markdownHelp",
+                helpKind: .markdown
             ) { topic in
                 markdownTopicContent(topic)
             }

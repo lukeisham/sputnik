@@ -7,6 +7,7 @@ import SwiftUI
 public enum GrammarHelpSource: Sendable {
     case editor
     case markdownPreview
+    case htmlPreview
 }
 
 // MARK: - Lookup Result

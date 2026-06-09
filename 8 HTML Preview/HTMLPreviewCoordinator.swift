@@ -31,6 +31,18 @@ public final class HTMLPreviewCoordinator: NSObject, WKNavigationDelegate {
     /// Called when a navigation fails; the panel can surface this as an error banner.
     var onLoadError: ((String) -> Void)?
 
+    /// The most recently captured selection text from the WKWebView.
+    var capturedSelection: String = ""
+
+    /// The full text of the HTML session (for context).
+    var fullSessionText: String = ""
+
+    /// Closure invoked when the user selects "More Context" to request a help panel.
+    var onRequestHelp: ((HelpRequest?) -> Void)?
+
+    /// The shared help-context resolver.
+    var helpContextResolver: HelpContextResolving?
+
     // MARK: - Init
 
     /// Creates the coordinator.
@@ -116,5 +128,22 @@ public final class HTMLPreviewCoordinator: NSObject, WKNavigationDelegate {
         #if DEBUG
             print("[HTMLPreview] Provisional navigation failed: \(error.localizedDescription)")
         #endif
+    }
+}
+
+// MARK: - WKScriptMessageHandler
+
+extension HTMLPreviewCoordinator: WKScriptMessageHandler {
+
+    /// Receives selection-change messages from the injected WKUserScript.
+    /// Updates `capturedSelection` on every `selectionchange` event in the WKWebView.
+    public func userContentController(
+        _ userContentController: WKUserContentController,
+        didReceive message: WKScriptMessage
+    ) {
+        guard message.name == "selectionChange",
+            let selection = message.body as? String
+        else { return }
+        capturedSelection = selection
     }
 }

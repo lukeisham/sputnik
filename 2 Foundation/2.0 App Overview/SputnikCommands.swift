@@ -230,8 +230,70 @@ public struct SputnikCommands: Commands {
                         )
                     )
                 }
+
+                writingAssistanceMenu
             }
         }
+    }
+
+    // MARK: - Writing Assistance menu
+
+    private var writingAssistanceMenu: some View {
+        Menu("Writing Assistance") {
+            // Convenience presets
+            Button("All On") {
+                settings.setWritingAssistMatrix(.allOn())
+            }
+            Button("All Off") {
+                settings.setWritingAssistMatrix(.allOff())
+            }
+
+            Divider()
+
+            // Spelling
+            Menu("Spelling") {
+                toggleCell(.instantCorrect, .spelling, label: "Instant Correct")
+                toggleCell(.autoComplete,   .spelling, label: "Auto-Complete")
+            }
+
+            // Grammar
+            Menu("Grammar") {
+                toggleCell(.instantCorrect, .grammar, label: "Instant Correct")
+                toggleCell(.moreContext,    .grammar, label: "More Context")
+            }
+
+            // Markdown
+            Menu("Markdown") {
+                toggleCell(.autoComplete, .markdown, label: "Auto-Complete")
+                toggleCell(.moreContext,  .markdown, label: "More Context")
+            }
+
+            // HTML
+            Menu("HTML") {
+                toggleCell(.autoComplete, .html, label: "Auto-Complete")
+                toggleCell(.moreContext,  .html, label: "More Context")
+            }
+
+            // ASCII Art
+            Menu("ASCII Art") {
+                toggleCell(.autoComplete, .asciiArt, label: "Auto-Complete")
+            }
+        }
+    }
+
+    @ViewBuilder
+    private func toggleCell(
+        _ fn: WritingAssistFunction,
+        _ lang: WritingAssistLanguage,
+        label: String
+    ) -> some View {
+        Toggle(
+            label,
+            isOn: Binding(
+                get: { settings.writingAssist.isEnabled(fn, for: lang) },
+                set: { settings.setWritingAssist(fn, for: lang, to: $0) }
+            )
+        )
     }
 
     // MARK: - View menu

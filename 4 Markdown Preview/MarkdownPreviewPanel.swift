@@ -29,13 +29,23 @@ public struct MarkdownPreviewPanel: View {
     /// The coordinator for this panel, created once on init and wired into `MarkdownRenderView`.
     private let coordinator: MarkdownPreviewCoordinator
 
+    /// The help-context resolver used for the "More Context" right-click gesture.
+    private let helpContextResolver: HelpContextResolving
+
     // MARK: - Init
 
     /// Creates the Markdown Preview panel.
-    /// - Parameter router: The app's `InterPanelRouter` instance. `nil` disables
-    ///   tab-open behaviour for link clicks (preview becomes read-only).
-    public init(router: (any InterPanelRouter)? = nil) {
+    /// - Parameters:
+    ///   - router:              The app's `InterPanelRouter` instance. `nil` disables
+    ///                          tab-open behaviour for link clicks (preview becomes read-only).
+    ///   - helpContextResolver: The resolver for right-click "More Context" help.
+    ///                          Defaults to `SputnikHelpContextResolver.shared`.
+    public init(
+        router: (any InterPanelRouter)? = nil,
+        helpContextResolver: HelpContextResolving = SputnikHelpContextResolver.shared
+    ) {
         self.coordinator = MarkdownPreviewCoordinator(router: router)
+        self.helpContextResolver = helpContextResolver
     }
 
     // MARK: - Body
@@ -51,6 +61,10 @@ public struct MarkdownPreviewPanel: View {
         .background(SputnikColor.editorBackground)
         .task {
             viewModel.configure(appState: appState)
+            coordinator.helpContextResolver = helpContextResolver
+            coordinator.onRequestHelp = { [weak appState] request in
+                appState?.requestedHelpTarget = request
+            }
         }
         .onChange(of: appState.activeDocument?.text ?? "") { _, newValue in
             triggerRender(markdown: newValue)
