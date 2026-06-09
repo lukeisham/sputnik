@@ -1,7 +1,7 @@
 ---
 module: 4 Markdown Preview
 status: complete
-last_updated: 2026-06-08
+last_updated: 2026-06-09
 plan: 1 Setup/Plans New/2026-06-08 4 Markdown Preview Implement Markdown Preview module.md
 ---
 
@@ -106,7 +106,7 @@ MARKDOWN PREVIEW PANEL  (occupies centre lower slot; see module 2.0 overview)
 - **Key types:** <!-- all assumed — no source code exists yet -->
   - `MarkdownPreviewPanel` — top-level SwiftUI view that assembles the toolbar and the `MarkdownRenderView`; observes `AppState.activeDocument` and triggers re-render when the active session's text changes
   - `MarkdownRenderView` — `NSViewRepresentable` wrapping an `NSTextView`; receives the parsed `AttributedString` and applies it to the text view's `textStorage`; configures the text view for read-only, selectable, link-interactive display
-  - `MarkdownPreviewCoordinator` — the `NSViewRepresentable.Coordinator`; conforms to `NSTextViewDelegate` and handles link clicks (`.clickOnLink:`) — routing local file URLs through `InterPanelRouter.open(_:)` and external URLs through `NSWorkspace.shared.open(_:)`
+  - `MarkdownPreviewCoordinator` — the `NSViewRepresentable.Coordinator`; conforms to `NSTextViewDelegate` and handles link clicks (`.clickOnLink:`) — routing local file URLs through `InterPanelRouter.open(_:)` and external URLs through `NSWorkspace.shared.open(_:)`; also conforms to `NSTextViewDelegate.textView(_:menu:at:for:)` to inject "More Context: Grammar Help" and "More Context: Markdown Help" items into the right-click context menu via the shared `MoreContextMenu.items(...)` builder (2.7)
   - `MarkdownPreviewViewModel` — `@Observable` class; holds the rendered `AttributedString`, scroll position, font size/zoom preference, and a reference to the active session's debounced text publisher; runs Markdown-to-AttributedString conversion on a background `Task` for large documents
 - **Threading model:**
   - `@MainActor` for all `NSTextView` operations (setting `textStorage`, scroll position, selection updates) and `MarkdownPreviewViewModel` mutations
@@ -121,9 +121,11 @@ MARKDOWN PREVIEW PANEL  (occupies centre lower slot; see module 2.0 overview)
 - **State owned:**
   - `MarkdownPreviewViewModel` — rendered `AttributedString`, scroll offset, font scale preference
   - The active document text and identity are owned by Foundation `AppState` (2.2) — the preview is a pure function of the active session and holds no document state of its own (SR-1, SR-3)
-- **Dependencies:** Foundation 2.2 (`AppState.activeDocumentID`, `DocumentSession`), Foundation 2.1 (`InterPanelRouter.open(_:)`), Foundation 2.4 (UI/UX primitives for toolbar styling, placeholder styling, and error banners), Text Editor 3 (source of `.markdown` text with debounced publishing); no dependency on modules 5, 6, 7, or 8
+- **Dependencies:** Foundation 2.2 (`AppState.activeDocumentID`, `DocumentSession`), Foundation 2.1 (`InterPanelRouter.open(_:)`), Foundation 2.4 (UI/UX primitives for toolbar styling, placeholder styling, and error banners), Foundation 2.7 (`MoreContextMenu`, `HelpContextResolving`, `HelpContextQuery`), Text Editor 3 (source of `.markdown` text with debounced publishing); no dependency on modules 5, 6, 7, or 8
 - **Failure modes:**
   - Active document is not `.markdown` → panel shows a neutral placeholder ("No Markdown file open"); it does **not** render stale content from a previously active tab
+  - Right-click More Context with no selection → `MoreContextMenu` returns `[]`, no menu items are added; the default context menu is shown unchanged
+  - `NSTextViewDelegate.textView(_:menu:at:for:)` replaces the menu (by returning a new one), not mutating the passed-in menu — ensures the NSTextView doesn't add duplicate items
   - Markdown parse failure (invalid syntax that `AttributedString(markdown:)` cannot handle) → catch the thrown error; render as plain text with a subtle warning banner, never a crash
   - Link target is a local file that no longer exists → `InterPanelRouter.open(_:)` classifies it and surfaces a `SputnikAlert` (2.4); the preview is left unchanged
   - Very large Markdown document (10,000+ lines) → conversion runs on background `Task(priority: .utility)`; the UI remains responsive during parsing; intermediate renders are skipped if a newer text arrives before parsing completes
