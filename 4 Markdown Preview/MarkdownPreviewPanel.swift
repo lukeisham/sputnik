@@ -19,6 +19,7 @@ public struct MarkdownPreviewPanel: View {
     // MARK: - Environment
 
     @Environment(AppState.self) private var appState
+    @Environment(SettingsStore.self) private var settings
 
     // MARK: - State
 
@@ -196,7 +197,8 @@ public struct MarkdownPreviewPanel: View {
                         MarkdownRenderView(
                             renderedString: viewModel.renderedString,
                             fontScale: viewModel.fontScale,
-                            coordinator: coordinator
+                            coordinator: coordinator,
+                            settings: settings
                         )
                         .frame(maxWidth: 720)
                         .frame(maxWidth: .infinity)
@@ -206,7 +208,8 @@ public struct MarkdownPreviewPanel: View {
                         MarkdownRenderView(
                             renderedString: viewModel.renderedString,
                             fontScale: viewModel.fontScale,
-                            coordinator: coordinator
+                            coordinator: coordinator,
+                            settings: settings
                         )
                     }
                 }

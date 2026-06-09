@@ -25,6 +25,9 @@ public struct MarkdownRenderView: NSViewRepresentable {
     /// The coordinator that handles link clicks.
     let coordinator: MarkdownPreviewCoordinator
 
+    /// The settings store, read for per-panel font and background (F-4).
+    let settings: SettingsStore
+
     // MARK: - Init
 
     /// Creates the render view.
@@ -33,14 +36,17 @@ public struct MarkdownRenderView: NSViewRepresentable {
     ///   - renderedString: The parsed Markdown to display.
     ///   - fontScale:      Font zoom factor (1.0 = default).
     ///   - coordinator:    The link-click coordinator.
+    ///   - settings:       The app settings store (for per-panel font/background).
     public init(
         renderedString: AttributedString,
         fontScale: CGFloat,
-        coordinator: MarkdownPreviewCoordinator
+        coordinator: MarkdownPreviewCoordinator,
+        settings: SettingsStore
     ) {
         self.renderedString = renderedString
         self.fontScale = fontScale
         self.coordinator = coordinator
+        self.settings = settings
     }
 
     // MARK: - NSViewRepresentable
@@ -61,8 +67,8 @@ public struct MarkdownRenderView: NSViewRepresentable {
         // Links come from the AttributedString, not auto-detection.
         textView.isAutomaticLinkDetectionEnabled = false
 
-        // Appearance.
-        textView.backgroundColor = NSColor(SputnikColor.editorBackground)
+        // Appearance — use per-panel background (F-4).
+        textView.backgroundColor = NSColor(settings.markdownPreviewBackground)
         textView.drawsBackground = true
 
         // Comfortable padding.
@@ -83,16 +89,21 @@ public struct MarkdownRenderView: NSViewRepresentable {
     }
 
     public func updateNSView(_ textView: NSTextView, context: Context) {
+        // Reapply background from settings (F-4) — may have changed since last update.
+        textView.backgroundColor = NSColor(settings.markdownPreviewBackground)
+
         // Only update the text storage when the content has actually changed,
         // to avoid unnecessary layout invalidation.
         guard textView.textStorage?.string != String(renderedString.characters) else {
             return
         }
 
-        // Apply font scale to the NSTextView's default font before setting content.
-        let baseFontSize: CGFloat = 14
-        let scaledSize = baseFontSize * fontScale
-        textView.font = NSFont.systemFont(ofSize: scaledSize)
+        // Use the resolved preview font as the base font, scaled by fontScale (F-4).
+        let previewFont = settings.resolvedMarkdownPreviewFont
+        let scaledSize = previewFont.pointSize * fontScale
+        textView.font =
+            NSFont(name: previewFont.postScriptName, size: scaledSize)
+            ?? NSFont.systemFont(ofSize: scaledSize)
 
         // Update the text storage with the new attributed string.
         // Use NSAttributedString bridging for NSTextStorage compatibility.

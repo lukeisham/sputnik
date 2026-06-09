@@ -83,6 +83,9 @@ public struct HTMLPreviewView: NSViewRepresentable {
     /// The shared help-context resolver, passed through to the coordinator.
     private let helpContextResolver: HelpContextResolving
 
+    /// The settings store, read for per-panel font and background (F-4).
+    private let settings: SettingsStore
+
     // MARK: - Init
 
     /// Creates the HTML preview view.
@@ -92,16 +95,19 @@ public struct HTMLPreviewView: NSViewRepresentable {
     ///   - onLoadError:             Optional callback when navigation fails.
     ///   - helpContextResolver:     Resolver for "More Context" right-click help. Defaults to
     ///                              `SputnikHelpContextResolver.shared`.
+    ///   - settings:                The app settings store (for per-panel font/background).
     public init(
         router: (any InterPanelRouter)? = nil,
         isLinkNavigationEnabled: Bool = true,
         onLoadError: ((String) -> Void)? = nil,
-        helpContextResolver: HelpContextResolving = SputnikHelpContextResolver.shared
+        helpContextResolver: HelpContextResolving = SputnikHelpContextResolver.shared,
+        settings: SettingsStore
     ) {
         self.router = router
         self.isLinkNavigationEnabled = isLinkNavigationEnabled
         self.onLoadError = onLoadError
         self.helpContextResolver = helpContextResolver
+        self.settings = settings
     }
 
     // MARK: - NSViewRepresentable
@@ -166,7 +172,63 @@ public struct HTMLPreviewView: NSViewRepresentable {
         context.coordinator.onLoadError = onLoadError
         context.coordinator.fullSessionText = session.text
 
-        webView.loadHTMLString(session.text, baseURL: baseURL)
+        // Inject per-panel font and background CSS (F-4), then load.
+        let styled = htmlByInjectingOverrides(session.text, settings: settings)
+        webView.loadHTMLString(styled, baseURL: baseURL)
+    }
+
+    // MARK: - F-4 CSS injection
+
+    /// Wraps user HTML content with CSS overrides for the per-panel font and
+    /// background colour. If the user HTML already has a `<head>`, the style block
+    /// is injected before `</head>`; otherwise the content is wrapped in a minimal
+    /// HTML document.
+    /// - Parameters:
+    ///   - html:     The raw HTML from the editor session.
+    ///   - settings: The settings store (read for `resolvedHtmlPreviewFont` and
+    ///               `htmlPreviewBackground`).
+    /// - Returns: Modified HTML string with injected style overrides.
+    private func htmlByInjectingOverrides(_ html: String, settings: SettingsStore) -> String {
+        let bg = NSColor(settings.htmlPreviewBackground)
+        let font = settings.resolvedHtmlPreviewFont
+
+        guard let rgb = bg.usingColorSpace(.deviceRGB) else {
+            return html
+        }
+        let r = Int(rgb.redComponent * 255)
+        let g = Int(rgb.greenComponent * 255)
+        let b = Int(rgb.blueComponent * 255)
+        let hex = String(format: "#%02X%02X%02X", r, g, b)
+
+        let css = """
+            <style>
+              body {
+                background-color: \(hex) !important;
+              }
+              body, p, div, h1, h2, h3, h4, h5, h6, li, td, th, blockquote, pre, code {
+                font-family: '\(font.postScriptName)', -apple-system, sans-serif !important;
+                font-size: \(String(format: "%.1f", font.pointSize))pt !important;
+              }
+            </style>
+            """
+
+        if let headEnd = html.range(of: "</head>", options: .caseInsensitive) {
+            return html.replacingCharacters(in: headEnd, with: css + "</head>")
+        }
+
+        if html.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+            // Empty content — load placeholder
+            return placeholderHTML
+        }
+
+        // No head tag — wrap in a minimal document.
+        return """
+            <!DOCTYPE html>
+            <html>
+            <head><meta charset="utf-8">\(css)</head>
+            <body>\(html)</body>
+            </html>
+            """
     }
 
     // MARK: - Placeholder

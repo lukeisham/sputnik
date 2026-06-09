@@ -16,8 +16,8 @@ public struct EditorView: NSViewRepresentable {
 
     public init(viewModel: EditorViewModel, settings: SettingsStore, appState: AppState) {
         self.viewModel = viewModel
-        self.settings  = settings
-        self.appState  = appState
+        self.settings = settings
+        self.appState = appState
     }
 
     // MARK: - NSViewRepresentable
@@ -29,39 +29,40 @@ public struct EditorView: NSViewRepresentable {
     public func makeNSView(context: Context) -> NSScrollView {
         // Build a standard scrollable text view, then swap the document view for
         // our EditorTextView subclass so key-event hooks are available.
-        let scrollView     = NSTextView.scrollableTextView()
-        let textView       = EditorTextView(frame: .zero)
+        let scrollView = NSTextView.scrollableTextView()
+        let textView = EditorTextView(frame: .zero)
         textView.autoresizingMask = [.width]
-        textView.delegate         = context.coordinator
-        scrollView.documentView   = textView
+        textView.delegate = context.coordinator
+        scrollView.documentView = textView
 
-        scrollView.hasVerticalScroller   = true
+        scrollView.hasVerticalScroller = true
         scrollView.hasHorizontalScroller = false
-        scrollView.autohidesScrollers    = true
+        scrollView.autohidesScrollers = true
 
         // Attach line-number ruler.
         let ruler = LineNumberRulerView(scrollView: scrollView)
         scrollView.verticalRulerView = ruler
-        scrollView.hasVerticalRuler  = true
-        scrollView.rulersVisible     = true
+        scrollView.hasVerticalRuler = true
+        scrollView.rulersVisible = true
 
         // Wire undo manager into the view model so sub-modules can post undo actions.
         viewModel.undoManager = textView.undoManager
 
         // Create shared overlay and search controller; inject into the text view.
-        let overlay  = GhostTextOverlay(textView: textView)
-        let search   = SearchController(textView: textView)
+        let overlay = GhostTextOverlay(textView: textView)
+        let search = SearchController(textView: textView)
         textView.ghostTextOverlay = overlay
         textView.searchController = search
 
         // Spelling/grammar checker: held strongly by the coordinator (lives as long as the
         // view); the text view holds it weakly for click hit-testing (SW-2).
-        let checker = SpellingGrammarChecker(textView: textView,
-                                             viewModel: viewModel,
-                                             settings: settings)
+        let checker = SpellingGrammarChecker(
+            textView: textView,
+            viewModel: viewModel,
+            settings: settings)
         textView.spellingChecker = checker
         textView.editorViewModel = viewModel
-        textView.settings        = settings
+        textView.settings = settings
 
         // Route "Look Up Help" through the Foundation help target (SR-1). Capture weakly
         // so the long-lived text view never retains AppState (SW-2).
@@ -73,9 +74,10 @@ public struct EditorView: NSViewRepresentable {
         let corpus = SputnikCompletionCorpus()
 
         // Language providers — wired to the shared ghost overlay; one is active per mode.
-        let blockCompletion  = BlockCompletion()
+        let blockCompletion = BlockCompletion()
         let markdownProvider = MarkdownLanguageProvider(
-            textView: textView, ghostOverlay: overlay, settings: settings, completionProvider: corpus
+            textView: textView, ghostOverlay: overlay, settings: settings,
+            completionProvider: corpus
         )
         let htmlProvider = HTMLLanguageProvider(
             textView: textView, ghostOverlay: overlay, viewModel: viewModel,
@@ -90,34 +92,52 @@ public struct EditorView: NSViewRepresentable {
             settings: settings, spellDocumentTag: checker.spellDocumentTag
         )
 
-        context.coordinator.textView                  = textView
-        context.coordinator.ghostOverlay              = overlay
-        context.coordinator.search                    = search
-        context.coordinator.checker                   = checker
-        context.coordinator.markdownProvider          = markdownProvider
-        context.coordinator.htmlProvider              = htmlProvider
-        context.coordinator.asciiProvider             = asciiProvider
+        context.coordinator.textView = textView
+        context.coordinator.ghostOverlay = overlay
+        context.coordinator.search = search
+        context.coordinator.checker = checker
+        context.coordinator.markdownProvider = markdownProvider
+        context.coordinator.htmlProvider = htmlProvider
+        context.coordinator.asciiProvider = asciiProvider
         context.coordinator.spellingCompletionProvider = spellingCompletionProvider
 
-        configureTypography(textView)
+        configureTypography(textView, settings: settings)
         return scrollView
     }
 
     public func updateNSView(_ nsView: NSScrollView, context: Context) {
+        // Reapply font and background from settings (F-4) — settings may have changed
+        // while the view was alive (e.g. per-panel override toggled in Preferences).
+        if let textView = nsView.documentView as? NSTextView {
+            applyFontAndBackground(textView, settings: settings)
+        }
         // Trigger ruler redraw when the view model changes (e.g. on content reload).
         nsView.verticalRulerView?.needsDisplay = true
     }
 
     // MARK: - Typography defaults
 
-    private func configureTypography(_ textView: NSTextView) {
-        textView.font            = .monospacedSystemFont(ofSize: 13, weight: .regular)
-        textView.isRichText      = false
-        textView.allowsUndo      = true
+    /// Applies the resolved per-panel font and background colour to the text view.
+    /// Called on initial creation and whenever `updateNSView` detects settings changes.
+    private func configureTypography(_ textView: NSTextView, settings: SettingsStore) {
+        applyFontAndBackground(textView, settings: settings)
+        textView.isRichText = false
+        textView.allowsUndo = true
         // Disable built-in auto-corrections — module 3.5 owns spelling/grammar.
         textView.isAutomaticSpellingCorrectionEnabled = false
-        textView.isAutomaticQuoteSubstitutionEnabled  = false
-        textView.isAutomaticDashSubstitutionEnabled   = false
+        textView.isAutomaticQuoteSubstitutionEnabled = false
+        textView.isAutomaticDashSubstitutionEnabled = false
+    }
+
+    /// Sets the font and background on the text view from the resolved settings (F-4).
+    private func applyFontAndBackground(_ textView: NSTextView, settings: SettingsStore) {
+        let editorFont = settings.resolvedTextEditorFont
+        let font =
+            NSFont(name: editorFont.postScriptName, size: editorFont.pointSize)
+            ?? .monospacedSystemFont(ofSize: editorFont.pointSize, weight: .regular)
+        textView.font = font
+        textView.backgroundColor = NSColor(settings.textEditorBackground)
+        textView.drawsBackground = true
     }
 
     // MARK: - Coordinator
@@ -125,17 +145,17 @@ public struct EditorView: NSViewRepresentable {
     public final class Coordinator: NSObject, NSTextViewDelegate {
 
         private let viewModel: EditorViewModel
-        var textView:    EditorTextView?
+        var textView: EditorTextView?
         var ghostOverlay: GhostTextOverlay?
-        var search:      SearchController?
+        var search: SearchController?
         /// Strong reference keeps the checker alive for the view's lifetime (SW-2: the
         /// text view's reference is weak).
-        var checker:     SpellingGrammarChecker?
+        var checker: SpellingGrammarChecker?
 
         // Language providers — exactly one is dispatched per text change, based on mode.
-        var markdownProvider:           MarkdownLanguageProvider?
-        var htmlProvider:               HTMLLanguageProvider?
-        var asciiProvider:              ASCIIArtLanguageProvider?
+        var markdownProvider: MarkdownLanguageProvider?
+        var htmlProvider: HTMLLanguageProvider?
+        var asciiProvider: ASCIIArtLanguageProvider?
         var spellingCompletionProvider: SpellingCompletionProvider?
 
         init(viewModel: EditorViewModel) {
@@ -156,9 +176,9 @@ public struct EditorView: NSViewRepresentable {
 
         private func dispatchCompletionProvider() {
             switch viewModel.mode {
-            case .markdown:  markdownProvider?.onKeypress()
-            case .html:      htmlProvider?.onKeypress()
-            case .asciiArt:  asciiProvider?.onKeypress()
+            case .markdown: markdownProvider?.onKeypress()
+            case .html: htmlProvider?.onKeypress()
+            case .asciiArt: asciiProvider?.onKeypress()
             case .plainText: spellingCompletionProvider?.onKeypress()
             }
         }

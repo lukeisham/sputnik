@@ -14,6 +14,7 @@ public struct HTMLPreviewPanel: View {
     // MARK: - Environment
 
     @Environment(AppState.self) private var appState
+    @Environment(SettingsStore.self) private var settings
 
     // MARK: - State
 
@@ -157,7 +158,8 @@ public struct HTMLPreviewPanel: View {
                     router: router,
                     isLinkNavigationEnabled: isLinkNavigationEnabled,
                     onLoadError: { message in loadError = message },
-                    helpContextResolver: helpContextResolver
+                    helpContextResolver: helpContextResolver,
+                    settings: settings
                 )
                 // Fit Width: centre the preview with a max width of 960 pt.
                 // When disabled, the web view fills the entire panel width.
