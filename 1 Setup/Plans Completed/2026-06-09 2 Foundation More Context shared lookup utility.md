@@ -2,7 +2,7 @@
 plan: More Context shared lookup utility
 module: 2 Foundation (2.7 Utilities) + 3 Text Editor, 4 Markdown Preview, 8 HTML Preview, 9 Resources
 created: 2026-06-09
-status: pending
+status: complete
 related_issues: ISS-008 (open, related), ISS-010 (open, this plan fixes)
 ---
 
@@ -99,10 +99,10 @@ Per SR-1, Foundation is an **interface layer, not an orchestration layer**. Ther
 - `1 Setup/Module Guides/9 Resources/9.5 Grammar Help/guide.md` — Mode 3 extended to HTML preview.
 
 ## Closeout
-- [ ] Re-read the Purpose statement — does the outcome match it exactly?
-- [ ] Success Condition verified (ran / tested / confirmed as described above)
-- [ ] Module Guide(s) updated (`status` + `last_updated`)
-- [ ] Changes committed — commit message: `[2 Foundation] More Context shared lookup utility`
-- [ ] Pre-push checks done (`git status --short` clean of unrelated changes; `git --no-pager log origin/main..HEAD` reviewed for pre-existing unpushed commits)
-- [ ] Pushed to GitHub (`git push origin main`) — all recent changes pushed
-- [ ] Plan moved to Plans Completed/
+- [x] Re-read the Purpose statement — does the outcome match it exactly?
+- [x] Success Condition verified (ran / tested / confirmed as described above)
+- [x] Module Guide(s) updated (`status` + `last_updated`)
+- [x] Changes committed — commit message: `[2 Foundation] More Context shared lookup utility`
+- [x] Pre-push checks done (`git status --short` clean of unrelated changes; `git --no-pager log origin/main..HEAD` reviewed for pre-existing unpushed commits)
+- [x] Pushed to GitHub (`git push origin main`) — all recent changes pushed
+- [x] Plan moved to Plans Completed/
