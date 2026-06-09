@@ -1,7 +1,7 @@
 ---
 module: 2.3 Foundation – Settings
 status: active
-last_updated: 2026-06-08
+last_updated: 2026-06-09
 ---
 
 ## Purpose
@@ -46,6 +46,9 @@ Own all user-configurable preferences — appearance, editor behaviour, and spel
   - `AppTheme` — enum: `.light`, `.dark`, `.system` <!-- assumed -->
   - `EditorFont` — struct wrapping PostScript font name and point size <!-- assumed -->
   - `TerminalColor` — lightweight RGBA struct, `Codable`; extracted from module 7 so Foundation owns it without importing Terminal
+  - `WritingAssistMatrix` — `Codable Sendable` struct; stores one `Bool` per applicable `WritingAssistFunction × WritingAssistLanguage` cell; non-applicable cells always return `false`; resolves ISS-011
+  - `WritingAssistLanguage` — enum: `.spelling`, `.grammar`, `.markdown`, `.html`, `.asciiArt`
+  - `WritingAssistFunction` — enum: `.instantCorrect`, `.autoComplete`, `.moreContext`
 - **Threading model:** `SettingsStore` is `@MainActor`. All property changes are on the main thread; `PersistenceService` writes are dispatched with `Task(priority: .utility)` so UI is never blocked by a `UserDefaults` write.
 - **Data flow:** User changes a setting in the Settings window → `SettingsStore` property updates → `@Observable` propagates the change to any view observing it → `PersistenceService` persists the new value asynchronously.
 - **State owned:**
@@ -54,8 +57,9 @@ Own all user-configurable preferences — appearance, editor behaviour, and spel
   - `autoSaveEnabled: Bool`
   - `lineNumbersEnabled: Bool`
   - `wordWrapEnabled: Bool`
-  - `spellCheckEnabled: Bool`
-  - `grammarCheckEnabled: Bool`
+  - `writingAssist: WritingAssistMatrix` — the per-language × per-function assist matrix (ISS-011); single source of truth for all writing-assist toggles
+  - `spellCheckEnabled: Bool` — **computed** over `writingAssist.isEnabled(.instantCorrect, for: .spelling)`; kept for existing consumers
+  - `grammarCheckEnabled: Bool` — **computed** over `writingAssist.isEnabled(.instantCorrect, for: .grammar)`; kept for existing consumers
   - `terminalFontName: String`
   - `terminalFontSize: Double`
   - `terminalScrollbackLimit: Int`

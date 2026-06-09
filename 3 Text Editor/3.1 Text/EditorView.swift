@@ -61,6 +61,7 @@ public struct EditorView: NSViewRepresentable {
                                              settings: settings)
         textView.spellingChecker = checker
         textView.editorViewModel = viewModel
+        textView.settings        = settings
 
         // Route "Look Up Help" through the Foundation help target (SR-1). Capture weakly
         // so the long-lived text view never retains AppState (SW-2).
@@ -68,10 +69,35 @@ public struct EditorView: NSViewRepresentable {
             appState?.requestedHelpTarget = request
         }
 
-        context.coordinator.textView     = textView
-        context.coordinator.ghostOverlay = overlay
-        context.coordinator.search       = search
-        context.coordinator.checker      = checker
+        // Completion corpus — created once, shared across all four providers (SR-3).
+        let corpus = SputnikCompletionCorpus()
+
+        // Language providers — wired to the shared ghost overlay; one is active per mode.
+        let blockCompletion  = BlockCompletion()
+        let markdownProvider = MarkdownLanguageProvider(
+            textView: textView, ghostOverlay: overlay, settings: settings, completionProvider: corpus
+        )
+        let htmlProvider = HTMLLanguageProvider(
+            textView: textView, ghostOverlay: overlay, viewModel: viewModel,
+            settings: settings, completionProvider: corpus
+        )
+        let asciiProvider = ASCIIArtLanguageProvider(
+            textView: textView, ghostOverlay: overlay, blockCompletion: blockCompletion,
+            settings: settings, completionProvider: corpus
+        )
+        let spellingCompletionProvider = SpellingCompletionProvider(
+            textView: textView, ghostOverlay: overlay,
+            settings: settings, spellDocumentTag: checker.spellDocumentTag
+        )
+
+        context.coordinator.textView                  = textView
+        context.coordinator.ghostOverlay              = overlay
+        context.coordinator.search                    = search
+        context.coordinator.checker                   = checker
+        context.coordinator.markdownProvider          = markdownProvider
+        context.coordinator.htmlProvider              = htmlProvider
+        context.coordinator.asciiProvider             = asciiProvider
+        context.coordinator.spellingCompletionProvider = spellingCompletionProvider
 
         configureTypography(textView)
         return scrollView
@@ -106,6 +132,12 @@ public struct EditorView: NSViewRepresentable {
         /// text view's reference is weak).
         var checker:     SpellingGrammarChecker?
 
+        // Language providers — exactly one is dispatched per text change, based on mode.
+        var markdownProvider:           MarkdownLanguageProvider?
+        var htmlProvider:               HTMLLanguageProvider?
+        var asciiProvider:              ASCIIArtLanguageProvider?
+        var spellingCompletionProvider: SpellingCompletionProvider?
+
         init(viewModel: EditorViewModel) {
             self.viewModel = viewModel
         }
@@ -114,9 +146,20 @@ public struct EditorView: NSViewRepresentable {
             viewModel.isDirty = true
             // Debounced spelling/grammar re-check (no-op when spellCheckActive is false).
             checker?.onTextChange()
+            // Dispatch to the active language provider for ghost-text completions.
+            dispatchCompletionProvider()
             // Invalidate ruler on every edit so line numbers stay current.
             if let tv = notification.object as? NSTextView {
                 tv.enclosingScrollView?.verticalRulerView?.needsDisplay = true
+            }
+        }
+
+        private func dispatchCompletionProvider() {
+            switch viewModel.mode {
+            case .markdown:  markdownProvider?.onKeypress()
+            case .html:      htmlProvider?.onKeypress()
+            case .asciiArt:  asciiProvider?.onKeypress()
+            case .plainText: spellingCompletionProvider?.onKeypress()
             }
         }
     }

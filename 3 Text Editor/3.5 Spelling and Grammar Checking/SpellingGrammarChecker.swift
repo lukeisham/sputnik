@@ -189,5 +189,62 @@ public final class SpellingGrammarChecker {
             storage.addAttribute(.underlineColor, value: color, range: annotation.range)
         }
         storage.endEditing()
+
+        // Instant Correct — auto-apply if enabled. Runs after render so underlines are
+        // consistent before the text changes again.
+        applyInstantCorrectIfNeeded()
+    }
+
+    // MARK: - Instant Correct (Spelling + Grammar only)
+
+    /// After each check, if Instant Correct is on for the relevant kind, and the cursor
+    /// has moved past a word with exactly one correction at a word boundary, auto-apply it.
+    ///
+    /// Only the annotation closest to (and immediately before) the cursor is considered,
+    /// targeting the word just completed. One correction per trigger to avoid cascade effects.
+    private func applyInstantCorrectIfNeeded() {
+        guard let textView,
+              let storage = textView.textStorage,
+              storage.length > 0
+        else { return }
+
+        // Skip while ghost text is visible — the storage contains ghost characters that
+        // would shift annotation ranges and produce false matches.
+        if let etv = textView as? EditorTextView,
+           etv.ghostTextOverlay?.isVisible == true { return }
+
+        let cursorPos = textView.selectedRange().location
+        guard cursorPos > 0 else { return }
+
+        // Find the annotation with the largest upperBound that is still before cursorPos.
+        let candidate = annotations.lazy
+            .filter { !$0.isSuppressed && $0.range.upperBound < cursorPos }
+            .max(by: { $0.range.upperBound < $1.range.upperBound })
+
+        guard let annotation = candidate,
+              let suggestion  = annotation.suggestions.first
+        else { return }
+
+        let range = annotation.range
+        guard range.location != NSNotFound,
+              range.location + range.length <= storage.length,
+              range.upperBound < storage.length
+        else { return }
+
+        // Require a word-boundary character immediately after the word.
+        let nsStr = storage.string as NSString
+        let afterChar = nsStr.character(at: range.upperBound)
+        guard let scalar = Unicode.Scalar(afterChar) else { return }
+        let c = Character(scalar)
+        guard c.isWhitespace || c.isNewline || c.isPunctuation else { return }
+
+        // Gate on the matrix cell for the annotation's kind.
+        let lang: WritingAssistLanguage = annotation.kind == .spelling ? .spelling : .grammar
+        guard settings.writingAssist.isEnabled(.instantCorrect, for: lang) else { return }
+
+        // Apply — same path as EditorTextView.applyFix; undoable via NSTextStorage + allowsUndo.
+        storage.replaceCharacters(in: range, with: suggestion)
+        textView.didChangeText()
+        recheckNow()
     }
 }

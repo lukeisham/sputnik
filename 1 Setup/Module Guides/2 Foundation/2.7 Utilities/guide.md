@@ -54,6 +54,21 @@ Provide small, general-purpose utilities that have no module-specific logic and 
 │  │  → [NSMenuItem]                  │    │
 │  │  (empty when selection blank)    │    │
 │  └──────────────────────────────────┘    │
+│                                          │
+│  CompletionQuery (Sendable)              │
+│  ┌──────────────────────────────────┐    │
+│  │  language: WritingAssistLanguage │    │
+│  │  prefix: String                  │    │
+│  │  fullText: String                │    │
+│  │  cursorOffset: Int               │    │
+│  │  limit: Int                      │    │
+│  └──────────────────────────────────┘    │
+│                                          │
+│  CompletionProviding (protocol)          │
+│  ┌──────────────────────────────────┐    │
+│  │  completions(CompletionQuery)    │    │
+│  │    async -> [String]             │    │
+│  └──────────────────────────────────┘    │
 └──────────────────────────────────────────┘
 ```
 
@@ -65,6 +80,8 @@ Provide small, general-purpose utilities that have no module-specific logic and 
   - `HelpContextQuery` — `Sendable` value type describing a user's current selection and context: the target `HelpTopic` kind, selected text, full document text, and cursor offset; content-agnostic — Foundation owns the query type, not the orchestration (SR-1)
   - `HelpContextResolving` — `Sendable` protocol with `func resolve(_ query: HelpContextQuery) async -> HelpRequest?`; content-agnostic seam for resolving a text selection to a help topic; Foundation owns the protocol, module 9 provides the concrete resolver (SR-1)
   - `MoreContextMenu` — `@MainActor` builder enum; static `items(forSelectedText:kinds:fullText:cursorOffset:resolver:onRequest:) -> [NSMenuItem]` creates one `ClosureMenuItem` per candidate `HelpTopic` kind titled `"More Context: <kind.title>"`; returns `[]` when selection is empty/whitespace; on activation, runs the resolver in a `Task` and routes the result through the caller-supplied `onRequest` sink
+  - `CompletionQuery` — `Sendable` value type: `language: WritingAssistLanguage`, `prefix: String`, `fullText: String`, `cursorOffset: Int`, `limit: Int`; content-agnostic completion request passed from editor providers to the corpus (SR-1)
+  - `CompletionProviding` — `Sendable` protocol with `func completions(_ query: CompletionQuery) async -> [String]`; Foundation owns the protocol, module 9 provides `SputnikCompletionCorpus`; module 3 providers depend only on the protocol (SR-1)
 - **Threading model:**
   - `ClosureMenuItem` and `MoreContextMenu` are `@MainActor` — menu construction and activation happen on the main thread
   - `HelpContextResolving.resolve` is `async` — the resolver runs the coordinator lookup (which may be actor-isolated) inside a `Task`; the host's `onRequest` sink writes to `AppState.requestedHelpTarget` on `@MainActor`

@@ -15,18 +15,21 @@ public final class ASCIIArtLanguageProvider {
     private weak var ghostOverlay: GhostTextOverlay?
     let blockCompletion: BlockCompletion
     private let settings: SettingsStore
+    private let completionProvider: any CompletionProviding
     private let debounce = DebounceTimer()
 
     public init(
         textView: NSTextView,
         ghostOverlay: GhostTextOverlay,
         blockCompletion: BlockCompletion,
-        settings: SettingsStore
+        settings: SettingsStore,
+        completionProvider: any CompletionProviding
     ) {
-        self.textView        = textView
-        self.ghostOverlay    = ghostOverlay
-        self.blockCompletion = blockCompletion
-        self.settings        = settings
+        self.textView            = textView
+        self.ghostOverlay        = ghostOverlay
+        self.blockCompletion     = blockCompletion
+        self.settings            = settings
+        self.completionProvider  = completionProvider
     }
 
     // MARK: - Public interface
@@ -55,13 +58,54 @@ public final class ASCIIArtLanguageProvider {
         case .ghost(let s):
             blockCompletion.discard()
             ghostOverlay?.show(s)
+            return
         case .block(let payload):
             blockCompletion.stage(payload)
             ghostOverlay?.show(payload.preview)
+            return
         case .none:
             blockCompletion.discard()
+        }
+
+        // Corpus fallback — only when Auto-Complete is enabled for ASCII Art.
+        guard settings.writingAssist.isEnabled(.autoComplete, for: .asciiArt) else {
+            ghostOverlay?.clear()
+            return
+        }
+
+        let wordPrefix = await Task(priority: .utility) { [text, cursorPos] in
+            Self.currentWordPrefix(in: text, upTo: cursorPos)
+        }.value
+
+        guard wordPrefix.count >= 2 else { ghostOverlay?.clear(); return }
+
+        let query = CompletionQuery(
+            language: .asciiArt, prefix: wordPrefix, fullText: text, cursorOffset: cursorPos
+        )
+        let candidates = await completionProvider.completions(query)
+
+        if let match = candidates.first {
+            let suffix = String(match.dropFirst(wordPrefix.count))
+            suffix.isEmpty ? ghostOverlay?.clear() : ghostOverlay?.show(suffix)
+        } else {
             ghostOverlay?.clear()
         }
+    }
+
+    // MARK: - Word prefix extraction (off main actor)
+
+    private static func currentWordPrefix(in text: String, upTo cursorPos: Int) -> String {
+        let safeOffset = min(cursorPos, text.count)
+        guard safeOffset > 0 else { return "" }
+        let end = text.index(text.startIndex, offsetBy: safeOffset)
+        var i = end
+        while i > text.startIndex {
+            let prev = text.index(before: i)
+            let c = text[prev]
+            guard c.isLetter || c.isNumber else { break }
+            i = prev
+        }
+        return String(text[i..<end])
     }
 
     // MARK: - Analysis result

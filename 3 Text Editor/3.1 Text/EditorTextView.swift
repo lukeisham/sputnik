@@ -28,6 +28,10 @@ public final class EditorTextView: NSTextView {
     /// Wired by `EditorView`.
     weak var editorViewModel: EditorViewModel?
 
+    /// The settings store — read to gate More Context items on `writingAssist.moreContext`.
+    /// Wired by `EditorView`.
+    weak var settings: SettingsStore?
+
     /// Sets the Foundation help target to reveal + navigate a help panel. Wired by
     /// `EditorView` so the AppKit text view never reaches into `AppState` directly.
     var onRequestHelp: ((HelpRequest) -> Void)?
@@ -158,6 +162,12 @@ public final class EditorTextView: NSTextView {
             let kind = helpKind(for: viewModel)
         else { return menu }
 
+        // Gate on the writingAssist matrix — non-applicable or disabled cells skip items.
+        if let lang = assistLanguage(for: kind),
+           settings?.writingAssist.isEnabled(.moreContext, for: lang) == false {
+            return menu
+        }
+
         let selected = (string as NSString).substring(with: selection)
 
         let resolver = helpContextResolver ?? SputnikHelpContextResolver.shared
@@ -192,6 +202,18 @@ public final class EditorTextView: NSTextView {
         case .markdown: return .markdown
         case .html: return .html
         case .asciiArt: return .asciiArt
+        }
+    }
+
+    /// Maps a `HelpTopic` to its `WritingAssistLanguage` for the More Context gate.
+    /// Returns `nil` for topics that have no matrix entry (e.g. `.sputnik`).
+    private func assistLanguage(for kind: HelpTopic) -> WritingAssistLanguage? {
+        switch kind {
+        case .markdown: return .markdown
+        case .html:     return .html
+        case .grammar:  return .grammar
+        case .asciiArt: return .asciiArt
+        case .sputnik:  return nil
         }
     }
 

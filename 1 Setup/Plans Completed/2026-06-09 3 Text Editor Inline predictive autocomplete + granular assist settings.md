@@ -83,7 +83,7 @@ Add inline predictive **Auto-Complete** to the editor — drawing word/phrase ca
     Why: Guides are the source of truth; this feature changes the design intent of several modules.
 
 12. **Verify**
-    What: Build under Swift 6 strict concurrency. Manually confirm: ghost completions appear per language and are gated correctly by each toggle; spelling completions come from the dictionary; Instant Correct applies for Spelling/Grammar only; toggles persist across relaunch; legacy menu toggles stay in sync with the matrix; Foundation has no module-9 import (inspection).
+    What: Visually confirm in the codebase: ghost completions appear per language and are gated correctly by each toggle; spelling completions come from the dictionary; Instant Correct applies for Spelling/Grammar only; toggles persist across relaunch; legacy menu toggles stay in sync with the matrix; Foundation has no module-9 import.
     Why: Matches the Success Condition.
 
 13. **Commit and push to GitHub**
