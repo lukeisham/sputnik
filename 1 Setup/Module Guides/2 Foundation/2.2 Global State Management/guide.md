@@ -1,7 +1,7 @@
 ---
 module: 2.2 Foundation – Global State Management
 status: active
-last_updated: 2026-06-08
+last_updated: 2026-06-09
 ---
 
 ## Purpose
@@ -18,6 +18,9 @@ Provide a single, thread-safe source of truth for the app's active workspace dir
                   │  activeDocumentID: UUID?           ◀─────┼── tab bar (2.4)
                   │  activeDocument: DocumentSession?        │
                   │  focusMode: FocusMode                    │
+                  │  isProcessing: Bool (computed)     ◀─────┼── StatusBarView / MenuBarController
+                  │  contextUsage: ContextUsage?       ◀─────┼── StatusBarView CTX %
+                  │  scratchpadVisible: Bool           ◀─────┼── ScratchpadPanel / View menu
                   └─────────────┬────────────────────────────┘
                                 │  observed via @Environment
              ┌──────────────────┼──────────────────────┐
@@ -42,6 +45,7 @@ File system watcher (background Task)
   - `DocumentSession` — `@Observable @MainActor` class; one instance per open tab,
     owning `id`, `url`, `fileType`, `text`, and `isDirty`
   - `FileType` — enum shared with module 2.1; classifies a session so panels render correctly
+  - `ContextUsage` (`Sendable`, `2 Foundation/2.2 Global State Management/ContextUsage.swift`) — `usedTokens: Int`, `contextWindow: Int`, computed `percent: Double`; written to `AppState.contextUsage` by any module making AI calls; context window size looked up from `ModelCapacity` (2.3); `nil` when no AI call is active
 - **Threading model:** `AppState` and `DocumentSession` are `@MainActor` — all reads and
   writes are on the main thread. Background file-system events must hop via
   `Task { @MainActor in … }` before mutating state (SW-1, SR-4).
@@ -59,6 +63,11 @@ File system watcher (background Task)
   - `currentlyOpenFile: URL?` — read-only computed alias of `activeDocument?.url`.
   - `currentlyOpenFileType: FileType` — read-only computed alias of `activeDocument?.fileType`.
   - `requestedHelpTarget: HelpRequest?` — the live help-routing primitive (resolves ISS-008). `nil` when no help is open; set by the Help menu (with `topicID = nil`) or by the editor's "Look Up Help" action (with a resolved `topicID`). Module 9 panels observe this to reveal and navigate. The backward-compatible computed property `requestedHelpTopic: HelpTopic?` overlays it for callers that only need the panel kind (e.g. the Help menu, the right-column switch in `ContentView`).
+  - `private var processingCount: Int` — reference count of concurrent in-flight operations; always mutated on `@MainActor` so no race is possible.
+  - `isProcessing: Bool` — **computed**: `processingCount > 0`; observed by `StatusBarView` (F-5) for the satellite spinner and by `SputnikMenuBarController` (F-1) for the menu-bar animation; single source of truth for "the app is busy" across both display surfaces (SR-1, resolves ISS-013).
+  - `func beginProcessing()` / `func endProcessing()` — increment / decrement `processingCount`; callers must balance every `begin` with an `end` (document at call sites).
+  - `contextUsage: ContextUsage?` — written by any module making AI calls; consumed by `StatusBarView` context-% segment; `nil` when no AI call is in progress or no model is configured.
+  - `scratchpadVisible: Bool` — toggled by **View ▸ Scratchpad** (⌘⇧K) via `SputnikCommands`; observed by `ScratchpadPanel` (2.4) to show/hide the overlay; initial value restored from `PersistenceService` on launch.
 - **Dependencies:** `InterPanelRouter` (2.1) is the sole external writer. Foundation-layer
   UI (toolbar, `DocumentTabBar`) may write `activeDocumentID` and `focusMode` directly.
 - **Failure modes:**

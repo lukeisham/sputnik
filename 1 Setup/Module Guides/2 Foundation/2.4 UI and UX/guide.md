@@ -27,7 +27,16 @@ Named slots above the terminal (panels can be placed in any slot):
 │              │                                                  │
 ├──────────────┴──────────────────────────────────────────────────┤
 │   Terminal (7)   — always here, not part of the slot system     │
+├─────────────────────────────────────────────────────────────────┤
+│   StatusBarView  — 24 pt fixed height, non-resizable            │
+│   [ 🛰 ]  claude-sonnet-4-6  CTX 34%  RAM 48 MB  CPU 2.1%      │
 └─────────────────────────────────────────────────────────────────┘
+  ↑ .overlay(alignment: .bottomTrailing) on ContentView:
+  ┌──────────────┐
+  │  Scratchpad  │  ← ScratchpadPanel (320×240 pt default, resizable,
+  │              │    draggable; visible when AppState.scratchpadVisible)
+  │  NSTextView  │
+  └──────────────┘
 
 Default slot assignment (restored from PersistenceService on launch):
   .left        → File Tree (6)
@@ -49,7 +58,7 @@ Focus Modes (panel toggles hide/show; positions are preserved):
 ## Technical Summary
 - **Framework(s):** SwiftUI, AppKit (for `NSFont`, system icon access)
 - **Key types:**
-  - `DesignTokens` — namespace enum of static constants: colors (`SputnikColor`), fonts (`SputnikFont`), spacing (`SputnikSpacing`) <!-- assumed -->
+  - `DesignTokens` — namespace enum of static constants: colors (`SputnikColor`), fonts (`SputnikFont`), spacing (`SputnikSpacing`); also registers two named image assets: `SputnikMenuBar` (16 pt @1x / 32 pt @2x monochrome template for the menu-bar status item — F-1) and `SputnikLogo` (64 pt @1x / 128 pt @2x full-colour for the About window — F-1/F-2) <!-- assumed -->
   - `SputnikColor` — color set bridging `Color` (SwiftUI) and `NSColor` (AppKit), with light/dark variants driven by `SettingsStore.theme` <!-- assumed -->
   - `PanelID` — enum identifying each panel: `.fileTree`, `.textEditor`, `.markdownPreview`, `.htmlPreview`, `.pdfViewer`; Terminal is excluded — it is not relocatable <!-- assumed -->
   - `PanelPosition` — enum of named slots: `.left`, `.centerUpper`, `.centerLower`, `.right` <!-- assumed -->
@@ -58,6 +67,11 @@ Focus Modes (panel toggles hide/show; positions are preserved):
   - `SputnikAlert` — typed error enum with associated `title: String` and `message: String`; all error dialogs are constructed from this type so presentation is consistent <!-- assumed -->
   - `DocumentTabBar` — SwiftUI view rendered above the `.centerUpper` editor slot; reads `AppState.openDocuments` and `activeDocumentID`, writes `activeDocumentID` on tab-tap, and calls an `onClose: (UUID) -> Void` callback for close gestures so the router can run the `isDirty` guard (spec 2.4.2.5 "Tabs and Windows")
   - `HelpTopic` — enum (`sputnik`, `markdown`, `html`, `asciiArt`, `grammar`) identifying which help panel to reveal; consumed by `AppState.requestedHelpTopic` and the Help menu
+  - `AboutWindowView` — SwiftUI `View` in `2 Foundation/2.4 UI and UX/AboutWindowView.swift`; displays `SputnikLogo` (128 pt), app name, version string from `CoreSputnik`, build number, and a static credits block (hard-coded `let` string — not loaded from disk at runtime); hosted in the `Window("about")` scene in `SputnikApp`; opened via `openWindow(id: "about")` from `SputnikCommands`
+  - `ScratchpadPanel` (`2 Foundation/2.4 UI and UX/ScratchpadPanel.swift`) — SwiftUI container applied as `.overlay(alignment: .bottomTrailing)` on `ContentView`; visible when `AppState.scratchpadVisible` is `true`; contains a title bar ("Scratchpad" label + close button that sets `scratchpadVisible = false`), resize handles (drag from any edge), and a drag gesture on the title bar for repositioning; default size 320×240 pt, minimum 200×120 pt; size and position persisted via `PersistenceService.scratchpadFrame`; hosts `ScratchpadTextView`
+  - `ScratchpadTextView` (`2 Foundation/2.4 UI and UX/ScratchpadTextView.swift`) — `NSViewRepresentable` wrapping a plain `NSTextView`; binds to `@Binding<String>` backed by `PersistenceService.scratchpadText`; no spell-check underlines by default; `NSViewRepresentable` use is justified: `NSTextView` provides raw plain-text editing performance that `TextEditor` cannot match for an unstructured scratchpad (SW-3 — documented at call site); `NSTextViewDelegate` callbacks in `Coordinator` use `[weak self]`; becomes a consumer of `SlashCommandRegistry` when F-7 is active
+  - `SlashCommandPopup` (`2 Foundation/2.4 UI and UX/SlashCommandPopup.swift`) — SwiftUI `View`; filtered `List` of `SlashCommand` rows grouped by `category`; triggered by host views when a `/` is typed at a word boundary; anchored to the cursor using `NSTextView.firstRect(forCharacterRange:actualRange:)` converted to SwiftUI coordinates; dismissed by Escape, focus loss, or confirmed selection; `onSelect: (SlashCommand) -> Void` callback returns the chosen command to the host, which replaces the `/…` token and dismisses the popup
+  - `StatusBarView` (`2 Foundation/2.4 UI and UX/StatusBarView.swift`) — SwiftUI `HStack` fixed at 24 pt height at the very bottom of `ContentView` (below the Terminal strip); reads `AppState`, `SettingsStore`, and `ProcessMonitor` from the environment; segments (left to right): satellite icon with `rotationEffect` animation when `AppState.isProcessing` is true; AI model name (`SettingsStore.aiConfig.modelName`, or `"—"` if empty); context % (shown only when `aiConfig.modelName` is non-empty and `AppState.contextUsage` is non-nil); RAM and CPU % from `ProcessMonitor`; terminal model segment injected by F-8 as optional child views
   - `HelpRequest` — `Equatable Sendable` value type wrapping a `HelpTopic` `kind` and an optional `topicID: String?`; the Foundation-owned single route for help-panel navigation (ISS-008 resolved). The Help menu sets `topicID = nil` (overview); the editor's "Look Up Help" sets a resolved `topicID` so the panel scrolls to the matching topic. Written to `AppState.requestedHelpTarget`; module 9 panels observe it via `SputnikHelpPanel.navigate(to:)`. Coordinator-side wiring pattern: each coordinator singleton exposes `var onNavigate: ((HelpRequest) -> Void)?`; its panel view assigns `coordinator.onNavigate = { [weak state] request in state?.requestedHelpTarget = request }` in its `.task` body, capturing `AppState` weakly (SW-2).
 - **Threading model:** All UI work is `@MainActor`. Design tokens are pure value types with no threading concerns. Panel resize and relocation events update `PanelLayout` synchronously on the main thread; the subsequent `PersistenceService` write is `Task(priority: .utility)`.
 - **Data flow:** `DesignTokens` are accessed as static constants — no injection needed. `PanelLayout` is read at launch from `PersistenceService`, mutated by drag-to-swap and resize events, and written back on each change. `FocusMode` lives in `AppState`; the toolbar writes it, panels observe it via `@Environment`. Panel relocation: panel title bars expose `.onDrag` returning a `PanelID`; slot views expose `.onDrop` accepting a `PanelID`; on a valid drop the two panels' `PanelPosition` values are swapped in `PanelLayout`.

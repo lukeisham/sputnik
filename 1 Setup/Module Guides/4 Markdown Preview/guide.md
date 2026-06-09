@@ -112,6 +112,7 @@ MARKDOWN PREVIEW PANEL  (occupies centre lower slot; see module 2.0 overview)
   - `@MainActor` for all `NSTextView` operations (setting `textStorage`, scroll position, selection updates) and `MarkdownPreviewViewModel` mutations
   - Background `Task(priority: .utility)` for the Markdown-to-`AttributedString` conversion — for large documents this parsing can be non-trivial; the resulting `AttributedString` (which is `Sendable`) is published back on `@MainActor`
   - Re-render is triggered by observing `activeDocumentID` and the active session's debounced `.text` publisher (the debounce lives in Text Editor 3, not here) — prevents re-parsing on every keystroke
+  - **F-4 (Per-panel font/background):** `MarkdownRenderView` reads `settings.resolvedMarkdownPreviewFont` as the base `NSFont` and `settings.markdownPreviewBackground` as the `NSTextView.backgroundColor`; resolved font falls back to `editorFont` when no per-panel override is set.
 - **Data flow:**
   1. **Render trigger:** Text Editor modifies active `.markdown` document → debounced text update via `AppState.activeDocument.text` publisher → `MarkdownPreviewViewModel` detects change
   2. **Parse:** Text is passed to `AttributedString(markdown:)` on a background `Task(priority: .utility)` — this produces a styled `AttributedString` with headings, bold, italic, code, links, tables, lists, and block quotes rendered using system font styles
