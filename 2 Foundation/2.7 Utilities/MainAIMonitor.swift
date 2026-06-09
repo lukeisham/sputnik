@@ -100,10 +100,10 @@ public final class MainAIMonitor {
     ///   - usedTokens: Tokens consumed in the current session.
     ///   - contextWindow: The context-window capacity of the model.
     public func updateUsage(usedTokens: Int, contextWindow: Int) {
-        guard appState.mainAIState != nil else { return }
+        guard let currentState = appState.mainAIState else { return }
         let usage = MainAIContextUsage(usedTokens: usedTokens, contextWindow: contextWindow)
         appState.mainAIState = MainAIState(
-            modelName: appState.mainAIState!.modelName,
+            modelName: currentState.modelName,
             contextWindow: contextWindow,
             usage: usage
         )

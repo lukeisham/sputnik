@@ -1,7 +1,7 @@
 ---
 module: 9.3 Resources – Markdown Help
-status: draft
-last_updated: 2026-06-08
+status: complete
+last_updated: 2026-06-09
 ---
 
 ## Purpose

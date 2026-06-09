@@ -1,6 +1,6 @@
 ---
 module: 9.5 Resources – Grammar Help
-status: draft
+status: complete
 last_updated: 2026-06-09
 ---
 
