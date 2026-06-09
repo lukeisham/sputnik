@@ -58,6 +58,7 @@ File system watcher (background Task)
   - `focusMode: FocusMode` — written by toolbar.
   - `currentlyOpenFile: URL?` — read-only computed alias of `activeDocument?.url`.
   - `currentlyOpenFileType: FileType` — read-only computed alias of `activeDocument?.fileType`.
+  - `requestedHelpTarget: HelpRequest?` — the live help-routing primitive (resolves ISS-008). `nil` when no help is open; set by the Help menu (with `topicID = nil`) or by the editor's "Look Up Help" action (with a resolved `topicID`). Module 9 panels observe this to reveal and navigate. The backward-compatible computed property `requestedHelpTopic: HelpTopic?` overlays it for callers that only need the panel kind (e.g. the Help menu, the right-column switch in `ContentView`).
 - **Dependencies:** `InterPanelRouter` (2.1) is the sole external writer. Foundation-layer
   UI (toolbar, `DocumentTabBar`) may write `activeDocumentID` and `focusMode` directly.
 - **Failure modes:**

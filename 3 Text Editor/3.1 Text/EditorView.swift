@@ -11,9 +11,13 @@ import SwiftUI
 public struct EditorView: NSViewRepresentable {
 
     var viewModel: EditorViewModel
+    var settings: SettingsStore
+    var appState: AppState
 
-    public init(viewModel: EditorViewModel) {
+    public init(viewModel: EditorViewModel, settings: SettingsStore, appState: AppState) {
         self.viewModel = viewModel
+        self.settings  = settings
+        self.appState  = appState
     }
 
     // MARK: - NSViewRepresentable
@@ -50,9 +54,24 @@ public struct EditorView: NSViewRepresentable {
         textView.ghostTextOverlay = overlay
         textView.searchController = search
 
+        // Spelling/grammar checker: held strongly by the coordinator (lives as long as the
+        // view); the text view holds it weakly for click hit-testing (SW-2).
+        let checker = SpellingGrammarChecker(textView: textView,
+                                             viewModel: viewModel,
+                                             settings: settings)
+        textView.spellingChecker = checker
+        textView.editorViewModel = viewModel
+
+        // Route "Look Up Help" through the Foundation help target (SR-1). Capture weakly
+        // so the long-lived text view never retains AppState (SW-2).
+        textView.onRequestHelp = { [weak appState] request in
+            appState?.requestedHelpTarget = request
+        }
+
         context.coordinator.textView     = textView
         context.coordinator.ghostOverlay = overlay
         context.coordinator.search       = search
+        context.coordinator.checker      = checker
 
         configureTypography(textView)
         return scrollView
@@ -83,6 +102,9 @@ public struct EditorView: NSViewRepresentable {
         var textView:    EditorTextView?
         var ghostOverlay: GhostTextOverlay?
         var search:      SearchController?
+        /// Strong reference keeps the checker alive for the view's lifetime (SW-2: the
+        /// text view's reference is weak).
+        var checker:     SpellingGrammarChecker?
 
         init(viewModel: EditorViewModel) {
             self.viewModel = viewModel
@@ -90,6 +112,8 @@ public struct EditorView: NSViewRepresentable {
 
         public func textDidChange(_ notification: Notification) {
             viewModel.isDirty = true
+            // Debounced spelling/grammar re-check (no-op when spellCheckActive is false).
+            checker?.onTextChange()
             // Invalidate ruler on every edit so line numbers stay current.
             if let tv = notification.object as? NSTextView {
                 tv.enclosingScrollView?.verticalRulerView?.needsDisplay = true

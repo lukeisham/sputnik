@@ -30,7 +30,8 @@ public struct ASCIIArtHelpPanelView: View {
         SputnikHelpPanel(
             allTopics: allTopics,
             categories: categories,
-            persistenceKey: "asciiArtHelp"
+            persistenceKey: "asciiArtHelp",
+            helpKind: .asciiArt
         ) { topic in
             ASCIIArtTopicContentView(topic: topic)
         }

@@ -2,6 +2,48 @@ import AppKit
 import SwiftUI
 import WebKit
 
+// MARK: - More Context Web View
+
+/// A `WKWebView` subclass that injects "More Context" help items into the right-click menu.
+///
+/// Overrides `willOpenMenu(_:with:)` to read the current selection from the coordinator
+/// and build resolver-driven menu items via `MoreContextMenu.items(...)`. Both HelpTopic
+/// kinds relevant to HTML preview — `.grammar` and `.html` — are offered.
+private final class MoreContextWebView: WKWebView {
+
+    /// Weak reference to the coordinator so we can read captured selection, resolver, etc.
+    /// Weak to avoid a retain cycle (the coordinator already owns the navigation delegate).
+    weak var previewCoordinator: HTMLPreviewCoordinator?
+
+    override func willOpenMenu(_ menu: NSMenu, with event: NSEvent) {
+        super.willOpenMenu(menu, with: event)
+
+        guard let coordinator = previewCoordinator,
+            !coordinator.capturedSelection.isEmpty
+        else { return }
+
+        let resolver = coordinator.helpContextResolver ?? SputnikHelpContextResolver.shared
+        let moreItems = MoreContextMenu.items(
+            forSelectedText: coordinator.capturedSelection,
+            kinds: [.grammar, .html],
+            fullText: coordinator.fullSessionText,
+            cursorOffset: 0,
+            resolver: resolver,
+            onRequest: { [weak coordinator] request in
+                coordinator?.onRequestHelp?(request)
+            }
+        )
+
+        guard !moreItems.isEmpty else { return }
+        menu.insertItem(.separator(), at: 0)
+        for item in moreItems.reversed() {
+            menu.insertItem(item, at: 0)
+        }
+    }
+}
+
+// MARK: - HTMLPreviewView
+
 /// Live HTML preview panel — renders the active `.html` editor tab in a `WKWebView`.
 ///
 /// `HTMLPreviewView` is a pure function of `AppState.activeDocument`: when the active
@@ -38,6 +80,9 @@ public struct HTMLPreviewView: NSViewRepresentable {
     /// Callback for load failures, surfaced as an error banner in the panel.
     private let onLoadError: ((String) -> Void)?
 
+    /// The shared help-context resolver, passed through to the coordinator.
+    private let helpContextResolver: HelpContextResolving
+
     // MARK: - Init
 
     /// Creates the HTML preview view.
@@ -45,14 +90,18 @@ public struct HTMLPreviewView: NSViewRepresentable {
     ///   - router:                  The app's `InterPanelRouter` instance.
     ///   - isLinkNavigationEnabled: Whether link clicks open files/URLs. Default `true`.
     ///   - onLoadError:             Optional callback when navigation fails.
+    ///   - helpContextResolver:     Resolver for "More Context" right-click help. Defaults to
+    ///                              `SputnikHelpContextResolver.shared`.
     public init(
         router: (any InterPanelRouter)? = nil,
         isLinkNavigationEnabled: Bool = true,
-        onLoadError: ((String) -> Void)? = nil
+        onLoadError: ((String) -> Void)? = nil,
+        helpContextResolver: HelpContextResolving = SputnikHelpContextResolver.shared
     ) {
         self.router = router
         self.isLinkNavigationEnabled = isLinkNavigationEnabled
         self.onLoadError = onLoadError
+        self.helpContextResolver = helpContextResolver
     }
 
     // MARK: - NSViewRepresentable
@@ -61,15 +110,38 @@ public struct HTMLPreviewView: NSViewRepresentable {
         let c = HTMLPreviewCoordinator(router: router)
         c.isLinkNavigationEnabled = isLinkNavigationEnabled
         c.onLoadError = onLoadError
+        c.helpContextResolver = helpContextResolver
+        c.onRequestHelp = { [weak appState] request in
+            appState?.requestedHelpTarget = request
+        }
         return c
     }
 
     public func makeNSView(context: Context) -> WKWebView {
         let configuration = WKWebViewConfiguration()
-        // Disable JavaScript for security — previews are read-only renders.
-        configuration.preferences.javaScriptEnabled = false
+        // Disable JavaScript execution for security (ISS-010) — previews are read-only.
+        // `allowsContentJavaScript` prevents page JS while still allowing our injected
+        // WKUserScript for selection capture to function.
+        configuration.defaultWebpagePreferences.allowsContentJavaScript = false
 
-        let webView = WKWebView(frame: .zero, configuration: configuration)
+        // Inject a user script that captures selection-change events and posts them to
+        // the `selectionChange` message handler on the coordinator. This feeds the
+        // "More Context" right-click gesture without requiring full JS execution.
+        let selectionScript = WKUserScript(
+            source: """
+                document.addEventListener('selectionchange', function() {
+                    var sel = window.getSelection().toString();
+                    window.webkit.messageHandlers.selectionChange.postMessage(sel);
+                });
+                """,
+            injectionTime: .atDocumentEnd,
+            forMainFrameOnly: true
+        )
+        configuration.userContentController.addUserScript(selectionScript)
+        configuration.userContentController.add(context.coordinator, name: "selectionChange")
+
+        let webView = MoreContextWebView(frame: .zero, configuration: configuration)
+        webView.previewCoordinator = context.coordinator
         webView.navigationDelegate = context.coordinator
         webView.allowsMagnification = true
         return webView
@@ -89,9 +161,10 @@ public struct HTMLPreviewView: NSViewRepresentable {
         let baseURL: URL? = session.url.map { $0.deletingLastPathComponent() }
         context.coordinator.currentBaseURL = baseURL
 
-        // Push the latest toggle + error handler state into the coordinator.
+        // Push the latest toggle + error handler + session state into the coordinator.
         context.coordinator.isLinkNavigationEnabled = isLinkNavigationEnabled
         context.coordinator.onLoadError = onLoadError
+        context.coordinator.fullSessionText = session.text
 
         webView.loadHTMLString(session.text, baseURL: baseURL)
     }

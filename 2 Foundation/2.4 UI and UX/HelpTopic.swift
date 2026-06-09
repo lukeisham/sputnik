@@ -26,3 +26,24 @@ public enum HelpTopic: String, Codable, Sendable, CaseIterable, Identifiable {
         }
     }
 }
+
+// MARK: - Help Request
+
+/// A single, shared route for revealing a help panel and (optionally) navigating it to a
+/// specific topic.
+///
+/// Foundation owns this primitive (SR-1). The Help menu reveals a panel with `topicID == nil`
+/// (overview); the editor's right-click "Look Up Help" reveals a panel *and* carries the
+/// resolved `topicID` so the panel scrolls to the matching topic. Module 9 panels observe
+/// `AppState.requestedHelpTarget` and navigate to `topicID` when present (resolves ISS-008).
+public struct HelpRequest: Equatable, Sendable {
+    /// Which help panel to reveal.
+    public let kind: HelpTopic
+    /// The topic to navigate to once revealed, or `nil` to show the panel's overview.
+    public let topicID: String?
+
+    public init(kind: HelpTopic, topicID: String? = nil) {
+        self.kind = kind
+        self.topicID = topicID
+    }
+}

@@ -74,6 +74,10 @@ public struct SputnikHelpPanel<Topic: HelpTopicProtocol, ContentView: View>: Vie
     /// Unique key for persisting this panel's tab state.
     public let persistenceKey: String
 
+    /// Which help panel this instance represents, so it can recognise when an incoming
+    /// `AppState.requestedHelpTarget` is addressed to it and navigate to the carried topic.
+    public let helpKind: HelpTopic
+
     /// Builds the content view for a single topic.
     @ViewBuilder public let topicContent: (Topic) -> ContentView
 
@@ -130,11 +134,13 @@ public struct SputnikHelpPanel<Topic: HelpTopicProtocol, ContentView: View>: Vie
         allTopics: [Topic],
         categories: [String],
         persistenceKey: String,
+        helpKind: HelpTopic,
         @ViewBuilder topicContent: @escaping (Topic) -> ContentView
     ) {
         self.allTopics = allTopics
         self.categories = categories
         self.persistenceKey = persistenceKey
+        self.helpKind = helpKind
         self.topicContent = topicContent
     }
 
@@ -155,11 +161,26 @@ public struct SputnikHelpPanel<Topic: HelpTopicProtocol, ContentView: View>: Vie
         .background(SputnikColor.editorBackground)
         .task {
             await restoreTabState()
+            // Honour any help target already set before this panel mounted.
+            navigate(to: appState.requestedHelpTarget)
         }
         .onChange(of: appState.activeDocumentID) { _, _ in
             // Persist when the active document changes (user may switch context).
             Task { await persistTabState() }
         }
+        .onChange(of: appState.requestedHelpTarget) { _, newValue in
+            navigate(to: newValue)
+        }
+    }
+
+    /// Navigates this panel to the target's `topicID`, but only when the target is
+    /// addressed to this panel's `helpKind` and carries a topic. Foundation owns the route
+    /// (SR-1); each panel reuses its existing `openTopic(_:)` to perform the navigation.
+    private func navigate(to target: HelpRequest?) {
+        guard let target,
+              target.kind == helpKind,
+              let topicID = target.topicID else { return }
+        openTopic(topicID)
     }
 
     // MARK: - Tab Bar

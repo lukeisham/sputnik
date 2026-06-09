@@ -77,10 +77,22 @@ public final class AppState {
 
     // MARK: - Help routing (module 9 Resources fills the presentation)
 
-    /// The help topic the user requested from the Help menu, or `nil` when no help is open.
-    /// Module 9 (Resources) observes this to present the matching guide; clearing it
-    /// dismisses the help surface.
-    public var requestedHelpTopic: HelpTopic?
+    /// The current help request: which panel to reveal and, optionally, which topic to
+    /// navigate to once revealed. `nil` when no help is open.
+    ///
+    /// This is the single Foundation-owned help route (SR-1). The Help menu sets it with
+    /// `topicID == nil`; the editor's "Look Up Help" sets it with a resolved `topicID`.
+    /// Module 9 (Resources) observes this to present the matching guide and navigate;
+    /// clearing it dismisses the help surface.
+    public var requestedHelpTarget: HelpRequest?
+
+    /// Backward-compatible accessor over `requestedHelpTarget` for callers that only deal
+    /// in the topic kind (e.g. the Help menu, the right-column panel switch). Reading
+    /// returns the requested panel kind; writing reveals that panel at its overview.
+    public var requestedHelpTopic: HelpTopic? {
+        get { requestedHelpTarget?.kind }
+        set { requestedHelpTarget = newValue.map { HelpRequest(kind: $0) } }
+    }
 
     // MARK: - Init
 
