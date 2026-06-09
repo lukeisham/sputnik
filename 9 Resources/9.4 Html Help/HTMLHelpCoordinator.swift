@@ -14,8 +14,9 @@ public final class HTMLHelpCoordinator: ObservableObject {
 
     public static let shared = HTMLHelpCoordinator()
 
-    /// Called by a parent view or menu command to open a specific topic ID.
-    public var openTopicHandler: ((String) -> Void)?
+    /// Called when a help topic should be opened. Assign a closure that writes to
+    /// `AppState.requestedHelpTarget`; capture `AppState` weakly to avoid a retain cycle.
+    public var onNavigate: ((HelpRequest) -> Void)?
 
     // MARK: - Init
 
@@ -93,7 +94,7 @@ public final class HTMLHelpCoordinator: ObservableObject {
 
     /// Opens the help panel to the topic with the given ID, if registered.
     public func openHelp(for topicID: String) {
-        openTopicHandler?(topicID)
+        onNavigate?(HelpRequest(kind: .html, topicID: topicID))
     }
 
     // MARK: - Private Helpers

@@ -19,6 +19,7 @@ public struct MarkdownHelpPanelView: View {
     @State private var topics: [MarkdownHelpContent] = []
     @State private var categories: [String] = []
     @State private var hasLoaded: Bool = false
+    @Environment(AppState.self) private var appState
 
     public init() {}
 
@@ -26,6 +27,10 @@ public struct MarkdownHelpPanelView: View {
         if topics.isEmpty && !hasLoaded {
             Color.clear
                 .task {
+                    let state = appState
+                    MarkdownHelpCoordinator.shared.onNavigate = { [weak state] request in
+                        state?.requestedHelpTarget = request
+                    }
                     hasLoaded = true
                     let index = MarkdownHelpIndex.shared
                     topics = await index.allTopics()

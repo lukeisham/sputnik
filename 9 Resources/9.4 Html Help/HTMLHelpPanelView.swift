@@ -110,13 +110,20 @@ public struct HTMLHelpPanelView: View {
 
     @State private var topics: [HTMLHelpContent] = []
     @State private var categories: [String] = []
+    @Environment(AppState.self) private var appState
 
     public init() {}
 
     public var body: some View {
         if topics.isEmpty {
             Color.clear
-                .task { await loadTopics() }
+                .task {
+                    let state = appState
+                    HTMLHelpCoordinator.shared.onNavigate = { [weak state] request in
+                        state?.requestedHelpTarget = request
+                    }
+                    await loadTopics()
+                }
         } else {
             SputnikHelpPanel(
                 allTopics: topics,

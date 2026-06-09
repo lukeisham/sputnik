@@ -57,6 +57,12 @@ public final class GrammarHelpCoordinator: ObservableObject {
 
     private init() {}
 
+    // MARK: - Navigation
+
+    /// Called when a help topic should be opened. Assign a closure that writes to
+    /// `AppState.requestedHelpTarget`; capture `AppState` weakly to avoid a retain cycle.
+    public var onNavigate: ((HelpRequest) -> Void)?
+
     // MARK: - Public API
 
     /// Performs a context-sensitive lookup for the given word from the specified source.
@@ -92,17 +98,10 @@ public final class GrammarHelpCoordinator: ObservableObject {
 
     /// Opens the Grammar Help panel to a specific topic by its ID.
     ///
-    /// Resolves the topic from the index and posts a `grammarHelpOpenTopic` notification
-    /// that the `GrammarHelpPanelView` can observe to navigate to the correct topic.
-    ///
     /// - Parameter topicID: The ID of the topic to open (e.g. `"spelling/their-there-theyre"`).
     public func openHelp(for topicID: String) async {
         guard let topic = await index.topic(id: topicID) else { return }
-        NotificationCenter.default.post(
-            name: .grammarHelpOpenTopic,
-            object: nil,
-            userInfo: ["topicID": topic.id, "title": topic.title]
-        )
+        onNavigate?(HelpRequest(kind: .grammar, topicID: topic.id))
     }
 
     /// Opens the Grammar Help panel to the primary topic from the last lookup result,
@@ -119,12 +118,3 @@ public final class GrammarHelpCoordinator: ObservableObject {
     }
 }
 
-// MARK: - Notification Name
-
-extension Notification.Name {
-    /// Posted when a Grammar Help topic should be opened in the help panel.
-    /// The `userInfo` dictionary contains:
-    /// - `"topicID"`: `String` — the ID of the topic to open.
-    /// - `"title"`: `String` — the human-readable title for tab display.
-    public static let grammarHelpOpenTopic = Notification.Name("Sputnik.grammarHelp.openTopic")
-}

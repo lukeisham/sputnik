@@ -11,6 +11,7 @@ public struct GrammarHelpPanelView: View {
 
     @State private var topics: [GrammarHelpContent] = []
     @State private var categories: [String] = []
+    @Environment(AppState.self) private var appState
 
     public init() {}
 
@@ -24,6 +25,10 @@ public struct GrammarHelpPanelView: View {
             GrammarHelpTopicContentView(topic: topic)
         }
         .task {
+            let state = appState
+            GrammarHelpCoordinator.shared.onNavigate = { [weak state] request in
+                state?.requestedHelpTarget = request
+            }
             let index = GrammarHelpIndex.shared
             topics = await index.allTopics()
             categories = await index.categories()

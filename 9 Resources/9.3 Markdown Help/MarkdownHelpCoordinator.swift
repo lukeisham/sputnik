@@ -20,8 +20,9 @@ public final class MarkdownHelpCoordinator: ObservableObject {
 
     // MARK: - Properties
 
-    /// Called by a parent view or menu command to open a specific topic ID.
-    public var openTopicHandler: ((String) -> Void)?
+    /// Called when a help topic should be opened. Assign a closure that writes to
+    /// `AppState.requestedHelpTarget`; capture `AppState` weakly to avoid a retain cycle.
+    public var onNavigate: ((HelpRequest) -> Void)?
 
     // MARK: - Syntax-to-topic mapping
 
@@ -151,7 +152,7 @@ public final class MarkdownHelpCoordinator: ObservableObject {
     public func openHelp(for topicID: String) async -> Bool {
         let index = MarkdownHelpIndex.shared
         guard await index.topic(id: topicID) != nil else { return false }
-        openTopicHandler?(topicID)
+        onNavigate?(HelpRequest(kind: .markdown, topicID: topicID))
         return true
     }
 

@@ -2,7 +2,7 @@
 plan: Unify Help Navigation Route
 module: 2 Foundation / 9 Resources
 created: 2026-06-09
-status: pending
+status: complete
 related_issues: ISS-002, ISS-004, ISS-008
 ---
 
@@ -88,8 +88,8 @@ The remaining gap: the three help coordinators still use old, ad-hoc routes that
 - `1 Setup/Module Guides/9 Resources/9.5 Grammar Help/guide.md` — update `last_updated`, revise coordinator description
 
 ## Closeout
-- [ ] Re-read the Purpose statement — does the outcome match it exactly?
-- [ ] Success Condition verified (confirmed as described above)
-- [ ] Module Guide(s) updated (`status` + `last_updated`)
-- [ ] Changes committed: `[Foundation / Resources] Unify help navigation route (ISS-008)`
-- [ ] Plan moved to Plans Completed/
+- [x] Re-read the Purpose statement — does the outcome match it exactly?
+- [x] Success Condition verified (confirmed as described above)
+- [x] Module Guide(s) updated (`status` + `last_updated`)
+- [x] Changes committed: `[Foundation / Resources] Unify help navigation route (ISS-008)`
+- [x] Plan moved to Plans Completed/
