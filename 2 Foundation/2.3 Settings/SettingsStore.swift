@@ -1,5 +1,6 @@
 import Foundation
 import Observation
+import SwiftUI
 
 /// The single source of truth for all user-configurable preferences.
 ///
@@ -17,6 +18,49 @@ public final class SettingsStore {
 
     /// The font used in all text editor panels. Default: SF Mono 13pt.
     public var editorFont: EditorFont = EditorFont()
+
+    // MARK: - Per-panel font overrides (F-4)
+
+    /// Per-panel font override for the Text Editor. `nil` → inherit global `editorFont`.
+    public var textEditorFont: EditorFont?
+
+    /// Per-panel font override for the Markdown Preview. `nil` → inherit global `editorFont`.
+    public var markdownPreviewFont: EditorFont?
+
+    /// Per-panel font override for the HTML Preview. `nil` → inherit global `editorFont`.
+    public var htmlPreviewFont: EditorFont?
+
+    // MARK: - Computed font resolvers (F-4)
+    //
+    // Each panel reads its own resolved property. When the per-panel override is nil,
+    // the global `editorFont` is used as the fallback — panels never read `editorFont`
+    // directly (SR-1: single source of truth).
+
+    /// The effective font for the Text Editor: per-panel override or global default.
+    public var resolvedTextEditorFont: EditorFont {
+        textEditorFont ?? editorFont
+    }
+
+    /// The effective font for the Markdown Preview: per-panel override or global default.
+    public var resolvedMarkdownPreviewFont: EditorFont {
+        markdownPreviewFont ?? editorFont
+    }
+
+    /// The effective font for the HTML Preview: per-panel override or global default.
+    public var resolvedHtmlPreviewFont: EditorFont {
+        htmlPreviewFont ?? editorFont
+    }
+
+    // MARK: - Per-panel background colours (F-4)
+
+    /// Background colour for the Text Editor. Default: editor background.
+    public var textEditorBackground: Color = SputnikColor.editorBackground
+
+    /// Background colour for the Markdown Preview. Default: window background.
+    public var markdownPreviewBackground: Color = SputnikColor.background
+
+    /// Background colour for the HTML Preview. Default: window background.
+    public var htmlPreviewBackground: Color = SputnikColor.background
 
     /// Whether the editor auto-saves after every significant edit. Default: `true`.
     public var autoSaveEnabled: Bool = true
@@ -40,6 +84,11 @@ public final class SettingsStore {
     public var grammarCheckEnabled: Bool {
         writingAssist.isEnabled(.instantCorrect, for: .grammar)
     }
+
+    /// AI provider configuration (model name + base URL).
+    /// The API key is stored separately in the Keychain — see `KeychainService`.
+    /// Default: empty model name, no base URL.
+    public var aiConfig: AIConfiguration = AIConfiguration()
 
     // MARK: - Terminal settings
 
@@ -84,29 +133,34 @@ public final class SettingsStore {
     // MARK: - Persistence keys
 
     private enum DefaultsKey {
-        static let theme              = "sputnik.settings.theme"
-        static let editorFont         = "sputnik.settings.editorFont"
-        static let autoSave           = "sputnik.settings.autoSave"
-        static let lineNumbers        = "sputnik.settings.lineNumbers"
-        static let wordWrap           = "sputnik.settings.wordWrap"
+        static let theme = "sputnik.settings.theme"
+        static let editorFont = "sputnik.settings.editorFont"
+        static let autoSave = "sputnik.settings.autoSave"
+        static let lineNumbers = "sputnik.settings.lineNumbers"
+        static let wordWrap = "sputnik.settings.wordWrap"
         // Legacy keys kept for migration only; new code reads/writes writingAssist.
-        static let spellCheck         = "sputnik.settings.spellCheck"
-        static let grammarCheck       = "sputnik.settings.grammarCheck"
-        static let writingAssist      = "sputnik.settings.writingAssist"
+        static let spellCheck = "sputnik.settings.spellCheck"
+        static let grammarCheck = "sputnik.settings.grammarCheck"
+        static let writingAssist = "sputnik.settings.writingAssist"
+        // Per-panel fonts
+        static let textEditorFont = "sputnik.settings.textEditorFont"
+        static let markdownPreviewFont = "sputnik.settings.markdownPreviewFont"
+        static let htmlPreviewFont = "sputnik.settings.htmlPreviewFont"
         // Terminal
-        static let terminalFontName        = "sputnik.settings.terminalFontName"
-        static let terminalFontSize        = "sputnik.settings.terminalFontSize"
+        static let terminalFontSize = "sputnik.settings.terminalFontSize"
         static let terminalScrollbackLimit = "sputnik.settings.terminalScrollbackLimit"
-        static let terminalForeground      = "sputnik.settings.terminalForeground"
-        static let terminalBackground      = "sputnik.settings.terminalBackground"
+        static let terminalForeground = "sputnik.settings.terminalForeground"
+        static let terminalBackground = "sputnik.settings.terminalBackground"
         // Editor
-        static let editorMaxFileSizeBytes      = "sputnik.settings.editorMaxFileSizeBytes"
-        static let markdownDebounceInterval    = "sputnik.settings.markdownDebounceInterval"
-        static let asciiDebounceInterval       = "sputnik.settings.asciiDebounceInterval"
-        static let htmlDebounceInterval        = "sputnik.settings.htmlDebounceInterval"
-        static let spellCheckDebounceInterval  = "sputnik.settings.spellCheckDebounceInterval"
-        static let asciiTriggerKey             = "sputnik.settings.asciiTriggerKey"
-        static let spellCheckLocale            = "sputnik.settings.spellCheckLocale"
+        static let editorMaxFileSizeBytes = "sputnik.settings.editorMaxFileSizeBytes"
+        static let markdownDebounceInterval = "sputnik.settings.markdownDebounceInterval"
+        static let asciiDebounceInterval = "sputnik.settings.asciiDebounceInterval"
+        static let htmlDebounceInterval = "sputnik.settings.htmlDebounceInterval"
+        static let spellCheckDebounceInterval = "sputnik.settings.spellCheckDebounceInterval"
+        static let asciiTriggerKey = "sputnik.settings.asciiTriggerKey"
+        static let spellCheckLocale = "sputnik.settings.spellCheckLocale"
+        // AI
+        static let aiConfig = "sputnik.settings.aiConfig"
     }
 
     // MARK: - Dependencies
@@ -154,7 +208,9 @@ public final class SettingsStore {
     }
 
     /// Writes a single cell in the writing-assist matrix and persists the result.
-    public func setWritingAssist(_ fn: WritingAssistFunction, for lang: WritingAssistLanguage, to value: Bool) {
+    public func setWritingAssist(
+        _ fn: WritingAssistFunction, for lang: WritingAssistLanguage, to value: Bool
+    ) {
         writingAssist = writingAssist.setting(fn, for: lang, to: value)
         persistence.saveSetting(writingAssist, forKey: DefaultsKey.writingAssist)
     }
@@ -228,6 +284,47 @@ public final class SettingsStore {
         persistence.saveSetting(value, forKey: DefaultsKey.asciiTriggerKey)
     }
 
+    // MARK: - Per-panel font mutators (F-4)
+
+    public func setTextEditorFont(_ value: EditorFont?) {
+        textEditorFont = value
+        persistence.saveSetting(value, forKey: DefaultsKey.textEditorFont)
+    }
+
+    public func setMarkdownPreviewFont(_ value: EditorFont?) {
+        markdownPreviewFont = value
+        persistence.saveSetting(value, forKey: DefaultsKey.markdownPreviewFont)
+    }
+
+    public func setHtmlPreviewFont(_ value: EditorFont?) {
+        htmlPreviewFont = value
+        persistence.saveSetting(value, forKey: DefaultsKey.htmlPreviewFont)
+    }
+
+    // MARK: - Per-panel background colour mutators (F-4)
+    //
+    // SputnikColor is a computed enum (not Codable), so background colours are kept in
+    // memory only. Persistence is a future enhancement.
+
+    public func setTextEditorBackground(_ value: Color) {
+        textEditorBackground = value
+    }
+
+    public func setMarkdownPreviewBackground(_ value: Color) {
+        markdownPreviewBackground = value
+    }
+
+    public func setHtmlPreviewBackground(_ value: Color) {
+        htmlPreviewBackground = value
+    }
+
+    // MARK: - AI mutators
+
+    public func setAIConfig(_ config: AIConfiguration) {
+        aiConfig = config
+        persistence.saveSetting(config, forKey: DefaultsKey.aiConfig)
+    }
+
     public func setSpellCheckLocale(_ value: String?) {
         spellCheckLocale = value
         persistence.saveSetting(value, forKey: DefaultsKey.spellCheckLocale)
@@ -237,7 +334,8 @@ public final class SettingsStore {
 
     private func loadFromDefaults() {
         if let raw: String = persistence.loadSetting(forKey: DefaultsKey.theme),
-           let saved = AppTheme(rawValue: raw) {
+            let saved = AppTheme(rawValue: raw)
+        {
             theme = saved
         }
         if let saved: EditorFont = persistence.loadSetting(forKey: DefaultsKey.editorFont) {
@@ -253,7 +351,9 @@ public final class SettingsStore {
             wordWrapEnabled = saved
         }
         // Load the writing-assist matrix, migrating legacy boolean keys on first run.
-        if let saved: WritingAssistMatrix = persistence.loadSetting(forKey: DefaultsKey.writingAssist) {
+        if let saved: WritingAssistMatrix = persistence.loadSetting(
+            forKey: DefaultsKey.writingAssist)
+        {
             writingAssist = saved
         } else {
             var m = WritingAssistMatrix.default
@@ -276,17 +376,22 @@ public final class SettingsStore {
         if let saved: Int = persistence.loadSetting(forKey: DefaultsKey.terminalScrollbackLimit) {
             terminalScrollbackLimit = saved
         }
-        if let saved: TerminalColor = persistence.loadSetting(forKey: DefaultsKey.terminalForeground) {
+        if let saved: TerminalColor = persistence.loadSetting(
+            forKey: DefaultsKey.terminalForeground)
+        {
             terminalForeground = saved
         }
-        if let saved: TerminalColor = persistence.loadSetting(forKey: DefaultsKey.terminalBackground) {
+        if let saved: TerminalColor = persistence.loadSetting(
+            forKey: DefaultsKey.terminalBackground)
+        {
             terminalBackground = saved
         }
         // Editor
         if let saved: Int = persistence.loadSetting(forKey: DefaultsKey.editorMaxFileSizeBytes) {
             editorMaxFileSizeBytes = saved
         }
-        if let saved: Double = persistence.loadSetting(forKey: DefaultsKey.markdownDebounceInterval) {
+        if let saved: Double = persistence.loadSetting(forKey: DefaultsKey.markdownDebounceInterval)
+        {
             markdownDebounceInterval = saved
         }
         if let saved: Double = persistence.loadSetting(forKey: DefaultsKey.asciiDebounceInterval) {
@@ -295,7 +400,9 @@ public final class SettingsStore {
         if let saved: Double = persistence.loadSetting(forKey: DefaultsKey.htmlDebounceInterval) {
             htmlDebounceInterval = saved
         }
-        if let saved: Double = persistence.loadSetting(forKey: DefaultsKey.spellCheckDebounceInterval) {
+        if let saved: Double = persistence.loadSetting(
+            forKey: DefaultsKey.spellCheckDebounceInterval)
+        {
             spellCheckDebounceInterval = saved
         }
         if let saved: String = persistence.loadSetting(forKey: DefaultsKey.asciiTriggerKey) {
@@ -303,6 +410,21 @@ public final class SettingsStore {
         }
         if let saved: String? = persistence.loadSetting(forKey: DefaultsKey.spellCheckLocale) {
             spellCheckLocale = saved
+        }
+        // Per-panel fonts
+        if let saved: EditorFont = persistence.loadSetting(forKey: DefaultsKey.textEditorFont) {
+            textEditorFont = saved
+        }
+        if let saved: EditorFont = persistence.loadSetting(forKey: DefaultsKey.markdownPreviewFont)
+        {
+            markdownPreviewFont = saved
+        }
+        if let saved: EditorFont = persistence.loadSetting(forKey: DefaultsKey.htmlPreviewFont) {
+            htmlPreviewFont = saved
+        }
+        // AI
+        if let saved: AIConfiguration = persistence.loadSetting(forKey: DefaultsKey.aiConfig) {
+            aiConfig = saved
         }
     }
 }
