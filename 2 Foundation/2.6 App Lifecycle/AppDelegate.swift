@@ -56,6 +56,12 @@ public final class AppDelegate: NSObject, NSApplicationDelegate {
         Task {
             layoutState = await persistence.restore()
 
+            // Restore scratchpad state (F-6)
+            if let state = appState {
+                state.scratchpadText = persistence.loadScratchpadText()
+                state.scratchpadFrame = persistence.loadScratchpadFrame()
+            }
+
             let pendingNames = persistence.pendingRecoveryNames()
             for name in pendingNames {
                 let alert = SputnikAlert.recoveryAvailable(filename: name)
@@ -64,7 +70,8 @@ public final class AppDelegate: NSObject, NSApplicationDelegate {
         }
     }
 
-    public func applicationShouldTerminate(_ sender: NSApplication) -> NSApplication.TerminateReply {
+    public func applicationShouldTerminate(_ sender: NSApplication) -> NSApplication.TerminateReply
+    {
         guard let terminal = terminalLifecycle else { return .terminateNow }
 
         Task {
@@ -78,6 +85,12 @@ public final class AppDelegate: NSObject, NSApplicationDelegate {
         // F-5: stop the process-monitor polling loop before the process exits.
         processMonitor?.stop()
         persistenceService?.flushLayout(layoutState)
+
+        // Save scratchpad state (F-6)
+        if let state = appState {
+            persistenceService?.saveScratchpad(text: state.scratchpadText)
+            persistenceService?.saveScratchpad(frame: state.scratchpadFrame)
+        }
     }
 
     // MARK: - Private helpers

@@ -94,6 +94,53 @@ public final class AppState {
         set { requestedHelpTarget = newValue.map { HelpRequest(kind: $0) } }
     }
 
+    // MARK: - Processing state (F-5)
+
+    /// Tracks re-entrant processing requests. `true` while `processingCount > 0`.
+    /// Modules call `beginProcessing()` / `endProcessing()` around async AI work.
+    private var processingCount: Int = 0
+
+    /// Whether Sputnik is currently performing AI processing.
+    /// The status bar satellite icon spins while this is `true`.
+    public var isProcessing: Bool { processingCount > 0 }
+
+    /// Called before an AI operation begins (must pair with `endProcessing`).
+    public func beginProcessing() {
+        processingCount += 1
+    }
+
+    /// Called after an AI operation finishes.
+    public func endProcessing() {
+        if processingCount > 0 { processingCount -= 1 }
+    }
+
+    // MARK: - Context usage (F-5)
+
+    /// The latest AI context-window usage snapshot, if available.
+    /// Set by any module making AI calls; displayed in the status bar
+    /// when a model is configured and usage is non-nil.
+    public var contextUsage: ContextUsage?
+
+    // MARK: - Terminal model detection (F-8)
+
+    /// Information about an AI model detected in the terminal session.
+    /// `nil` when no model is active or detected.
+    public var terminalModelInfo: TerminalModelInfo?
+
+    // MARK: - Scratchpad (F-6)
+
+    /// Whether the scratchpad overlay panel is currently visible.
+    public var scratchpadVisible: Bool = false
+
+    /// The current text content of the scratchpad.
+    public var scratchpadText: String = ""
+
+    /// The scratchpad panel's size and position (offset from bottom-right corner).
+    /// - `.origin.x`: horizontal offset from the right edge (positive = rightward)
+    /// - `.origin.y`: vertical offset from the bottom edge (positive = upward)
+    /// - `.size`:    panel dimensions (minimum 200 × 120)
+    public var scratchpadFrame: CGRect = CGRect(x: 0, y: 0, width: 320, height: 240)
+
     // MARK: - Init
 
     public init() {}
