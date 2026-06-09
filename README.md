@@ -9,6 +9,8 @@ Sputnik is a native macOS development environment that coordinates six concurren
 
 https://github.com/lukeisham/sputnik.git
 
+twitter: @lukeisham
+
 ### CREDITS
 
 Keith Foster: software design principles & Nate Jones: AI inspiration
