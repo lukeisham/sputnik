@@ -23,10 +23,11 @@ public final class FilePersistenceService: PersistenceService {
     private let supportDirectory: URL
 
     public init() {
-        let base = FileManager.default.urls(
-            for: .applicationSupportDirectory,
-            in: .userDomainMask
-        ).first ?? FileManager.default.temporaryDirectory
+        let base =
+            FileManager.default.urls(
+                for: .applicationSupportDirectory,
+                in: .userDomainMask
+            ).first ?? FileManager.default.temporaryDirectory
 
         supportDirectory = base.appendingPathComponent("Sputnik", isDirectory: true)
         createDirectoriesIfNeeded()
@@ -80,7 +81,8 @@ public final class FilePersistenceService: PersistenceService {
 
     private func recoveryURL(for url: URL) -> URL {
         let name = url.deletingPathExtension().lastPathComponent
-        return supportDirectory
+        return
+            supportDirectory
             .appendingPathComponent(Keys.recoveryDirectory, isDirectory: true)
             .appendingPathComponent("\(name).\(Keys.recoveryExtension)")
     }
@@ -112,12 +114,15 @@ public final class FilePersistenceService: PersistenceService {
         let dir = supportDirectory.appendingPathComponent(
             Keys.recoveryDirectory, isDirectory: true
         )
-        guard let contents = try? FileManager.default.contentsOfDirectory(
-            at: dir, includingPropertiesForKeys: nil
-        ) else {
+        guard
+            let contents = try? FileManager.default.contentsOfDirectory(
+                at: dir, includingPropertiesForKeys: nil
+            )
+        else {
             return []
         }
-        return contents
+        return
+            contents
             .filter { $0.pathExtension == Keys.recoveryExtension }
             .map { $0.deletingPathExtension().lastPathComponent }
     }
@@ -138,5 +143,46 @@ public final class FilePersistenceService: PersistenceService {
     public func loadSetting<T: Decodable>(forKey key: String) -> T? {
         guard let data = UserDefaults.standard.data(forKey: key) else { return nil }
         return try? JSONDecoder().decode(T.self, from: data)
+    }
+
+    // MARK: - Scratchpad (F-6)
+
+    private enum ScratchpadKeys {
+        static let text = "scratchpadText"
+        static let frame = "scratchpadFrame"
+    }
+
+    public func saveScratchpad(text: String) {
+        UserDefaults.standard.set(text, forKey: ScratchpadKeys.text)
+    }
+
+    public func loadScratchpadText() -> String {
+        UserDefaults.standard.string(forKey: ScratchpadKeys.text) ?? ""
+    }
+
+    public func saveScratchpad(frame: CGRect) {
+        // CGRect is not Codable by default, so encode its components as a dictionary.
+        let dict: [String: Double] = [
+            "x": frame.origin.x,
+            "y": frame.origin.y,
+            "width": frame.size.width,
+            "height": frame.size.height,
+        ]
+        if let data = try? JSONEncoder().encode(dict) {
+            UserDefaults.standard.set(data, forKey: ScratchpadKeys.frame)
+        }
+    }
+
+    public func loadScratchpadFrame() -> CGRect {
+        guard let data = UserDefaults.standard.data(forKey: ScratchpadKeys.frame),
+            let dict = try? JSONDecoder().decode([String: Double].self, from: data),
+            let x = dict["x"],
+            let y = dict["y"],
+            let w = dict["width"],
+            let h = dict["height"]
+        else {
+            return CGRect(x: 0, y: 0, width: 320, height: 240)
+        }
+        return CGRect(x: x, y: y, width: w, height: h)
     }
 }

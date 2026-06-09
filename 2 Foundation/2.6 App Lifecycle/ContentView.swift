@@ -64,8 +64,29 @@ public struct ContentView: View {
 
             // Terminal strip — always visible, not a relocatable slot
             terminalPlaceholder
+
+            Divider()
+
+            // Bottom status bar — satellite icon, AI model, context, RAM, CPU (F-5)
+            StatusBarView()
         }
         .frame(minWidth: 900, minHeight: 600)
+        .overlay(alignment: .bottomTrailing) {
+            ScratchpadPanel(
+                isVisible: Binding(
+                    get: { appState.scratchpadVisible },
+                    set: { appState.scratchpadVisible = $0 }
+                ),
+                text: Binding(
+                    get: { appState.scratchpadText },
+                    set: { appState.scratchpadText = $0 }
+                ),
+                scratchpadFrame: Binding(
+                    get: { appState.scratchpadFrame },
+                    set: { appState.scratchpadFrame = $0 }
+                )
+            )
+        }
     }
 
     // MARK: - Private helpers

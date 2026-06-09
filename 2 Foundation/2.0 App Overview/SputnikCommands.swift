@@ -1,5 +1,5 @@
-import SwiftUI
 import AppKit
+import SwiftUI
 
 /// Wires all six macOS menu bar menus to `AppState` and `SettingsStore` actions.
 ///
@@ -10,6 +10,8 @@ public struct SputnikCommands: Commands {
 
     private let appState: AppState
     private let settings: SettingsStore
+
+    @Environment(\.openWindow) private var openWindow
 
     public init(appState: AppState, settings: SettingsStore) {
         self.appState = appState
@@ -30,7 +32,7 @@ public struct SputnikCommands: Commands {
     private var sputnikMenu: some Commands {
         CommandGroup(replacing: .appInfo) {
             Button("About Sputnik") {
-                NSApp.orderFrontStandardAboutPanel(nil)
+                openWindow(id: "about")
             }
 
             Divider()
@@ -188,29 +190,34 @@ public struct SputnikCommands: Commands {
 
                 Menu("Find") {
                     Button("Find…") {
-                        NSApp.sendAction(#selector(NSTextView.performFindPanelAction(_:)), to: nil, from: nil)
+                        NSApp.sendAction(
+                            #selector(NSTextView.performFindPanelAction(_:)), to: nil, from: nil)
                     }
                     .keyboardShortcut("f", modifiers: .command)
 
                     Button("Find and Replace…") {
-                        NSApp.sendAction(#selector(NSTextView.performFindPanelAction(_:)), to: nil, from: nil)
+                        NSApp.sendAction(
+                            #selector(NSTextView.performFindPanelAction(_:)), to: nil, from: nil)
                     }
                     .keyboardShortcut("f", modifiers: [.command, .option])
 
                     Button("Find Next") {
-                        NSApp.sendAction(#selector(NSTextView.performFindPanelAction(_:)), to: nil, from: nil)
+                        NSApp.sendAction(
+                            #selector(NSTextView.performFindPanelAction(_:)), to: nil, from: nil)
                     }
                     .keyboardShortcut("g", modifiers: .command)
 
                     Button("Find Previous") {
-                        NSApp.sendAction(#selector(NSTextView.performFindPanelAction(_:)), to: nil, from: nil)
+                        NSApp.sendAction(
+                            #selector(NSTextView.performFindPanelAction(_:)), to: nil, from: nil)
                     }
                     .keyboardShortcut("g", modifiers: [.command, .shift])
                 }
 
                 Menu("Spelling and Grammar") {
                     Button("Check Now") {
-                        NSApp.sendAction(#selector(NSTextView.checkSpelling(_:)), to: nil, from: nil)
+                        NSApp.sendAction(
+                            #selector(NSTextView.checkSpelling(_:)), to: nil, from: nil)
                     }
                     .keyboardShortcut(";", modifiers: .command)
 
@@ -253,25 +260,25 @@ public struct SputnikCommands: Commands {
             // Spelling
             Menu("Spelling") {
                 toggleCell(.instantCorrect, .spelling, label: "Instant Correct")
-                toggleCell(.autoComplete,   .spelling, label: "Auto-Complete")
+                toggleCell(.autoComplete, .spelling, label: "Auto-Complete")
             }
 
             // Grammar
             Menu("Grammar") {
                 toggleCell(.instantCorrect, .grammar, label: "Instant Correct")
-                toggleCell(.moreContext,    .grammar, label: "More Context")
+                toggleCell(.moreContext, .grammar, label: "More Context")
             }
 
             // Markdown
             Menu("Markdown") {
                 toggleCell(.autoComplete, .markdown, label: "Auto-Complete")
-                toggleCell(.moreContext,  .markdown, label: "More Context")
+                toggleCell(.moreContext, .markdown, label: "More Context")
             }
 
             // HTML
             Menu("HTML") {
                 toggleCell(.autoComplete, .html, label: "Auto-Complete")
-                toggleCell(.moreContext,  .html, label: "More Context")
+                toggleCell(.moreContext, .html, label: "More Context")
             }
 
             // ASCII Art
@@ -321,6 +328,15 @@ public struct SputnikCommands: Commands {
             .keyboardShortcut("4", modifiers: [.option, .command])
 
             Divider()
+
+            Toggle(
+                "Scratchpad",
+                isOn: Binding(
+                    get: { appState.scratchpadVisible },
+                    set: { appState.scratchpadVisible = $0 }
+                )
+            )
+            .keyboardShortcut("k", modifiers: [.command, .shift])
 
             Button("Focus: Editor") {
                 appState.layout.visibility[.left] = false

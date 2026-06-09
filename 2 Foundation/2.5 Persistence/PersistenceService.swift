@@ -42,4 +42,19 @@ public protocol PersistenceService: AnyObject {
     /// Loads a `Decodable` value for `key` from `UserDefaults`, returning `nil` if absent
     /// or if decoding fails.
     func loadSetting<T: Decodable>(forKey key: String) -> T?
+
+    // MARK: Scratchpad (F-6)
+
+    /// Persists the scratchpad text to UserDefaults.
+    func saveScratchpad(text: String)
+
+    /// Returns the previously saved scratchpad text, or an empty string.
+    func loadScratchpadText() -> String
+
+    /// Persists the scratchpad panel frame (size + offset) to UserDefaults.
+    func saveScratchpad(frame: CGRect)
+
+    /// Returns the previously saved scratchpad frame, or the default (320×240, zero offset)
+    /// if none has been saved yet.
+    func loadScratchpadFrame() -> CGRect
 }
