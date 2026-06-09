@@ -1,7 +1,7 @@
 ---
 module: 2.0 App Overview
-status: draft
-last_updated: 2026-06-08
+status: active
+last_updated: 2026-06-09
 ---
 
 ## Purpose
@@ -278,20 +278,25 @@ FOCUS / TOGGLE MODES  (View menu):
 
 - **Framework(s):** SwiftUI (layout, state binding, `CommandMenu` for the menu bar), AppKit via `NSViewRepresentable` (editor, terminal, PDF), Foundation
 - **Key types:**
-  - `ContentView` — root SwiftUI view; wires the three-column `HStack` + pinned Terminal `VStack`
-  - `AppState` — `@Observable` singleton; owns `openDocuments`, `activeDocumentID`, `activeDirectory`, `layoutState`, `recentFiles`
-  - `DocumentSession` — per-tab model: file URL, dirty flag, mode (`.text` / `.markdown` / `.html` / `.pdf`); mode determines whether a lower preview panel is shown
-  - `DocumentTabBar` — SwiftUI tab strip spanning the full window width above all three panel columns; maps to `AppState.openDocuments`
-  - `PanelPosition` — enum (`left`, `centerUpper`, `centerLower`, `right`); drives both slot identity and panel-relocation drag-drop
-  - `LayoutState` — persisted struct holding which module occupies each slot, the panel visibility bitmask, and the active focus mode (default / editor / reader)
+  - `ContentView` — root SwiftUI view; wires the three-column `HStack` + pinned Terminal `VStack`; receives `windowState: WindowState` and `router: InterPanelRouter` at init; injects `windowState` into the environment for child panels
+  - `AppState` — `@Observable @MainActor` class, **window coordinator**; owns a dictionary of `WindowState` instances, tracks the active window via `@FocusedValue`, and provides computed pass-throughs that delegate to the active window
+  - `WindowState` — `@Observable @MainActor` class, one per open window; holds workspace directory, open documents, active document ID, layout, scratchpad, help routing, AI state, and terminal manager reference
+  - `DocumentSession` — per-tab model: file URL, dirty flag, mode (`.text` / `.markdown` / `.html` / `.pdf`); stored on `WindowState.openDocuments`
+  - `DocumentTabBar` — SwiftUI tab strip spanning the full window width; maps to `windowState.openDocuments`
+  - `PanelPosition` — enum (`left`, `centerUpper`, `centerLower`, `right`)
+  - `LayoutState` — persisted struct holding panel visibility bitmask, layout preset, and focus mode (stored per-window on `WindowState`)
   - `InterPanelRouter` — routes open-file events from File Tree → Editor, and sync events Editor → Previews
-  - `SputnikCommands` — SwiftUI `Commands` struct wiring the Sputnik / File / Edit / View / Window / Help menu bar items to `AppState` actions
-  - `SettingsStore` — `@Observable` model backing the Settings panel (opened via Sputnik › Settings… ⌘,); owns appearance, spelling/grammar, and per-module preferences; persisted via `UserDefaults`
-- **Threading model:** all `AppState` mutations on `@MainActor`; file-system watching and I/O on background `Task`s; Terminal PTY I/O on a dedicated `DispatchQueue`
-- **Data flow:** File Tree selection → `InterPanelRouter.open(_:)` → `AppState.openDocuments` appended → `DocumentTabBar` renders new tab → centre upper panel receives active `DocumentSession` → Editor loads content → `DocumentSession.mode` determines whether centre lower panel renders a Markdown Preview (Module 4), HTML Preview (Module 8), or is hidden; Previews observe `DocumentSession.content` and re-render live
-- **State owned:** `AppState` owns the canonical document list and active document ID; `LayoutState` owns panel positions, visibility, and focus mode; each module owns its own view-local scroll and selection state
+  - `SputnikCommands` — SwiftUI `Commands` struct wiring all menu bar items to `AppState` actions; uses `openWindow` environment action for window creation
+  - `SettingsStore` — `@Observable` model backing the Settings panel; settings are global (not per-window)
+- **Multi-window menu commands:**
+  - **File ▸ New Window (⇧⌘N):** calls `appState.createWindow()` and `openWindow(id: "main", value: ws.id)` — no longer a stub.
+  - **Window ▸ Move Tab to New Window:** detaches the active document from the current `WindowState`, creates a new window, moves the session there.
+  - **Window ▸ Merge All Windows:** collects all tabs from all windows into the active window, closes other windows and kills their terminals.
+- **Threading model:** all `AppState` and `WindowState` mutations on `@MainActor`; file-system watching and I/O on background `Task`s; Terminal PTY I/O on a dedicated actor
+- **Data flow:** File Tree selection → `InterPanelRouter.open(_:)` → `appState.openDocument(url:)` (delegates to active `WindowState.openDocuments`) → `DocumentTabBar` observes `windowState.openDocuments` → centre editor receives `windowState.activeDocument` → previews observe `DocumentSession.content`
+- **State owned:** `AppState` owns the window registry and global state (Supporting AI usage, recent files); `WindowState` owns per-window state; each module owns its own view-local scroll and selection state
 - **Dependencies:** All other modules (3–8) depend on Foundation; Foundation has no upstream module dependencies
-- **Failure modes:** missing file at open → `InterPanelRouter` emits `.fileNotFound` error displayed as non-blocking banner; corrupted `LayoutState` on disk → reset to default layout silently; Terminal PTY spawn failure → error shown in terminal strip with retry button
+- **Failure modes:** missing file at open → `InterPanelRouter` emits `.fileNotFound` error; corrupted `LayoutState` on disk → reset to default silently; Terminal PTY spawn failure → error shown in terminal strip with retry button; window close while terminal running → `AppDelegate` collects and kills all PTYs across all windows
 
 ---
 

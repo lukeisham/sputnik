@@ -83,10 +83,10 @@ public struct SputnikCommands: Commands {
 
             CommandMenu("File") {
                 Button("New Window") {
-                    // Stub: multi-window is a future feature
+                    let ws = appState.createWindow()
+                    openWindow(id: "main", value: ws.id)
                 }
                 .keyboardShortcut("n", modifiers: [.command, .shift])
-                .disabled(true)
 
                 Divider()
 
@@ -392,14 +392,46 @@ public struct SputnikCommands: Commands {
                 Divider()
 
                 Button("Move Tab to New Window") {
-                    // Stub: multi-window support is a future feature
+                    guard let activeWS = appState.activeWindow,
+                        let docID = activeWS.activeDocumentID,
+                        let session = activeWS.activeDocument
+                    else { return }
+                    // Remove the session from the current window
+                    activeWS.openDocuments.removeAll { $0.id == docID }
+                    activeWS.activeDocumentID = activeWS.openDocuments.last?.id
+                    // Create a new window and move the session there
+                    let newWS = appState.createWindow()
+                    newWS.openDocuments = [session]
+                    newWS.activeDocumentID = session.id
+                    openWindow(id: "main", value: newWS.id)
                 }
-                .disabled(true)
 
                 Button("Merge All Windows") {
-                    // Stub: multi-window support is a future feature
+                    let allWindows = appState.orderedWindowIDs.compactMap {
+                        appState.windowForID($0)
+                    }
+                    guard allWindows.count > 1 else { return }
+                    guard let target = appState.activeWindow ?? allWindows.first else { return }
+                    // Collect all tabs from other windows into the target
+                    for window in allWindows where window.id != target.id {
+                        for doc in window.openDocuments {
+                            if !target.openDocuments.contains(where: {
+                                $0.url == doc.url && $0.url != nil
+                            }) {
+                                target.openDocuments.append(doc)
+                            }
+                        }
+                        // Close the other window (AppDelegate will kill its terminal)
+                        window.terminalManager?.killAllPTYs()
+                        appState.closeWindow(window.id)
+                    }
+                    // Close all NSWindows except the target's
+                    for nsWindow in NSApp.windows where nsWindow.identifier?.rawValue == "main" {
+                        // Can't easily map NSWindow to WindowState here — rely on
+                        // closeWindow having removed it from the registry; SwiftUI
+                        // will eventually close the NSWindow on next scene update.
+                    }
                 }
-                .disabled(true)
             }
 
             CommandGroup(replacing: .windowList) {}

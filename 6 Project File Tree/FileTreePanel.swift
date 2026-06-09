@@ -1,5 +1,5 @@
-import SwiftUI
 import AppKit
+import SwiftUI
 import UniformTypeIdentifiers
 
 /// Top-level SwiftUI view for the Project File Tree panel.
@@ -8,9 +8,10 @@ import UniformTypeIdentifiers
 /// empty / error placeholder states. Occupies the `.left` slot in `ContentView`.
 ///
 /// Dependencies are read from `@Environment` (SR-1):
-/// - `AppState` — workspace directory, document opening
+/// - `WindowState` — per-window workspace directory, document opening
 public struct FileTreePanel: View {
 
+    @Environment(WindowState.self) private var windowState
     @Environment(AppState.self) private var appState
     @State private var viewModel = FileTreeViewModel()
     @State private var showSearch: Bool = false
@@ -26,9 +27,9 @@ public struct FileTreePanel: View {
         }
         .background(SputnikColor.secondaryBackground)
         .task {
-            viewModel.configure(appState: appState)
+            viewModel.configure(windowState: windowState)
             // Restore last workspace directory if already set
-            if let dir = appState.activeWorkspaceDirectory {
+            if let dir = windowState.activeWorkspaceDirectory {
                 await viewModel.selectRootDirectory(dir)
             }
         }

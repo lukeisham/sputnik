@@ -6,12 +6,12 @@ import Security
 /// All methods are synchronous (the `SecItem*` C API has no async variant — documented
 /// per MR-3). Call from any thread; Keychain operations are inherently thread-safe.
 ///
-/// Service label: `"com.sputnik.aiAPIKey"`
+/// Service label: `"com.sputnik.supportingAIKey"`
 @MainActor
 public enum KeychainService {
 
     /// The Keychain service name used for the AI API key.
-    private static let service = "com.sputnik.aiAPIKey"
+    private static let service = "com.sputnik.supportingAIKey"
 
     // MARK: - Errors
 

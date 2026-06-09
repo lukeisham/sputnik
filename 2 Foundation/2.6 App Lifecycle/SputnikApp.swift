@@ -5,9 +5,8 @@ import SwiftUI
 ///
 /// Wires together Foundation's shared objects (`AppState`, `SettingsStore`,
 /// `FilePersistenceService`, `AppDelegate`) and injects them into the SwiftUI environment.
-/// The `WindowGroup` uses `.handlesExternalEvents` to enforce a single-window model —
-/// files opened from Finder are routed through `InterPanelRouter` (module 2.1) rather than
-/// opening a second window.
+/// Uses a data-driven `WindowGroup(id:for:UUID.self)` so each new window receives its own
+/// `WindowState` (keyed by UUID) and has fully independent document/terminal/layout state.
 @main
 public struct SputnikApp: App {
 
@@ -17,36 +16,58 @@ public struct SputnikApp: App {
 
     private let persistence = FilePersistenceService()
 
-    @State private var appState = AppState()
+    @State private var appState: AppState
     @State private var settingsStore: SettingsStore
     @State private var processMonitor = ProcessMonitor()  // F-5
     @State private var router = AppInterPanelRouter()
+    @State private var supportingAIMonitor: SupportingAIMonitor
+    @State private var mainAIMonitor: MainAIMonitor
 
     // MARK: - Init
 
     public init() {
         let persistence = FilePersistenceService()
+        let state = AppState()
         let store = SettingsStore(persistence: persistence)
+        _appState = State(initialValue: state)
         _settingsStore = State(initialValue: store)
-
-        // Wire dependencies into AppDelegate before any lifecycle method fires.
-        // AppDelegate is constructed before `init` returns, so this is safe.
+        _supportingAIMonitor = State(
+            initialValue: SupportingAIMonitor(settingsStore: store, appState: state))
+        _mainAIMonitor = State(initialValue: MainAIMonitor(appState: state))
     }
 
     // MARK: - Scenes
 
     public var body: some Scene {
-        WindowGroup {
-            ContentView(router: router)
+        // Data-driven multi-window group. Each window is identified by the UUID of its
+        // `WindowState`. SwiftUI creates a new scene instance for each unique value.
+        WindowGroup(id: "main", for: UUID.self) { $windowID in
+            let windowState: WindowState = {
+                // Resolve to the matching WindowState, or fall back to the active window.
+                if let id = windowID, let ws = appState.windowForID(id) { return ws }
+                if let ws = appState.activeWindow { return ws }
+                return appState.createWindow()
+            }()
+            ContentView(windowState: windowState, router: router)
                 .environment(appState)
+                .environment(windowState)
                 .environment(settingsStore)
                 .environment(processMonitor)  // F-5
+                .environment(supportingAIMonitor)
+                .environment(mainAIMonitor)
                 .onAppear {
                     wireAppDelegate()
+                    // Ensure activeWindowID reflects which window just appeared.
+                    appState.setActiveWindow(windowState.id)
+                }
+                .focusedSceneValue(\.activeWindowID, windowState.id)
+                // Opens additional restored windows (step 9) on first render.
+                .background {
+                    WindowRestorerView(appState: appState)
                 }
         }
         .commands { SputnikCommands(appState: appState, settings: settingsStore) }
-        .handlesExternalEvents(matching: [])  // Single-window enforcement
+        // No .handlesExternalEvents(matching: []) — multi-window is intentional.
 
         // F-2: About window — fixed size, single instance, no toolbar.
         Window("About Sputnik", id: "about") {
@@ -63,21 +84,72 @@ public struct SputnikApp: App {
 
     // MARK: - Private helpers
 
-    /// Passes shared objects to `AppDelegate` after the app finishes launching.
-    /// Called once from `ContentView.onAppear`.
+    /// Passes shared objects to `AppDelegate` once on first window appearance.
+    /// Called from each `ContentView.onAppear` but guarded so wiring is idempotent.
     private func wireAppDelegate() {
+        guard appDelegate.persistenceService == nil else { return }
         appDelegate.persistenceService = persistence
         appDelegate.appState = appState  // F-1: needed for SputnikMenuBarController
         appDelegate.processMonitor = processMonitor  // F-5: start/stop polling lifecycle
         router.configure(appState: appState)
-        // terminalLifecycle is wired by module 7 when TerminalManager is created.
     }
+}
+
+// MARK: - Window restoration helper
+
+/// An invisible view placed inside the first window's hierarchy that opens any
+/// additional restored windows (beyond the first) via SwiftUI's `openWindow`
+/// environment action.
+///
+/// Uses a static flag so the restoration fires only once in the app's lifetime,
+/// preventing re-entrant window opening when the newly opened windows themselves
+/// render this view.
+private struct WindowRestorerView: View {
+
+    @Environment(\.openWindow) private var openWindow
+    private let appState: AppState
+
+    init(appState: AppState) {
+        self.appState = appState
+    }
+
+    var body: some View {
+        Color.clear
+            .frame(width: 0, height: 0)
+            .task {
+                await openPendingWindows()
+            }
+    }
+
+    /// Consumes `appState.pendingWindowIDs` and opens each via `openWindow`.
+    /// Guarded by a static flag to run exactly once.
+    private func openPendingWindows() async {
+        guard !Self.hasRestored else { return }
+        Self.hasRestored = true
+
+        let pending = appState.pendingWindowIDs
+        guard !pending.isEmpty else { return }
+
+        // Clear immediately so no other view attempts to re-open.
+        appState.pendingWindowIDs.removeAll()
+
+        // Small delay to let the first window's scene fully settle before
+        // requesting new scene instances.
+        try? await Task.sleep(nanoseconds: 100_000_000)  // 0.1 s
+
+        for id in pending {
+            openWindow(id: "main", value: id)
+        }
+    }
+
+    private static var hasRestored = false
 }
 
 // MARK: - Settings view
 
 private struct SettingsView: View {
     @Environment(SettingsStore.self) private var settings
+    @Environment(SupportingAIMonitor.self) private var supportingAIMonitor
 
     var body: some View {
         TabView {
@@ -89,7 +161,7 @@ private struct SettingsView: View {
                 .tabItem { Label("Spelling & Grammar", systemImage: "checkmark.bubble") }
             TerminalTab(settings: settings)
                 .tabItem { Label("Terminal", systemImage: "terminal") }
-            AISettingsView(settings: settings)
+            SupportingAISettingsView(settings: settings, supportingAIMonitor: supportingAIMonitor)
                 .tabItem { Label("AI", systemImage: "brain") }
         }
         .frame(width: 460)

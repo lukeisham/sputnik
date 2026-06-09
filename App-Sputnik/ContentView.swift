@@ -7,20 +7,22 @@ import SwiftUI
 public struct ContentView: View {
 
     @Environment(AppState.self) private var appState
+    @Environment(WindowState.self) private var windowState
     @Environment(SettingsStore.self) private var settings
 
     @State private var editorViewModel = EditorViewModel()
 
     private let router: any InterPanelRouter
 
-    public init(router: any InterPanelRouter) {
+    public init(windowState: WindowState, router: any InterPanelRouter) {
         self.router = router
+        // windowState is injected into the environment by SputnikApp, so @Environment picks it up
     }
 
     public var body: some View {
         VStack(spacing: 0) {
             HStack(spacing: 1) {
-                // Left — Project File Tree (module 6)
+                // Left — Project File Tree (module 6) — reads windowState for per-window workspace
                 FileTreePanel()
                     .frame(width: 240)
                     .frame(maxHeight: .infinity)
@@ -48,7 +50,7 @@ public struct ContentView: View {
 
             Divider()
 
-            // Terminal strip — always visible, pinned at bottom
+            // Terminal strip — reads windowState for per-window directory and manager
             TerminalView()
                 .frame(maxWidth: .infinity)
                 .frame(height: 200)
@@ -61,16 +63,16 @@ public struct ContentView: View {
         .overlay(alignment: .bottomTrailing) {
             ScratchpadPanel(
                 isVisible: Binding(
-                    get: { appState.scratchpadVisible },
-                    set: { appState.scratchpadVisible = $0 }
+                    get: { windowState.scratchpadVisible },
+                    set: { windowState.scratchpadVisible = $0 }
                 ),
                 text: Binding(
-                    get: { appState.scratchpadText },
-                    set: { appState.scratchpadText = $0 }
+                    get: { windowState.scratchpadText },
+                    set: { windowState.scratchpadText = $0 }
                 ),
                 scratchpadFrame: Binding(
-                    get: { appState.scratchpadFrame },
-                    set: { appState.scratchpadFrame = $0 }
+                    get: { windowState.scratchpadFrame },
+                    set: { windowState.scratchpadFrame = $0 }
                 )
             )
         }
@@ -83,7 +85,7 @@ public struct ContentView: View {
     /// panel's @State (loaded topics, scroll position) survives topic switches.
     @ViewBuilder
     private var rightColumn: some View {
-        let topic = appState.requestedHelpTopic
+        let topic = windowState.requestedHelpTopic
         ZStack {
             VStack(spacing: 0) {
                 PDFViewerPanel()

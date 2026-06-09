@@ -30,10 +30,15 @@ Own all user-configurable preferences — appearance, editor behaviour, and spel
   │  Grammar:     spell check   [✓]                               │
   │               grammar check [✓]                               │
   │                                                               │
-  │  AI:          Model    [claude-sonnet-4-6              ]      │
+  │  AI:          Provider [DeepSeek ▾]                         │
+  │               Model    [deepseek-chat                 ]      │
   │               API Key  [••••••••••••••••   Show / Clear]      │
-  │               Base URL [https://api.anthropic.com      ]      │
+  │               Base URL [https://api.deepseek.com       ]      │
   │               ⚠ API key is stored in macOS Keychain.         │
+  │               Usage (This Session):                          │
+  │               Model: deepseek-chat                           │
+  │               Context Window: [████░░░░░░░░] 34.2%           │
+  │               Tokens Used: 12,340 tokens                     │
   └───────────────┬───────────────────────────────────────────────┘
                   │ writes
                   ▼
@@ -57,9 +62,10 @@ Own all user-configurable preferences — appearance, editor behaviour, and spel
   - `AppTheme` — enum: `.light`, `.dark`, `.system` <!-- assumed -->
   - `EditorFont` — struct wrapping PostScript font name and point size <!-- assumed -->
   - `TerminalColor` — lightweight RGBA struct, `Codable`; extracted from module 7 so Foundation owns it without importing Terminal
-  - `AIConfiguration` (`Sendable Codable`, `2 Foundation/2.3 Settings/AIConfiguration.swift`) — `modelName: String`, `baseURL: URL?`; no API key field (key lives in Keychain only, never in this struct); consumed by `SettingsStore.aiConfig`, the status bar (F-5), and any future AI-calling feature
-  - `ModelCapacity` (enum, `2 Foundation/2.3 Settings/ModelCapacity.swift`) — static `contextWindow(for modelName: String) -> Int?` lookup seeded with the current Claude model family; returns `nil` for unknown models; shared by F-5 context-% display and F-8 terminal model detection
-  - `AISettingsView` (`2 Foundation/2.3 Settings/AISettingsView.swift`) — SwiftUI view for the AI settings tab; reads/writes `SettingsStore.aiConfig`; API key read/written through `KeychainService` at interaction time, never cached in memory
+  - `SupportingAIProvider` (enum, `Codable Sendable CaseIterable`, `2 Foundation/2.3 Settings/SupportingAIConfiguration.swift`) — `.deepSeek`, `.gemini`, `.local`; each case has a `defaultBaseURL: URL` computed property
+  - `SupportingAIConfiguration` (`Codable Sendable Equatable`, `2 Foundation/2.3 Settings/SupportingAIConfiguration.swift`) — `provider: SupportingAIProvider`, `modelName: String`, `baseURL: URL?` (override; `nil` uses provider default); consumed by `SettingsStore.supportingAIConfig`; no API key field (key lives in Keychain only, never in this struct)
+  - `ModelCapacity` (enum, `2 Foundation/2.3 Settings/ModelCapacity.swift`) — static `contextWindow(for modelName: String) -> Int?` lookup seeded with Claude, DeepSeek, Gemini, GPT, Llama, and Mistral model families; returns `nil` for unknown models; shared by `SupportingAIMonitor`, `MainAIMonitor`, and the status bar
+  - `SupportingAISettingsView` (`2 Foundation/2.3 Settings/SupportingAISettingsView.swift`) — SwiftUI view for the AI settings tab; reads/writes `SettingsStore.supportingAIConfig`; provider picker (DeepSeek / Gemini / Local); model name field; API key read/written through `KeychainService` at interaction time, never cached in memory; base URL override with default-reset; live session metrics section (context window % bar, token count) driven by `AppState.supportingAIUsage`
   - `WritingAssistMatrix` — `Codable Sendable` struct; stores one `Bool` per applicable `WritingAssistFunction × WritingAssistLanguage` cell; non-applicable cells always return `false`; resolves ISS-011
   - `WritingAssistLanguage` — enum: `.spelling`, `.grammar`, `.markdown`, `.html`, `.asciiArt`
   - `WritingAssistFunction` — enum: `.instantCorrect`, `.autoComplete`, `.moreContext`
@@ -77,7 +83,7 @@ Own all user-configurable preferences — appearance, editor behaviour, and spel
   - `textEditorBackground: Color` — default: `SputnikColor.editorBackground` (F-4)
   - `markdownPreviewBackground: Color` — default: `SputnikColor.background` (F-4)
   - `htmlPreviewBackground: Color` — default: `SputnikColor.background` (F-4)
-  - `aiConfig: AIConfiguration` — model name and optional base URL; persisted via `PersistenceService`; API key read/written via `KeychainService` at call time, never cached in `SettingsStore` (resolves ISS-014)
+  - `supportingAIConfig: SupportingAIConfiguration` — provider, model name, and optional base URL override; persisted via `PersistenceService`; API key read/written via `KeychainService` at call time, never cached in `SettingsStore` (resolves ISS-014); the Supporting AI is the app's built-in AI service for resource features — distinct from the Main AI (user-loaded in terminal)
   - `autoSaveEnabled: Bool`
   - `lineNumbersEnabled: Bool`
   - `wordWrapEnabled: Bool`

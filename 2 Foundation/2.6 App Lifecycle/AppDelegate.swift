@@ -16,9 +16,8 @@ public final class AppDelegate: NSObject, NSApplicationDelegate {
     /// The concrete persistence service; set before `applicationDidFinishLaunching` fires.
     public var persistenceService: (any PersistenceService)?
 
-    /// The terminal lifecycle handler; set by module 7 during its own startup.
-    /// `weak` because module 7 owns the concrete object.
-    public weak var terminalLifecycle: (any TerminalLifecycle)?
+    /// No longer a single terminal reference — `AppState.allTerminalManagers` now
+    /// collects all `TerminalManager` instances from every open `WindowState`.
 
     /// The shared app state; wired by `SputnikApp` before launch completes.
     public var appState: AppState?
@@ -62,6 +61,10 @@ public final class AppDelegate: NSObject, NSApplicationDelegate {
                 state.scratchpadFrame = persistence.loadScratchpadFrame()
             }
 
+            // Restore per-window state (step 9)
+            let descriptors = await persistence.restoreWindows()
+            appState?.restoreWindows(from: descriptors)
+
             let pendingNames = persistence.pendingRecoveryNames()
             for name in pendingNames {
                 let alert = SputnikAlert.recoveryAvailable(filename: name)
@@ -72,10 +75,17 @@ public final class AppDelegate: NSObject, NSApplicationDelegate {
 
     public func applicationShouldTerminate(_ sender: NSApplication) -> NSApplication.TerminateReply
     {
-        guard let terminal = terminalLifecycle else { return .terminateNow }
+        guard let state = appState else { return .terminateNow }
+        let managers = state.allTerminalManagers
+        guard !managers.isEmpty else { return .terminateNow }
 
         Task {
-            await terminal.killAllPTYs()
+            // Kill all PTYs across every open window concurrently.
+            await withTaskGroup(of: Void.self) { group in
+                for manager in managers {
+                    group.addTask { await manager.killAllPTYs() }
+                }
+            }
             NSApp.replyToApplicationShouldTerminate(true)
         }
         return .terminateLater
@@ -90,6 +100,10 @@ public final class AppDelegate: NSObject, NSApplicationDelegate {
         if let state = appState {
             persistenceService?.saveScratchpad(text: state.scratchpadText)
             persistenceService?.saveScratchpad(frame: state.scratchpadFrame)
+
+            // Save per-window state (step 9)
+            let descriptors = state.collectDescriptors()
+            persistenceService?.saveWindows(descriptors)
         }
     }
 

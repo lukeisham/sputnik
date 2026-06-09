@@ -5,51 +5,83 @@ last_updated: 2026-06-09
 ---
 
 ## Purpose
-Provide a single, thread-safe source of truth for the app's active workspace directory and all open document tabs so every module reads consistent state without coordinating directly with each other.
+Provide per-window state containers and a top-level coordinator so that each Sputnik window operates independently — with its own workspace directory, document tabs, terminal session, scratchpad, layout, and AI state — while existing callers continue to compile against the familiar `AppState` interface.
 
 ## Diagram
 
 ```
-                  ┌──────────────────────────────────────────┐
-                  │  AppState  (@Observable @MainActor)       │
-                  │                                          │
-                  │  activeWorkspaceDirectory: URL?          │
-                  │  openDocuments: [DocumentSession]  ◀─────┼── tab bar (2.4)
-                  │  activeDocumentID: UUID?           ◀─────┼── tab bar (2.4)
-                  │  activeDocument: DocumentSession?        │
-                  │  focusMode: FocusMode                    │
-                  │  isProcessing: Bool (computed)     ◀─────┼── StatusBarView / MenuBarController
-                  │  contextUsage: ContextUsage?       ◀─────┼── StatusBarView CTX %
-                  │  scratchpadVisible: Bool           ◀─────┼── ScratchpadPanel / View menu
-                  └─────────────┬────────────────────────────┘
-                                │  observed via @Environment
-             ┌──────────────────┼──────────────────────┐
-             ▼                  ▼                      ▼
-    File Tree (6)       Text Editor (3)          Terminal (7)
-    syncs dir       binds to activeDocument      cds to dir
-                         ▼             ▼
-                 HTML Preview (8)  Markdown Preview (4)
-                 renders .html     renders .markdown
-
-InterPanelRouter (2.1) — sole writer for openDocuments / activeDocumentID
-File system watcher (background Task)
-     └── NSFilePresenter / FileManager events
-              └──▶ Task { @MainActor in appState.update() }
+┌─────────────────────────────────────────────────────────────────────┐
+│  AppState  (@Observable @MainActor — coordinator)                   │
+│                                                                     │
+│  windows: [UUID: WindowState]          orderedWindowIDs: [UUID]     │
+│  activeWindowID: UUID?  ◀── @FocusedValue from frontmost ContentView │
+│  activeWindow: WindowState? (computed)                              │
+│                                                                     │
+│  Computed pass-throughs → activeWindow.*                            │
+│  createWindow() / closeWindow(_:) / windowForID(_:)                  │
+│  allTerminalManagers: [any TerminalLifecycle] (for quit)            │
+│  restoreWindows(from:) / collectDescriptors()  (for persistence)    │
+└──────────────────────────┬──────────────────────────────────────────┘
+                           │ owns / coordinates
+       ┌───────────────────┼───────────────────────┐
+       ▼                   ▼                       ▼
+ ┌──────────────┐   ┌──────────────┐   ┌──────────────┐
+ │ WindowState  │   │ WindowState  │   │ WindowState  │  … one per window
+ │  (window 1)  │   │  (window 2)  │   │  (window 3)  │
+ └──────┬───────┘   └──────┬───────┘   └──────┬───────┘
+        │                   │                   │
+        │  Each WindowState holds:             │
+        │  ─────────────────────────           │
+        │  id: UUID                            │
+        │  activeWorkspaceDirectory: URL?      │
+        │  openDocuments: [DocumentSession]    │
+        │  activeDocumentID: UUID?             │
+        │  layout: LayoutState                 │
+        │  terminalManager: (any TerminalLifecycle)?
+        │  scratchpadVisible/Text/Frame         │
+        │  requestedHelpTarget: HelpRequest?    │
+        │  isProcessing: Bool (per-window AI)   │
+        │  mainAIState: MainAIState?            │
+        ▼                   ▼                   ▼
+ File Tree (6)       Text Editor (3)       Terminal (7)
+ reads windowState   reads windowState    reads windowState
+ .activeWorkspaceDir .activeDocument      .activeWorkspaceDir
+                                          .terminalManager
 ```
 
 ## Technical Summary
-- **Framework(s):** SwiftUI (`@Observable`, `@Environment`), Foundation, Swift Concurrency
+- **Framework(s):** SwiftUI (`@Observable`, `@Environment`, `@FocusedValue`), Foundation, Swift Concurrency
 - **Key types:**
-  - `AppState` — `@Observable @MainActor` class; single instance created in `SputnikApp`,
-    injected via `.environment(appState)`
+  - `AppState` — `@Observable @MainActor` class; **window coordinator** owning a dictionary
+    of `WindowState` instances. Created once in `SputnikApp`, injected via `.environment(appState)`.
+    Provides computed pass-through properties that delegate to the active window so existing
+    callers (`StatusBarView`, `SputnikCommands`, `SputnikMenuBarController`) continue to compile
+    unchanged.
+  - `WindowState` — `@Observable @MainActor` class; one instance per open window. Holds all
+    per-window state: workspace directory, open documents, active document ID, layout, scratchpad,
+    help routing, processing count, main AI state, and a reference to the window's `TerminalManager`.
+  - `ActiveWindowIDKey` — `FocusedValueKey` for `UUID`; set by each `ContentView` via
+    `.focusedSceneValue(\.activeWindowID, windowState.id)` and read by the menu system to
+    determine which window is frontmost.
   - `DocumentSession` — `@Observable @MainActor` class; one instance per open tab,
-    owning `id`, `url`, `fileType`, `text`, and `isDirty`
-  - `FileType` — enum shared with module 2.1; classifies a session so panels render correctly
-  - `ContextUsage` (`Sendable`, `2 Foundation/2.2 Global State Management/ContextUsage.swift`) — `usedTokens: Int`, `contextWindow: Int`, computed `percent: Double`; written to `AppState.contextUsage` by any module making AI calls; context window size looked up from `ModelCapacity` (2.3); `nil` when no AI call is active
-- **Threading model:** `AppState` and `DocumentSession` are `@MainActor` — all reads and
+    owning `id`, `url`, `fileType`, `text`, and `isDirty`; stored on `WindowState.openDocuments`.
+  - `FileType` — enum shared with module 2.1; classifies a session so panels render correctly.
+  - `SupportingAIUsage` (`Sendable`) — `totalTokensSinceLaunch: Int`, `contextWindow: Int`;
+    stored globally on `AppState` (Supporting AI is app-level, not per-window).
+  - `MainAIState` (`Sendable`) — `modelName: String`, `contextWindow: Int?`, `usage: MainAIContextUsage?`;
+    stored per-window on `WindowState` (each window's terminal runs its own Main AI).
+  - `WindowDescriptor` — `Codable` struct for persisting/reloading a window's snapshot
+    (id, workspace directory, tab URLs, active document URL, layout).
+- **Threading model:** Both `AppState` and `WindowState` are `@MainActor` — all reads and
   writes are on the main thread. Background file-system events must hop via
   `Task { @MainActor in … }` before mutating state (SW-1, SR-4).
-- **Data flow:** All modules read `AppState` via `@Environment`. Any module that triggers
+- **Data flow:**
+  - Each `ContentView` receives its `WindowState` via `.environment(windowState)`.
+  - Panels read from `@Environment(WindowState.self)` for per-window state (workspace directory,
+    active document, scratchpad).
+  - Modules that only need the *active* window's data (menu commands, `StatusBarView`) read via
+    `@Environment(AppState.self)` and the computed pass-throughs.
+  - Frontmost-window tracking uses `@FocusedValue`, reported back via `AppState.setActiveWindow(_:)`. Window-specific views read `@Environment(WindowState.self)`. Any module that triggers
   a document change (File Tree opening a file, preview link click) writes through
   `InterPanelRouter` (2.1) — modules never mutate `openDocuments` or `activeDocumentID`
   directly. Foundation-layer views (toolbar, `DocumentTabBar`) may write `activeDocumentID`
@@ -66,7 +98,8 @@ File system watcher (background Task)
   - `private var processingCount: Int` — reference count of concurrent in-flight operations; always mutated on `@MainActor` so no race is possible.
   - `isProcessing: Bool` — **computed**: `processingCount > 0`; observed by `StatusBarView` (F-5) for the satellite spinner and by `SputnikMenuBarController` (F-1) for the menu-bar animation; single source of truth for "the app is busy" across both display surfaces (SR-1, resolves ISS-013).
   - `func beginProcessing()` / `func endProcessing()` — increment / decrement `processingCount`; callers must balance every `begin` with an `end` (document at call sites).
-  - `contextUsage: ContextUsage?` — written by any module making AI calls; consumed by `StatusBarView` context-% segment; `nil` when no AI call is in progress or no model is configured.
+  - `supportingAIUsage: SupportingAIUsage?` — cumulative Supporting AI token usage for the current session; `nil` until the first Supporting AI API call completes; written by `SupportingAIMonitor` (2.7) only (SR-1); consumed by `SupportingAISettingsView` for the Usage (This Session) metrics section
+  - `mainAIState: MainAIState?` — Main AI state (the user-loaded AI in the terminal); `nil` when no Main AI is active; written by `MainAIMonitor` (2.7) only (SR-1); consumed by `StatusBarView` for the Main AI model name + CTX % segment
   - `scratchpadVisible: Bool` — toggled by **View ▸ Scratchpad** (⌘⇧K) via `SputnikCommands`; observed by `ScratchpadPanel` (2.4) to show/hide the overlay; initial value restored from `PersistenceService` on launch.
 - **Dependencies:** `InterPanelRouter` (2.1) is the sole external writer. Foundation-layer
   UI (toolbar, `DocumentTabBar`) may write `activeDocumentID` and `focusMode` directly.

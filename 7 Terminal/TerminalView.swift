@@ -10,8 +10,10 @@ public struct TerminalView: View {
 
     // MARK: - Environment
 
+    @Environment(WindowState.self) private var windowState
     @Environment(AppState.self) private var appState
     @Environment(SettingsStore.self) private var settings
+    @Environment(MainAIMonitor.self) private var mainAIMonitor
 
     // MARK: - State
 
@@ -22,10 +24,10 @@ public struct TerminalView: View {
 
     private var profile: TerminalProfile {
         TerminalProfile(
-            fontName:            settings.terminalFontName,
-            fontSize:            settings.terminalFontSize,
-            foreground:          settings.terminalForeground,
-            background:          settings.terminalBackground,
+            fontName: settings.terminalFontName,
+            fontSize: settings.terminalFontSize,
+            foreground: settings.terminalForeground,
+            background: settings.terminalBackground,
             scrollbackLineLimit: settings.terminalScrollbackLimit
         )
     }
@@ -38,10 +40,17 @@ public struct TerminalView: View {
             terminalBody
         }
         .background(profile.swiftUIBackground)
-        .task {
-            await manager.startSession(directory: appState.activeWorkspaceDirectory, profile: profile)
+        .onAppear {
+            manager.aiOutputObserver = mainAIMonitor
+            // Register this TerminalManager on the per-window state so AppDelegate
+            // can collect all managers for clean shutdown.
+            windowState.terminalManager = manager
         }
-        .onChange(of: appState.activeWorkspaceDirectory) { _, newValue in
+        .task {
+            await manager.startSession(
+                directory: windowState.activeWorkspaceDirectory, profile: profile)
+        }
+        .onChange(of: windowState.activeWorkspaceDirectory) { _, newValue in
             manager.syncWorkingDirectory(newValue)
         }
         .onChange(of: manager.pendingAlert) { _, alert in
@@ -53,7 +62,9 @@ public struct TerminalView: View {
             actions: {
                 Button("Retry") {
                     manager.dismissAlert()
-                    Task { await manager.startSession(directory: appState.activeWorkspaceDirectory) }
+                    Task {
+                        await manager.startSession(directory: windowState.activeWorkspaceDirectory)
+                    }
                 }
                 Button("Dismiss", role: .cancel) { manager.dismissAlert() }
             },
@@ -87,7 +98,7 @@ public struct TerminalView: View {
     private var shellExitedBadge: some View {
         if !manager.isRunning && manager.pendingAlert == nil {
             Button {
-                Task { await manager.startSession(directory: appState.activeWorkspaceDirectory) }
+                Task { await manager.startSession(directory: windowState.activeWorkspaceDirectory) }
             } label: {
                 Label("Shell exited — restart", systemImage: "arrow.counterclockwise")
                     .font(.system(size: 11))
@@ -115,10 +126,10 @@ public struct TerminalView: View {
             }
         } else {
             TerminalRenderer(
-                snapshot:   manager.snapshot,
-                profile:    profile,
+                snapshot: manager.snapshot,
+                profile: profile,
                 onKeyInput: { data in manager.send(data) },
-                onResize:   { cols, rows in manager.resize(cols: cols, rows: rows) }
+                onResize: { cols, rows in manager.resize(cols: cols, rows: rows) }
             )
         }
     }

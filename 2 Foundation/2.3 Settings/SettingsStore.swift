@@ -85,10 +85,10 @@ public final class SettingsStore {
         writingAssist.isEnabled(.instantCorrect, for: .grammar)
     }
 
-    /// AI provider configuration (model name + base URL).
+    /// Supporting AI provider configuration (provider, model name + base URL).
     /// The API key is stored separately in the Keychain — see `KeychainService`.
-    /// Default: empty model name, no base URL.
-    public var aiConfig: AIConfiguration = AIConfiguration()
+    /// Default: .deepSeek provider, empty model name, no base URL.
+    public var supportingAIConfig: SupportingAIConfiguration = SupportingAIConfiguration()
 
     // MARK: - Terminal settings
 
@@ -160,7 +160,7 @@ public final class SettingsStore {
         static let asciiTriggerKey = "sputnik.settings.asciiTriggerKey"
         static let spellCheckLocale = "sputnik.settings.spellCheckLocale"
         // AI
-        static let aiConfig = "sputnik.settings.aiConfig"
+        static let supportingAIConfig = "sputnik.settings.supportingAIConfig"
     }
 
     // MARK: - Dependencies
@@ -320,9 +320,9 @@ public final class SettingsStore {
 
     // MARK: - AI mutators
 
-    public func setAIConfig(_ config: AIConfiguration) {
-        aiConfig = config
-        persistence.saveSetting(config, forKey: DefaultsKey.aiConfig)
+    public func setSupportingAIConfig(_ config: SupportingAIConfiguration) {
+        supportingAIConfig = config
+        persistence.saveSetting(config, forKey: DefaultsKey.supportingAIConfig)
     }
 
     public func setSpellCheckLocale(_ value: String?) {
@@ -423,8 +423,17 @@ public final class SettingsStore {
             htmlPreviewFont = saved
         }
         // AI
-        if let saved: AIConfiguration = persistence.loadSetting(forKey: DefaultsKey.aiConfig) {
-            aiConfig = saved
+        if let saved: SupportingAIConfiguration = persistence.loadSetting(
+            forKey: DefaultsKey.supportingAIConfig)
+        {
+            supportingAIConfig = saved
+        }
+        // Migrate from legacy aiConfig key
+        if let legacy: SupportingAIConfiguration = persistence.loadSetting(
+            forKey: "sputnik.settings.aiConfig")
+        {
+            supportingAIConfig = legacy
+            persistence.saveSetting(legacy, forKey: DefaultsKey.supportingAIConfig)
         }
     }
 }

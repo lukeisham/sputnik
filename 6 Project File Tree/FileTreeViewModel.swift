@@ -24,7 +24,7 @@ public final class FileTreeViewModel {
 
     // MARK: - Dependencies (wired after init via configure)
 
-    private weak var appState: AppState?
+    private weak var windowState: WindowState?
 
     // MARK: - Internals
 
@@ -38,22 +38,22 @@ public final class FileTreeViewModel {
 
     // MARK: - Configuration
 
-    /// Wires up the shared `AppState`. Called once from `FileTreePanel.task`.
-    public func configure(appState: AppState) {
-        self.appState = appState
+    /// Wires up the per-window `WindowState`. Called once from `FileTreePanel.task`.
+    public func configure(windowState: WindowState) {
+        self.windowState = windowState
     }
 
     // MARK: - Directory selection
 
     /// Selects a new root directory, scans it, starts watching for changes, and
-    /// updates `AppState.activeWorkspaceDirectory` so the terminal can follow.
+    /// updates `windowState.activeWorkspaceDirectory` so the terminal can follow.
     public func selectRootDirectory(_ url: URL) async {
         guard activeDirectory != url else { return }
         activeDirectory = url
         errorMessage = nil
         expandedNodeIDs = []
         selectedNodeID = nil
-        appState?.activeWorkspaceDirectory = url
+        windowState?.activeWorkspaceDirectory = url
         await refreshTree()
         startWatching(url)
     }
@@ -102,7 +102,7 @@ public final class FileTreeViewModel {
 
     // MARK: - Node interaction
 
-    /// For a directory: toggles expand/collapse. For a file: opens it via `AppState`.
+    /// For a directory: toggles expand/collapse. For a file: opens it via `WindowState`.
     public func openNode(_ id: URL) async {
         guard let node = findNode(id, in: rootNode) else { return }
         if node.isDirectory {
@@ -112,7 +112,7 @@ public final class FileTreeViewModel {
                 await expandNode(id)
             }
         } else {
-            appState?.openDocument(url: id)
+            windowState?.openDocument(url: id)
         }
     }
 

@@ -24,9 +24,17 @@ public final class TerminalManager: ObservableObject, TerminalLifecycle {
     /// Whether the session is currently running.
     @Published public private(set) var isRunning: Bool = false
 
+    // MARK: - AI output observer
+
+    /// Weak reference to the Main AI output observer (Foundation 2.7).
+    /// Set by `TerminalView` from the environment; forwarded to each new
+    /// `TerminalSession` so Foundation can detect AI sessions without
+    /// Terminal importing the monitor directly (SR-1).
+    public nonisolated(unsafe) weak var aiOutputObserver: TerminalAIOutputObserving?
+
     // MARK: - Private storage
 
-    private var session:  TerminalSession?
+    private var session: TerminalSession?
     private var emulator: TerminalEmulator?
     private var pumpTask: Task<Void, Never>?
     private var currentWorkingDirectory: URL?
@@ -49,11 +57,12 @@ public final class TerminalManager: ObservableObject, TerminalLifecycle {
         await stopSession()
 
         let sess = TerminalSession()
-        let emu  = TerminalEmulator(
+        sess.aiOutputObserver = self.aiOutputObserver
+        let emu = TerminalEmulator(
             cols: 80, rows: 24,
             profile: profile
         )
-        self.session  = sess
+        self.session = sess
         self.emulator = emu
 
         do {
@@ -86,7 +95,7 @@ public final class TerminalManager: ObservableObject, TerminalLifecycle {
             // Stream finished — shell exited.
             await MainActor.run {
                 self.isRunning = false
-                self.snapshot  = await emu.snapshot()
+                self.snapshot = await emu.snapshot()
             }
         }
     }
@@ -96,8 +105,8 @@ public final class TerminalManager: ObservableObject, TerminalLifecycle {
         pumpTask?.cancel()
         pumpTask = nil
         await session?.terminate()
-        session   = nil
-        emulator  = nil
+        session = nil
+        emulator = nil
         isRunning = false
     }
 
@@ -162,9 +171,9 @@ public final class TerminalManager: ObservableObject, TerminalLifecycle {
 
 // MARK: - String helper
 
-private extension String {
+extension String {
     /// Returns a shell-safe version of the string, single-quoted.
-    var shellEscaped: String {
+    fileprivate var shellEscaped: String {
         "'\(replacingOccurrences(of: "'", with: "'\\''"))'"
     }
 }

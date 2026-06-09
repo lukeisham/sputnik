@@ -23,6 +23,14 @@ public enum ModelCapacity {
         if lower.contains("llama2") { return 4_096 }
         if lower.contains("mistral") { return 32_000 }
         if lower.contains("codestral") { return 32_000 }
+        // DeepSeek models
+        if lower.contains("deepseek-chat") { return 64_000 }
+        if lower.contains("deepseek-reasoner") { return 64_000 }
+        // Gemini models
+        if lower.contains("gemini-1.5-pro") { return 1_048_576 }
+        if lower.contains("gemini-1.5-flash") { return 1_048_576 }
+        if lower.contains("gemini-2.0-flash") { return 1_048_576 }
+        if lower.contains("gemini-2.5-pro") { return 1_048_576 }
         return nil
     }
 }

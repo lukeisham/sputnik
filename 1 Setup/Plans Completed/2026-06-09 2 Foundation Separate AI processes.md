@@ -2,7 +2,7 @@
 plan: Separate AI processes — Supporting AI + Main AI monitoring
 module: 2 Foundation (2.2, 2.3, 2.4, 2.7)
 created: 2026-06-09
-status: pending
+status: complete
 related_issues: ISS-015, ISS-016
 ---
 
@@ -164,10 +164,14 @@ Separate the app's AI concepts into two clearly scoped roles — a **Supporting 
 
 ## Closeout
 
-- [ ] Re-read the Purpose statement — does the outcome match it exactly?
-- [ ] Success Condition verified (ran / tested / confirmed as described above)
-- [ ] Module Guide(s) updated (`status` + `last_updated`)
-- [ ] ISS-015 and ISS-016 marked Resolved in Issues.md
-- [ ] Changes committed: `[2 Foundation] Separate AI processes — Supporting AI + Main AI monitoring`
+- [x] Re-read the Purpose statement — does the outcome match it exactly?
+  → Yes. Supporting AI (`SupportingAIConfiguration`, `SupportingAIMonitor`, `SupportingAIUsage`) and Main AI (`MainAIState`, `MainAIContextUsage`, `MainAIMonitor`) are fully separated with distinct config, monitoring, and display surfaces.
+- [x] Success Condition verified (ran / tested / confirmed as described above)
+  → Verified by reading the actual source files. Settings has a "Supporting AI" tab with provider picker, API key (Keychain-backed), base URL, and live metrics. Status bar shows Main AI model name + CTX %, or `—` when none is active. `AIConfiguration` is a deprecated typealias. `AppState.contextUsage` is replaced by `supportingAIUsage` and `mainAIState`. Code comments confirm boundary rules.
+- [x] Module Guide(s) updated (`status` + `last_updated`)
+  → Guides 2.2, 2.3, 2.4, 2.7 all updated. 2.2: broken artifact removed, AI state fields documented. 2.3: `SupportingAIConfiguration`, `SupportingAIProvider`, `ModelCapacity` documented. 2.4: `StatusBarView` description updated with two-segment AI display and context menu. 2.7: `SupportingAIMonitor`, `MainAIMonitor`, `TerminalAIOutputObserving` added to diagram, tech summary, and known consumers table.
+- [x] ISS-015 and ISS-016 marked Resolved in Issues.md
+  → Both already marked Resolved — 2026-06-09.
+- [x] Changes committed: `[2 Foundation] Separate AI processes — Supporting AI + Main AI monitoring`
 - [ ] Pushed to GitHub
-- [ ] Plan moved to Plans Completed/
+- [x] Plan moved to Plans Completed/

@@ -32,10 +32,15 @@ public actor TerminalSession {
 
     private(set) public var state: SessionState = .idle
 
+    /// Optional observer for AI-detection output line monitoring.
+    /// Set by `SputnikApp` at launch. Weak reference prevents retain cycles (SW-2).
+    /// Nonisolated because actors cannot hold weak references to non-sendable types.
+    public nonisolated(unsafe) weak var aiOutputObserver: TerminalAIOutputObserving?
+
     // MARK: - Private storage
 
-    private var ptyHandle:  PTYHandle?
-    private var process:    Process?
+    private var ptyHandle: PTYHandle?
+    private var process: Process?
     private let continuation: AsyncStream<Data>.Continuation
 
     // MARK: - Init
@@ -71,21 +76,24 @@ public actor TerminalSession {
         guard let slaveHandle = FileHandle(forUpdatingAtPath: pty.slavePath) else {
             pty.close()
             self.ptyHandle = nil
-            let err = SputnikError.hardwareAccessDenied(detail: "Could not open slave PTY at \(pty.slavePath)")
+            let err = SputnikError.hardwareAccessDenied(
+                detail: "Could not open slave PTY at \(pty.slavePath)")
             state = .failed(err)
             throw err
         }
 
         // 3. Configure and launch Zsh (MR-4 — bind to slave FileHandle, not a Pipe).
         let zsh = Process()
-        zsh.executableURL    = URL(fileURLWithPath: "/bin/zsh")
-        zsh.arguments        = ["--login"]
-        zsh.standardInput    = slaveHandle   // MR-4
-        zsh.standardOutput   = slaveHandle   // MR-4
-        zsh.standardError    = slaveHandle   // MR-4
-        zsh.currentDirectoryURL = workingDirectory ?? URL(
-            fileURLWithPath: NSHomeDirectory()
-        )
+        zsh.executableURL = URL(fileURLWithPath: "/bin/zsh")
+        zsh.arguments = ["--login"]
+        zsh.standardInput = slaveHandle  // MR-4
+        zsh.standardOutput = slaveHandle  // MR-4
+        zsh.standardError = slaveHandle  // MR-4
+        zsh.currentDirectoryURL =
+            workingDirectory
+            ?? URL(
+                fileURLWithPath: NSHomeDirectory()
+            )
         zsh.environment = buildEnvironment(slavePath: pty.slavePath)
 
         // Notify when Zsh exits.
@@ -141,9 +149,9 @@ public actor TerminalSession {
             cleanupPTY()
             return
         }
-        proc.terminate()          // SIGTERM
+        proc.terminate()  // SIGTERM
         // Give the process a moment to exit gracefully before closing the fd.
-        try? await Task.sleep(nanoseconds: 150_000_000) // 150 ms
+        try? await Task.sleep(nanoseconds: 150_000_000)  // 150 ms
         cleanupPTY()
     }
 
@@ -152,6 +160,7 @@ public actor TerminalSession {
     private func startReadingOutput(from master: FileHandle) {
         Task(priority: .utility) { [weak self] in
             guard let self else { return }
+            var partialLine = ""
             while true {
                 let data: Data
                 do {
@@ -160,9 +169,34 @@ public actor TerminalSession {
                     break
                 }
                 guard !data.isEmpty else { break }
+
+                // Yield raw data to the output stream (existing contract).
                 await self.emit(data)
+
+                // Decode to string and split into lines for AI observer.
+                if let text = String(data: data, encoding: .utf8) {
+                    let lines = (partialLine + text).components(separatedBy: "\n")
+                    partialLine = lines.last ?? ""
+                    for line in lines.dropLast() {
+                        let trimmed = line.trimmingCharacters(in: .controlCharacters)
+                        await self.notifyObserver(line: trimmed)
+                    }
+                }
+            }
+            // Flush any remaining partial line.
+            if !partialLine.isEmpty {
+                await self.notifyObserver(
+                    line: partialLine.trimmingCharacters(in: .controlCharacters))
             }
             await self.continuation.finish()
+        }
+    }
+
+    private func notifyObserver(line: String) async {
+        // The observer is nonisolated(unsafe) weak, so capture it safely.
+        let observer = self.aiOutputObserver
+        await MainActor.run {
+            observer?.observe(line: line)
         }
     }
 
@@ -183,10 +217,10 @@ public actor TerminalSession {
 
     private func buildEnvironment(slavePath: String) -> [String: String] {
         var env = ProcessInfo.processInfo.environment
-        env["TERM"]      = "xterm-256color"
+        env["TERM"] = "xterm-256color"
         env["COLORTERM"] = "truecolor"
         // Ensure the slave path is available as the controlling terminal.
-        env["SSH_TTY"]   = slavePath
+        env["SSH_TTY"] = slavePath
         return env
     }
 }

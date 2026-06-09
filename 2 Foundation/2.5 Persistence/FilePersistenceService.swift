@@ -13,6 +13,7 @@ public final class FilePersistenceService: PersistenceService {
 
     private enum Keys {
         static let layoutFilename = "layout.json"
+        static let windowsFilename = "windows.json"
         static let recoveryDirectory = "recovery"
         static let recoveryExtension = "recovery"
     }
@@ -67,12 +68,39 @@ public final class FilePersistenceService: PersistenceService {
 
     public func flushLayout(_ state: LayoutState) {
         let layoutURL = supportDirectory.appendingPathComponent(Keys.layoutFilename)
+        writeJSON(state, to: layoutURL)
+    }
+
+    // MARK: - Multi-window persistence
+
+    public func restoreWindows() async -> [WindowDescriptor] {
+        let url = supportDirectory.appendingPathComponent(Keys.windowsFilename)
+        guard FileManager.default.fileExists(atPath: url.path) else { return [] }
+        do {
+            let data = try Data(contentsOf: url)
+            return try JSONDecoder().decode([WindowDescriptor].self, from: data)
+        } catch {
+            // Corrupt file — return empty; next save overwrites it.
+            return []
+        }
+    }
+
+    public func saveWindows(_ descriptors: [WindowDescriptor]) {
+        let url = supportDirectory.appendingPathComponent(Keys.windowsFilename)
+        writeJSON(descriptors, to: url)
+    }
+
+    // MARK: - Private helpers
+
+    /// Encodes `value` and writes it atomically to `url` on a utility task.
+    /// Failures are silently swallowed — persistence is best-effort.
+    private func writeJSON<T: Encodable>(_ value: T, to url: URL) {
         Task(priority: .utility) {
             do {
-                let data = try JSONEncoder().encode(state)
-                try data.write(to: layoutURL, options: .atomic)
+                let data = try JSONEncoder().encode(value)
+                try data.write(to: url, options: .atomic)
             } catch {
-                // Layout flush failure is non-fatal; worst case the layout resets on next launch.
+                // Non-fatal; worst case the state resets on next launch.
             }
         }
     }

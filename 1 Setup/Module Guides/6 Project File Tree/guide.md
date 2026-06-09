@@ -1,7 +1,7 @@
 ---
 module: 6 Project File Tree
 status: complete
-last_updated: 2026-06-08
+last_updated: 2026-06-09
 plan: 1 Setup/Plans Completed/2026-06-08 6 Project File Tree Implement Project File Tree module.md
 ---
 
@@ -64,10 +64,10 @@ PROJECT FILE TREE PANEL  (occupies the left slot; see module 2.0 overview)
  │  selectRoot  │          │  FileTree    │          │  FileTree    │
  │  Directory() │─────────▶│  ViewModel   │─────────▶│  ViewModel   │
  │              │          │              │          │   .open(     │
- │   AppState.  │          │  loads via   │          │    fileURL)  │
- │   activeDir  │          │  FileManager │          │      │       │
- └──────────────┘          │  on back-    │          └──────┼───────┘
-                           │  ground Task │                 │
+ │  WindowState.│          │  loads via   │          │    fileURL)  │
+ │  activeWS    │          │  FileManager │          │      │       │
+ │  Directory   │          │  on back-    │          └──────┼───────┘
+ └──────────────┘          │  ground Task │                 │
                            └──────────────┘                 ▼
                                                      ┌──────────────┐
                                                      │ InterPanel   │
@@ -114,15 +114,16 @@ PROJECT FILE TREE PANEL  (occupies the left slot; see module 2.0 overview)
   - Background `Task(priority: .background)` for recursive subtree scanning when expanding large folders — results merged into the tree on `@MainActor`
   - `FileSystemWatcher` callbacks arrive on an arbitrary queue; events are forwarded to `FileTreeViewModel` via a `@MainActor`-bound `AsyncStream` or explicit `MainActor.run`
 - **Data flow:**
-  1. **Folder selection** — user selects a folder via `NSOpenPanel` (or app launch restores last directory) → `AppState.activeDirectory` set → `FileTreeViewModel` begins scanning on background `Task`
+  1. **Folder selection** — user selects a folder via `NSOpenPanel` (or app launch restores last directory) → `windowState.activeWorkspaceDirectory` set → `FileTreeViewModel` begins scanning on background `Task`
   2. **Tree building** — `FileManager.contentsOfDirectory(at:includingPropertiesForKeys:)` → `FileTreeNode` tree built recursively (children loaded lazily on folder expansion) → tree published on `@MainActor` → SwiftUI `List` or `OutlineGroup` renders rows
   3. **Open file** — user double-clicks or presses Enter → `FileTreeViewModel.open(_:)` → `InterPanelRouter.open(url)` (Foundation 2.1) → opens/raises editor tab in appropriate module
   4. **File operations** — context menu action performed via `FileManager` → on success, `FileTreeViewModel` refreshes the affected subtree from disk; on failure, surfaces error via Foundation 2.4 `SputnikAlert`
   5. **Drag and drop** — drag from tree: `.onDrag` packages file URL into `NSItemProvider`; drop onto tree: `.onDrop` inspects `UTType`, copies or moves files via `FileManager`, then refreshes
   6. **External sync** — `FilePresenter` callback fires → debounced (300 ms) → `FileTreeViewModel` reloads affected directory → tree updates without losing expanded/selection state
+- **Per-window workspace:** Because each window has its own `WindowState`, the File Tree reads `windowState.activeWorkspaceDirectory` rather than a global `AppState` property. This means each window can open a different project folder without affecting any other window's file tree. The `FileTreeViewModel` is configured per view instance via `viewModel.configure(windowState:)`.
 - **State owned:**
   - `FileTreeViewModel` — root `FileTreeNode`, expanded node ID set, selected node ID, search filter text, active directory URL
-  - `AppState.activeDirectory` (Foundation 2.2) — the canonical root directory; the File Tree reads it, never owns it
+  - `WindowState.activeWorkspaceDirectory` (Foundation 2.2) — the canonical root directory for this window; the File Tree reads it, never owns it
 - **Dependencies:** Foundation 2.2 (`AppState.activeDirectory`, `AppState.openDocuments` for file-status colouring), Foundation 2.1 (`InterPanelRouter.open(_:)`), Foundation 2.4 (error alerts, UI/UX primitives for icons and colours), Foundation 2.7 (Utilities for path helpers); no dependency on modules 3, 4, 5, 7, or 8
 - **Failure modes:**
   - Selected directory is deleted or becomes inaccessible → `FileManager.contentsOfDirectory` throws on next refresh → `FileTreeViewModel` sets error state → placeholder view with "Directory unavailable" message and "Select Different Folder" button

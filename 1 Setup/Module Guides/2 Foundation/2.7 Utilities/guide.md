@@ -99,13 +99,48 @@ Provide small, general-purpose utilities that have no module-specific logic and 
 │  └──────────────────────────────────┘    │
 │                                          │
 │  SlashCommandRegistry (@Observable       │
-│                         @MainActor)      │
+│                         @MainActor)                      
 │  ┌──────────────────────────────────┐    │
 │  │  register([SlashCommand])        │    │
 │  │  matches(for prefix:)            │    │
 │  │    -> [SlashCommand]             │    │
 │  │  (case-insensitive prefix filter │    │
 │  │   over in-memory list)           │    │
+│  └──────────────────────────────────┘    │
+│                                          │
+│  SupportingAIMonitor (@Observable        │
+│                      @MainActor)         │
+│  ┌──────────────────────────────────┐    │
+│  │  recordUsage(input:output:win:)  │    │
+│  │  reset()                         │    │
+│  │  modelName: String (computed)    │    │
+│  │                                  │    │
+│  │  Accumulates tokens across all   │    │
+│  │  Supporting AI resource calls.   │    │
+│  │  Writes SupportingAIUsage to     │    │
+│  │  AppState.supportingAIUsage      │    │
+│  └──────────────────────────────────┘    │
+│                                          │
+│  MainAIMonitor (@Observable              │
+│                 @MainActor)              │
+│  ┌──────────────────────────────────┐    │
+│  │  observes terminal line output   │    │
+│  │  detecs Claude/Ollama sessions   │    │
+│  │  setManual(modelName:)           │    │
+│  │  updateUsage(used:window:)       │    │
+│  │  clear()                         │    │
+│  │                                  │    │
+│  │  Conforms to TerminalAIObserving │    │
+│  │  Writes MainAIState to           │    │
+│  │  AppState.mainAIState            │    │
+│  └──────────────────────────────────┘    │
+│                                          │
+│  TerminalAIOutputObserving (protocol)    │
+│  ┌──────────────────────────────────┐    │
+│  │  observe(line: String)           │    │
+│  │                                  │    │
+│  │  Foundation-owned protocol.      │    │
+│  │  Terminal depends only on this.  │    │
 │  └──────────────────────────────────┘    │
 └──────────────────────────────────────────┘
 ```
@@ -124,6 +159,9 @@ Provide small, general-purpose utilities that have no module-specific logic and 
   - `SlashCommand` (`Sendable Identifiable`, `2 Foundation/2.7 Utilities/SlashCommand.swift`) — value type describing one autocomplete entry: `id: String` (e.g. `"markdown.heading1"`), `label: String` (shown in list), `detail: String` (short description), `category: String` (popup section header), `insert: String` (text substituted at the trigger point); Foundation owns the type, consumer modules supply the content (SR-1)
   - `SlashCommandRegistry` (`@Observable @MainActor`, `2 Foundation/2.7 Utilities/SlashCommandRegistry.swift`) — `register(_ commands: [SlashCommand])` called by each module at launch; `matches(for prefix: String) -> [SlashCommand]` performs case-insensitive prefix filtering over the in-memory list; synchronous (in-memory filter — no async needed); `///` DocC comments on both public methods; consumer modules register their own command sets so Foundation owns the interface, not the content (SR-1)
   - `ProcessMonitor` (`@Observable @MainActor`, `2 Foundation/2.7 Utilities/ProcessMonitor.swift`) — polls the Sputnik process's own resource usage every 2 seconds; exposes `ramMB: Int` (resident-set size via `mach_task_basic_info`) and `cpuPercent: Double` (CPU across all threads via `thread_basic_info`); `start()` launches a `Task(priority: .background)` polling loop that marshals results to `@MainActor` via `await MainActor.run { }`; `stop()` cancels the task; polling loop uses `[weak self]` to avoid retaining the monitor for app lifetime; created at launch in `AppDelegate` and injected into the environment via `.environment(processMonitor)`; resolves ISS-013
+  - `TerminalAIOutputObserving` (protocol, `2 Foundation/2.7 Utilities/MainAIMonitor.swift`) — Foundation-owned protocol with `func observe(line: String)`; Terminal module calls this when a new output line arrives so Foundation can detect Main AI sessions without Terminal importing the monitor implementation directly (SR-1); `MainAIMonitor` conforms to this protocol
+  - `MainAIMonitor` (`@Observable @MainActor`, `2 Foundation/2.7 Utilities/MainAIMonitor.swift`) — monitors terminal output to detect and track the Main AI (user-loaded AI in the terminal, e.g. Claude Code CLI, Ollama); receives output lines via `TerminalAIOutputObserving.observe(line:)`; detects Claude sessions via `"✻ Welcome to Claude Code"`, Ollama via `"ollama run "` and `"loaded model: "`; resolves exact Claude model name from `~/.claude/settings.json`; polls `~/.claude/stats.json` for usage metrics (migrated from `ClaudeStatusLineReader`); exposes `setManual(modelName:)` for unknown AIs, `updateUsage(usedTokens:contextWindow:)` for usage updates, and `clear()` to reset detection; writes `MainAIState` to `AppState.mainAIState` exclusively (SR-1); created in `SputnikApp`, injected via `.environment(mainAIMonitor)`, and registered as `aiOutputObserver` on `TerminalManager` via `TerminalView.onAppear`
+  - `SupportingAIMonitor` (`@Observable @MainActor`, `2 Foundation/2.7 Utilities/SupportingAIMonitor.swift`) — single accountant for all Supporting AI resource-feature API calls (help lookups, completions, More Context); accumulates `totalTokensSinceLaunch` across the app session; `recordUsage(inputTokens:outputTokens:contextWindow:)` is called by any resource feature after a Supporting AI API response; writes `SupportingAIUsage` to `AppState.supportingAIUsage` exclusively (SR-1); `modelName` computed from `SettingsStore.supportingAIConfig.modelName`; `reset()` zeroes the accumulator (called at app launch); created in `SputnikApp`, injected via `.environment(supportingAIMonitor)`
 - **Threading model:**
   - `ClosureMenuItem` and `MoreContextMenu` are `@MainActor` — menu construction and activation happen on the main thread
   - `HelpContextResolving.resolve` is `async` — the resolver runs the coordinator lookup (which may be actor-isolated) inside a `Task`; the host's `onRequest` sink writes to `AppState.requestedHelpTarget` on `@MainActor`
@@ -143,6 +181,10 @@ Provide small, general-purpose utilities that have no module-specific logic and 
 | 2.4 Status Bar (F-5) | RAM and CPU % readings consumed by `StatusBarView` from `ProcessMonitor` |
 | 3.1 Text Editor (F-7) | Registers Markdown / HTML / ASCII slash-command sets via `SlashCommandRegistry.register(_:)` at module init |
 | 10 Scratchpad (F-7) | Registers General slash-command set; `ScratchpadTextView` calls `registry.matches(for:)` on `/` keypress |
+| 2.3 AI Settings (F-3) | `SupportingAIMonitor` injects `SupportingAIUsage` into `AppState` for live metrics display in `SupportingAISettingsView` |
+| 2.4 Status Bar (F-5) | `MainAIMonitor` provides `MainAIState` for the Main AI model name + CTX % segment in `StatusBarView` |
+| 7 Terminal | Calls `TerminalAIOutputObserving.observe(line:)` for each decoded output line; depends only on the protocol, not `MainAIMonitor` directly (SR-1) |
+| 3 Text Editor / 4 Markdown Preview / 8 HTML Preview / 9 Resources | Resource-feature code calls `SupportingAIMonitor.recordUsage(inputTokens:outputTokens:contextWindow:)` after each Supporting AI API response |
 
 ## Spec Reference
 > `DebounceTimer` has no direct spec bullet — it is an implementation utility inferred from the debouncing requirements described across multiple sub-modules:

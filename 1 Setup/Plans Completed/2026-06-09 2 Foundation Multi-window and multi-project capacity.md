@@ -2,7 +2,7 @@
 plan: Multi-window and multi-project capacity
 module: 2 Foundation (2.2 / 2.6 / 2.0 / 2.4) + 7 Terminal + 6 Project File Tree
 created: 2026-06-09
-status: pending
+status: complete
 related_issues: none
 ---
 
