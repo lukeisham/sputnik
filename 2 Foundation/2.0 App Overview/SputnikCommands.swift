@@ -10,12 +10,14 @@ public struct SputnikCommands: Commands {
 
     private let appState: AppState
     private let settings: SettingsStore
+    private let router: AppInterPanelRouter
 
     @Environment(\.openWindow) private var openWindow
 
-    public init(appState: AppState, settings: SettingsStore) {
+    public init(appState: AppState, settings: SettingsStore, router: AppInterPanelRouter) {
         self.appState = appState
         self.settings = settings
+        self.router = router
     }
 
     public var body: some Commands {
@@ -392,18 +394,12 @@ public struct SputnikCommands: Commands {
                 Divider()
 
                 Button("Move Tab to New Window") {
-                    guard let activeWS = appState.activeWindow,
-                        let docID = activeWS.activeDocumentID,
-                        let session = activeWS.activeDocument
-                    else { return }
-                    // Remove the session from the current window
-                    activeWS.openDocuments.removeAll { $0.id == docID }
-                    activeWS.activeDocumentID = activeWS.openDocuments.last?.id
-                    // Create a new window and move the session there
-                    let newWS = appState.createWindow()
-                    newWS.openDocuments = [session]
-                    newWS.activeDocumentID = session.id
-                    openWindow(id: "main", value: newWS.id)
+                    // Route through the router so the dirty-guard fires for unsaved tabs (ISS-020).
+                    Task {
+                        if let newWindowID = await router.moveActiveTabToNewWindow() {
+                            openWindow(id: "main", value: newWindowID)
+                        }
+                    }
                 }
 
                 Button("Merge All Windows") {
@@ -412,8 +408,9 @@ public struct SputnikCommands: Commands {
                     }
                     guard allWindows.count > 1 else { return }
                     guard let target = appState.activeWindow ?? allWindows.first else { return }
-                    // Collect all tabs from other windows into the target
-                    for window in allWindows where window.id != target.id {
+                    // Collect all tabs from other windows into the target.
+                    let windowsToMerge = allWindows.filter { $0.id != target.id }
+                    for window in windowsToMerge {
                         for doc in window.openDocuments {
                             if !target.openDocuments.contains(where: {
                                 $0.url == doc.url && $0.url != nil
@@ -421,15 +418,20 @@ public struct SputnikCommands: Commands {
                                 target.openDocuments.append(doc)
                             }
                         }
-                        // Close the other window (AppDelegate will kill its terminal)
-                        window.terminalManager?.killAllPTYs()
+                        // Close the NSWindow tagged with this WindowState's UUID (ISS-018).
+                        // Windows are tagged via NSWindow.identifier in SputnikApp.onAppear.
+                        if let nsWindow = NSApp.windows.first(where: {
+                            $0.identifier?.rawValue == window.id.uuidString
+                        }) {
+                            nsWindow.close()
+                        }
                         appState.closeWindow(window.id)
                     }
-                    // Close all NSWindows except the target's
-                    for nsWindow in NSApp.windows where nsWindow.identifier?.rawValue == "main" {
-                        // Can't easily map NSWindow to WindowState here — rely on
-                        // closeWindow having removed it from the registry; SwiftUI
-                        // will eventually close the NSWindow on next scene update.
+                    // Kill terminal PTYs after closing windows (killAllPTYs is async).
+                    Task {
+                        for window in windowsToMerge {
+                            await window.terminalManager?.killAllPTYs()
+                        }
                     }
                 }
             }

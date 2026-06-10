@@ -26,6 +26,9 @@ public struct DocumentTabBar: View {
     /// `isDirty` guard before removing the session from `AppState.openDocuments`.
     private let onClose: (UUID) -> Void
 
+    /// The UUID of the tab currently being dragged, used to dim the drag-source tab.
+    @State private var draggingID: UUID? = nil
+
     // MARK: - Init
 
     /// Creates a `DocumentTabBar`.
@@ -50,6 +53,32 @@ public struct DocumentTabBar: View {
                             onClose(session.id)
                         }
                     )
+                    .opacity(draggingID == session.id ? 0.4 : 1.0)
+                    // Drag source: vend the tab's UUID as a plain-text NSItemProvider.
+                    .onDrag {
+                        draggingID = session.id
+                        return NSItemProvider(object: session.id.uuidString as NSString)
+                    }
+                    // Drop target: reorder when another tab is dropped here.
+                    .onDrop(of: ["public.plain-text"], isTargeted: nil) { providers in
+                        guard let provider = providers.first else { return false }
+                        _ = provider.loadObject(ofClass: NSString.self) { item, _ in
+                            guard let uuidString = item as? String,
+                                  let fromID = UUID(uuidString: uuidString)
+                            else { return }
+                            Task { @MainActor in
+                                guard fromID != session.id,
+                                      let fromIndex = appState.openDocuments.firstIndex(where: { $0.id == fromID }),
+                                      let toIndex = appState.openDocuments.firstIndex(where: { $0.id == session.id })
+                                else { draggingID = nil; return }
+                                // Adjust offset: Array.move semantics require +1 when inserting after.
+                                let toOffset = toIndex < fromIndex ? toIndex : toIndex + 1
+                                appState.moveDocument(fromOffsets: IndexSet(integer: fromIndex), toOffset: toOffset)
+                                draggingID = nil
+                            }
+                        }
+                        return true
+                    }
                 }
 
                 Spacer(minLength: 0)

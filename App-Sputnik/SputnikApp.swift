@@ -60,6 +60,9 @@ public struct SputnikApp: App {
                     wireAppDelegate()
                     // Ensure activeWindowID reflects which window just appeared.
                     appState.setActiveWindow(windowState.id)
+                    // Tag the NSWindow with the WindowState UUID so Merge All Windows
+                    // can close it by identity (ISS-018).
+                    NSApp.keyWindow?.identifier = NSUserInterfaceItemIdentifier(windowState.id.uuidString)
                 }
                 .focusedSceneValue(\.activeWindowID, windowState.id)
                 // Opens additional restored windows (step 9) on first render.
@@ -67,7 +70,7 @@ public struct SputnikApp: App {
                     WindowRestorerView(appState: appState)
                 }
         }
-        .commands { SputnikCommands(appState: appState, settings: settingsStore) }
+        .commands { SputnikCommands(appState: appState, settings: settingsStore, router: router) }
         // No .handlesExternalEvents(matching: []) — multi-window is intentional.
 
         // F-2: About window — fixed size, single instance, no toolbar.

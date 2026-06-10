@@ -1,3 +1,4 @@
+import AppKit
 import Foundation
 
 /// Concrete app-layer implementation of `InterPanelRouter`.
@@ -54,6 +55,48 @@ public final class AppInterPanelRouter: InterPanelRouter {
         // A SputnikAlert guard will be threaded in once isDirty is surfaced back through
         // AppState by the text editor (ISS-NEW-A-dirty).
         appState.closeDocument(id)
+    }
+
+    /// Moves the active tab out of its current window and into a freshly created window.
+    ///
+    /// If the active document has unsaved changes, an unsaved-changes alert is shown first.
+    /// Returns the new window's `UUID` so the caller can open its scene via `openWindow`;
+    /// returns `nil` if there is no active document or the user cancels the confirmation.
+    public func moveActiveTabToNewWindow() async -> UUID? {
+        guard let appState,
+              let sourceWS = appState.activeWindow,
+              let docID = sourceWS.activeDocumentID,
+              let session = sourceWS.activeDocument
+        else { return nil }
+
+        if session.isDirty {
+            let confirmed = await confirmMoveUnsavedTab(filename: session.url?.lastPathComponent ?? "Untitled")
+            guard confirmed else { return nil }
+        }
+
+        // Remove from the source window.
+        sourceWS.openDocuments.removeAll { $0.id == docID }
+        sourceWS.activeDocumentID = sourceWS.openDocuments.last?.id
+
+        // Place the session in a new window.
+        let newWS = appState.createWindow()
+        newWS.openDocuments = [session]
+        newWS.activeDocumentID = session.id
+        return newWS.id
+    }
+
+    /// Shows a confirmation alert for moving a tab with unsaved changes.
+    /// Returns `true` if the user confirmed the move.
+    private func confirmMoveUnsavedTab(filename: String) async -> Bool {
+        await withCheckedContinuation { continuation in
+            let alert = NSAlert()
+            alert.alertStyle = .warning
+            alert.messageText = "Unsaved Changes"
+            alert.informativeText = "\u{201C}\(filename)\u{201D} has unsaved changes. Moving it will not discard them, but you will need to save from the new window."
+            alert.addButton(withTitle: "Move")
+            alert.addButton(withTitle: "Cancel")
+            continuation.resume(returning: alert.runModal() == .alertFirstButtonReturn)
+        }
     }
 
     public func syncDirectory(_ url: URL) {

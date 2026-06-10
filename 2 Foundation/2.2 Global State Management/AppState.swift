@@ -290,4 +290,9 @@ public final class AppState {
     public func closeDocument(_ id: UUID) {
         activeWindow?.closeDocument(id)
     }
+
+    /// Reorders documents in the active window. Delegates to `WindowState.moveDocument(fromOffsets:toOffset:)`.
+    public func moveDocument(fromOffsets: IndexSet, toOffset: Int) {
+        activeWindow?.moveDocument(fromOffsets: fromOffsets, toOffset: toOffset)
+    }
 }

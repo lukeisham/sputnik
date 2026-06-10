@@ -12,8 +12,7 @@ let package = Package(
         .target(
             name: "FoundationModule",
             dependencies: [],
-            path: ".",
-            exclude: ["2.6 App Lifecycle/SputnikApp.swift"]
+            path: "."
         )
     ]
 )

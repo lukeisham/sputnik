@@ -141,6 +141,12 @@ public final class WindowState {
         return session
     }
 
+    /// Reorders documents using the same index semantics as `ForEach.onMove` / `List.onMove`.
+    /// `activeDocumentID` is unchanged — the active tab stays active regardless of its new position.
+    public func moveDocument(fromOffsets: IndexSet, toOffset: Int) {
+        openDocuments.move(fromOffsets: fromOffsets, toOffset: toOffset)
+    }
+
     public func closeDocument(_ id: UUID) {
         guard let index = openDocuments.firstIndex(where: { $0.id == id }) else { return }
         let wasActive = activeDocumentID == id
