@@ -1,5 +1,6 @@
-import Foundation
 import AppKit
+import Foundation
+import FoundationModule
 
 /// Watches the open file for external changes using `NSFilePresenter` (MR-2).
 ///
@@ -21,6 +22,10 @@ public final class FileWatcher: NSObject, NSFilePresenter, @unchecked Sendable {
     /// Called after the user confirms they want to reload from disk.
     public var onReload: (() -> Void)?
 
+    /// Temporarily suppress reload prompts (e.g. when saving locally).
+    /// Reset after the notification fires.
+    private var suppressNextChange = false
+
     // MARK: - Init
 
     public init(url: URL) {
@@ -33,13 +38,23 @@ public final class FileWatcher: NSObject, NSFilePresenter, @unchecked Sendable {
         NSFileCoordinator.removeFilePresenter(self)
     }
 
+    /// Suppress the next file-change notification (used when saving locally).
+    public func suppressNextChange() {
+        suppressNextChange = true
+    }
+
     // MARK: - NSFilePresenter callbacks
 
     /// Called by the file system when the file has been externally modified.
     public func presentedItemDidChange() {
         // Hop to @MainActor; the presenter callback may arrive on any queue (SW-2).
         Task { @MainActor [weak self] in
-            self?.promptReload()
+            guard let self else { return }
+            if self.suppressNextChange {
+                self.suppressNextChange = false
+                return
+            }
+            self.promptReload()
         }
     }
 
@@ -50,10 +65,11 @@ public final class FileWatcher: NSObject, NSFilePresenter, @unchecked Sendable {
         guard let url = presentedItemURL else { return }
 
         let alert = NSAlert()
-        alert.messageText     = SputnikAlert.custom(
-            title:   "File Changed",
-            message: ""
-        ).title
+        alert.messageText =
+            SputnikAlert.custom(
+                title: "File Changed",
+                message: ""
+            ).title
         alert.informativeText = """
             "\(url.lastPathComponent)" was modified by another process. \
             Reload from disk, or keep your local version?

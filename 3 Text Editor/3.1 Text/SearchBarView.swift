@@ -7,6 +7,7 @@ import SwiftUI
 public struct SearchBarView: View {
 
     @Bindable var controller: SearchController
+    @State private var searchDebounceTask: Task<Void, Never>?
 
     public init(controller: SearchController) {
         self.controller = controller
@@ -24,6 +25,14 @@ public struct SearchBarView: View {
                         TextField("Find", text: $controller.searchTerm)
                             .textFieldStyle(.roundedBorder)
                             .onSubmit { controller.search() }
+                            .onChange(of: controller.searchTerm) { _, _ in
+                                // Debounce search on term change (300ms)
+                                searchDebounceTask?.cancel()
+                                searchDebounceTask = Task {
+                                    try? await Task.sleep(nanoseconds: 300_000_000)
+                                    controller.search()
+                                }
+                            }
                         Button(action: controller.previousMatch) {
                             Image(systemName: "chevron.left")
                         }
@@ -32,9 +41,7 @@ public struct SearchBarView: View {
                             Image(systemName: "chevron.right")
                         }
                         .help("Next Match")
-                        Button {
-                            controller.isVisible = false
-                        } label: {
+                        Button(action: controller.toggleVisible) {
                             Image(systemName: "xmark")
                         }
                         .help("Close")

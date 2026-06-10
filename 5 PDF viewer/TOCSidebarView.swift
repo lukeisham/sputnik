@@ -1,4 +1,5 @@
 import SwiftUI
+import FoundationModule
 import PDFKit
 
 /// Sidebar view rendering the PDF's table of contents from `PDFOutline`.

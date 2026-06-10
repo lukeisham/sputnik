@@ -96,6 +96,7 @@ public struct SputnikApp: App {
         appDelegate.appState = appState  // F-1: needed for SputnikMenuBarController
         appDelegate.processMonitor = processMonitor  // F-5: start/stop polling lifecycle
         router.configure(appState: appState)
+        appState.router = router  // Make router available to editor for Render as HTML
     }
 }
 

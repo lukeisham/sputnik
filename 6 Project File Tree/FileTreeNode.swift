@@ -39,6 +39,7 @@ public struct FileTreeNode: Identifiable, Sendable, Hashable, Equatable {
         case .pdf: return "doc.text.below.ecg"
         case .ascii: return "doc.text.image"
         case .text: return "doc.plaintext"
+        case .image: return "photo"
         case .binary: return "doc.zipper"
         case .unknown: return "doc"
         }

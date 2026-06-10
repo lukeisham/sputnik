@@ -1,4 +1,5 @@
 import AppKit
+import FoundationModule
 
 /// Handles the "Render as HTML" command (⌘⌥P, File menu).
 ///
@@ -15,7 +16,7 @@ public final class RenderAsHTMLCommand {
 
     public init(viewModel: EditorViewModel, router: any InterPanelRouter) {
         self.viewModel = viewModel
-        self.router    = router
+        self.router = router
     }
 
     // MARK: - Action
@@ -26,7 +27,7 @@ public final class RenderAsHTMLCommand {
     /// HTML mode is inactive or the current file has no URL yet.
     public func execute() async {
         guard let viewModel, viewModel.htmlModeActive,
-              let url = viewModel.fileURL
+            let url = viewModel.fileURL
         else { return }
         await router?.open(url)
     }

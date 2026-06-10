@@ -24,6 +24,7 @@ public struct SputnikCommands: Commands {
         sputnikMenu
         fileMenu
         editMenu
+        formatMenu
         viewMenu
         windowMenu
         helpMenu
@@ -131,15 +132,40 @@ public struct SputnikCommands: Commands {
                 Divider()
 
                 Button("Save") {
-                    NSApp.sendAction(#selector(NSDocument.save(_:)), to: nil, from: nil)
+                    Task {
+                        do {
+                            try await appState.editorCommandHandler?.save()
+                        } catch {
+                            if let sputnikAlert = error as? SputnikAlert {
+                                presentAlert(sputnikAlert)
+                            }
+                        }
+                    }
                 }
                 .keyboardShortcut("s", modifiers: .command)
+                .disabled(appState.editorCommandHandler == nil)
 
                 Button("Save As…") {
-                    // Stub: save pipeline is owned by module 3
+                    saveAs()
                 }
                 .keyboardShortcut("s", modifiers: [.command, .shift])
-                .disabled(true)
+                .disabled(appState.editorCommandHandler == nil)
+
+                Divider()
+
+                Button("Render as HTML") {
+                    Task {
+                        do {
+                            try await appState.editorCommandHandler?.renderAsHTML()
+                        } catch {
+                            if let sputnikAlert = error as? SputnikAlert {
+                                presentAlert(sputnikAlert)
+                            }
+                        }
+                    }
+                }
+                .keyboardShortcut("p", modifiers: [.command, .option])
+                .disabled(appState.editorCommandHandler == nil)
 
                 Divider()
 
@@ -303,6 +329,26 @@ public struct SputnikCommands: Commands {
                 set: { settings.setWritingAssist(fn, for: lang, to: $0) }
             )
         )
+    }
+
+    // MARK: - Format menu
+
+    private var formatMenu: some Commands {
+        CommandMenu("Format") {
+            Button("ASCII Studio") {
+                Task {
+                    do {
+                        try await appState.editorCommandHandler?.showASCIIStudio()
+                    } catch {
+                        if let sputnikAlert = error as? SputnikAlert {
+                            presentAlert(sputnikAlert)
+                        }
+                    }
+                }
+            }
+            .keyboardShortcut("a", modifiers: [.command, .option])
+            .disabled(appState.editorCommandHandler == nil)
+        }
     }
 
     // MARK: - View menu
@@ -494,5 +540,32 @@ public struct SputnikCommands: Commands {
             guard response == .OK, let url = panel.url else { return }
             appState.openDocument(url: url)
         }
+    }
+
+    private func saveAs() {
+        guard let currentURL = appState.currentlyOpenFile else { return }
+        let panel = NSSavePanel()
+        panel.nameFieldStringValue = currentURL.lastPathComponent
+        panel.begin { response in
+            guard response == .OK, let newURL = panel.url else { return }
+            Task {
+                do {
+                    try await appState.editorCommandHandler?.saveAs(to: newURL)
+                } catch {
+                    if let sputnikAlert = error as? SputnikAlert {
+                        presentAlert(sputnikAlert)
+                    }
+                }
+            }
+        }
+    }
+
+    private func presentAlert(_ alert: SputnikAlert) {
+        let panel = NSAlert()
+        panel.messageText = alert.title
+        panel.informativeText = alert.message
+        panel.alertStyle = .warning
+        panel.addButton(withTitle: "OK")
+        panel.runModal()
     }
 }

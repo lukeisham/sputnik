@@ -1,4 +1,5 @@
 import AppKit
+import FoundationModule
 
 /// Generates HTML tag and attribute completions at the cursor using ghost text.
 ///
@@ -10,32 +11,35 @@ public final class HTMLLanguageProvider {
 
     // MARK: - Dependencies
 
-    private weak var textView:     NSTextView?
+    private weak var textView: NSTextView?
     private weak var ghostOverlay: GhostTextOverlay?
-    private weak var viewModel:    EditorViewModel?
+    private weak var viewModel: EditorViewModel?
     private let settings: SettingsStore
     private let completionProvider: any CompletionProviding
     private let debounce = DebounceTimer()
 
     public init(
-        textView:            NSTextView,
-        ghostOverlay:        GhostTextOverlay,
-        viewModel:           EditorViewModel,
-        settings:            SettingsStore,
-        completionProvider:  any CompletionProviding
+        textView: NSTextView,
+        ghostOverlay: GhostTextOverlay,
+        viewModel: EditorViewModel,
+        settings: SettingsStore,
+        completionProvider: any CompletionProviding
     ) {
-        self.textView            = textView
-        self.ghostOverlay        = ghostOverlay
-        self.viewModel           = viewModel
-        self.settings            = settings
-        self.completionProvider  = completionProvider
+        self.textView = textView
+        self.ghostOverlay = ghostOverlay
+        self.viewModel = viewModel
+        self.settings = settings
+        self.completionProvider = completionProvider
     }
 
     // MARK: - Public interface
 
     /// Call on every keypress in `.html` mode.
     public func onKeypress() {
-        guard viewModel?.htmlModeActive == true else { ghostOverlay?.clear(); return }
+        guard viewModel?.htmlModeActive == true else {
+            ghostOverlay?.clear()
+            return
+        }
         debounce.schedule(delay: settings.htmlDebounceInterval) { [weak self] in
             Task { @MainActor [weak self] in
                 await self?.generateSuggestion()
@@ -47,9 +51,10 @@ public final class HTMLLanguageProvider {
 
     private func generateSuggestion() async {
         guard let textView, let storage = textView.textStorage,
-              viewModel?.htmlModeActive == true else { return }
+            viewModel?.htmlModeActive == true
+        else { return }
         let cursorPos = textView.selectedRange().location
-        let text      = storage.string
+        let text = storage.string
 
         let suggestion = await Task(priority: .utility) { [text, cursorPos] in
             HTMLLanguageProvider.suggest(in: text, cursorPos: cursorPos)
@@ -70,7 +75,10 @@ public final class HTMLLanguageProvider {
             HTMLLanguageProvider.currentWordPrefix(in: text, upTo: cursorPos)
         }.value
 
-        guard wordPrefix.count >= 2 else { ghostOverlay?.clear(); return }
+        guard wordPrefix.count >= 2 else {
+            ghostOverlay?.clear()
+            return
+        }
 
         let query = CompletionQuery(
             language: .html, prefix: wordPrefix, fullText: text, cursorOffset: cursorPos
@@ -105,12 +113,12 @@ public final class HTMLLanguageProvider {
 
     /// Returns a completion string for the text prefix ending at `cursorPos`, or `nil`.
     static func suggest(in text: String, cursorPos: Int) -> String? {
-        let end    = text.index(text.startIndex, offsetBy: min(cursorPos, text.count))
+        let end = text.index(text.startIndex, offsetBy: min(cursorPos, text.count))
         let prefix = String(text[..<end])
 
         // Partial opening tag `<div` → close and add matching closing tag.
         if let range = prefix.range(of: #"<([a-zA-Z][a-zA-Z0-9]*)$"#, options: .regularExpression) {
-            let tag = String(prefix[range]).dropFirst()   // strip the leading `<`
+            let tag = String(prefix[range]).dropFirst()  // strip the leading `<`
             return ">\n</\(tag)>"
         }
 
@@ -129,15 +137,15 @@ public final class HTMLLanguageProvider {
 
         // Common block tag starters for quicker entry.
         let tagMap: [String: String] = [
-            "<p":    "></p>",
-            "<div":  ">\n</div>",
+            "<p": "></p>",
+            "<div": ">\n</div>",
             "<span": "></span>",
-            "<a":    " href=\"\"></a>",
-            "<ul":   ">\n  <li></li>\n</ul>",
-            "<ol":   ">\n  <li></li>\n</ol>",
-            "<h1":   "></h1>",
-            "<h2":   "></h2>",
-            "<h3":   "></h3>",
+            "<a": " href=\"\"></a>",
+            "<ul": ">\n  <li></li>\n</ul>",
+            "<ol": ">\n  <li></li>\n</ol>",
+            "<h1": "></h1>",
+            "<h2": "></h2>",
+            "<h3": "></h3>",
         ]
         for (key, value) in tagMap where prefix.hasSuffix(key) {
             return value

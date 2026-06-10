@@ -1,4 +1,5 @@
 import AppKit
+import FoundationModule
 
 /// The `NSViewRepresentable.Coordinator` for `MarkdownRenderView`.
 ///

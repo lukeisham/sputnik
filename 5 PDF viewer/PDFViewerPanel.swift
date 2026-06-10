@@ -1,4 +1,5 @@
 import SwiftUI
+import FoundationModule
 import AppKit
 
 /// Top-level SwiftUI view for the PDF Viewer panel.

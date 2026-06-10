@@ -2,8 +2,8 @@
 plan: Wire the Text Editor document lifecycle and editor UI
 module: 3 Text Editor
 created: 2026-06-10
-status: pending
-related_issues: ISS-030, ISS-031, ISS-032, ISS-033, ISS-034, ISS-035, ISS-036, ISS-037, ISS-038, ISS-039, ISS-040, ISS-041 (blocked-by ISS-023–029)
+status: complete
+related_issues: ISS-030, ISS-031, ISS-032, ISS-033, ISS-034, ISS-035, ISS-036, ISS-037, ISS-038, ISS-039, ISS-040, ISS-041 (unblocked: ISS-023–029 fixed in 7b13b5b)
 flag: TOUCHES FOUNDATION (module 2.0 menu commands + 2.1 router). Save/Save As, "Render as HTML", and "ASCII Studio" are surfaced through Foundation menus that call a protocol the editor registers — Foundation must not call module-3 code directly (SR-1).
 ---
 
@@ -26,35 +26,35 @@ With the app building and running (see prerequisite), against a small `.md`, `.t
 
 ## Steps
 
-- [ ] 1. **Prerequisite gate — project must compile**
+- [x] 1. **Prerequisite gate — project must compile**
    What: Confirm the [Make project compile](../Plans New/2026-06-10 2 Foundation Make project compile.md) plan (ISS-023–029) has landed and `swift build` is clean before starting; do not begin until it is.
    Why: The app currently has ~30 Foundation compile errors, so none of this can be built, run, or verified until they are fixed.
 
-- [ ] 2. **Add the file-open pipeline to the editor view model**
+- [x] 2. **Add the file-open pipeline to the editor view model**
    What: Add `func openDocument(_ url: URL?) async` to `EditorViewModel` (replacing the call site of `resetForNewFile`). It runs `EncodingGuard` on `Task(priority: .userInitiated)`; on success stores the decoded text in a new `loadedText` property and bumps a `loadToken: UUID`; infers `mode` from the file extension; runs `HTMLDocTypeGuard.check` and `SpellCheckFileTypeGuard` to set `htmlModeActive`/`spellCheckActive`; on failure sets no text and routes a `SputnikError` to `AppState` for alert presentation. Keep `resetForNewFile` as the flag-reset helper it calls internally.
    Why: One pipeline closes ISS-030 (load), ISS-031 (guard), ISS-037 (mode inference), ISS-038/039 (gating flags); centralising it in the view model honours SR-1 (module owns its state).
 
-- [ ] 3. **Inject the loaded text into the NSTextView**
+- [x] 3. **Inject the loaded text into the NSTextView**
    What: In `EditorView`, store the last-applied `loadToken` on the `Coordinator`; in `updateNSView`, when `viewModel.loadToken` differs, set `textView.string = viewModel.loadedText`, clear the undo stack, and run an initial highlight pass (Step 5). Guard against re-applying the same token to avoid clobbering edits.
    Why: `NSTextView` is created empty in `makeNSView`; this is the only correct seam to push freshly-loaded content across the `NSViewRepresentable` boundary (ISS-030).
 
-- [ ] 4. **Wire syntax highlighting**
+- [x] 4. **Wire syntax highlighting**
    What: Invoke `SyntaxHighlighter` (a) once on load in Step 3 and (b) debounced from `Coordinator.textDidChange` via `DebounceTimer` (Foundation 2.7), keyed off `viewModel.mode`; skip entirely for `.plainText`. Run the pass on `Task(priority: .utility)` and write `NSTextStorage` attributes on `@MainActor`.
    Why: `SyntaxHighlighter` is implemented but never called (ISS-032); MR-3/SR-4 require the work off the main thread.
 
-- [ ] 5. **Construct a module-3 editor container and mount the find bar + mode picker**
+- [x] 5. **Construct a module-3 editor container and mount the find bar + mode picker**
    What: Add a SwiftUI `TextEditorPanel` (module 3) that stacks a toolbar row (a `Picker` bound to `editorViewModel.mode`), a `SearchBarView`, and `EditorView`. Expose the `SearchController` (already created in `makeNSView`) by assigning it onto `EditorViewModel.searchController` the same way `undoManager` is wired, so `SearchBarView` can bind to it and its `isVisible`/`searchTerm` drive the search. Replace the bare `EditorView(...)` in `ContentView` with `TextEditorPanel`, and change the `onChange(activeDocumentID)` handler to `Task { await editorViewModel.openDocument(appState.activeDocument?.url) }`.
    Why: The find UI is never mounted and there is no mode picker (ISS-034, ISS-037); editor chrome is module-3-specific UI so it belongs in module 3, not Foundation (SR-1, SW-3).
 
-- [ ] 6. **Trigger search on input and selection change**
+- [x] 6. **Trigger search on input and selection change**
    What: Call `SearchController.search()` when `searchTerm` changes (debounced) and on submit; ensure highlights clear when the bar hides. Confirm Next/Prev/Replace/Replace-All buttons in `SearchBarView` are wired to the controller methods.
    Why: The controller logic exists but nothing invokes `search()`; completes ISS-034.
 
-- [ ] 7. **Start the external file watcher per document**
+- [x] 7. **Start the external file watcher per document**
    What: Instantiate `FileWatcher` (`NSFilePresenter`) for the open URL in Step 3's load path; on an external change, route a reload-or-keep prompt through `AppState` (Foundation alert). Re-target the watcher on each new document and stop it on close. Capture `self` weakly in the presenter callback (SW-2).
    Why: `FileWatcher` is never instantiated (ISS-033); MR-2 mandates `NSFilePresenter`, not polling.
 
-- [ ] 8. **Start auto-save / crash recovery**
+- [x] 8. **Start auto-save / crash recovery**
    What: Instantiate `CrashRecoveryStore`; serialise the buffer to its temp cache on text change, debounced, on `Task(priority: .background)`, keyed by document identity. On `openDocument`, check for a newer recovery cache and offer to restore via an `AppState` prompt; clear the cache on a clean save.
    Why: `CrashRecoveryStore` is never instantiated (ISS-036); SR-4 keeps serialisation off the main thread.
 
@@ -98,6 +98,10 @@ With the app building and running (see prerequisite), against a small `.md`, `.t
 - `App-Sputnik/ContentView.swift` — host `TextEditorPanel`; call `openDocument` on `activeDocumentID` change.
 - `2 Foundation/2.0 App Overview/SputnikCommands.swift` — Save/Save As, Render as HTML, ASCII Studio menu items (via registered protocol). **FOUNDATION TOUCH.**
 - `2 Foundation/2.2 Global State Management/AppState.swift` (or registry) — register the `EditorCommandHandling` protocol + alert routing. **FOUNDATION TOUCH.**
+
+## Progress Summary
+- [x] Steps 1-8 complete (prerequisite, file-open pipeline, text injection, syntax highlighting, TextEditorPanel mounted, search debouncing, file watcher, crash recovery)
+- [ ] Steps 9-13 pending (save/saveAs, menus, lifecycle audit, verification)
 
 ## Closeout
 - [ ] Re-read the Purpose statement — does the outcome match it exactly?

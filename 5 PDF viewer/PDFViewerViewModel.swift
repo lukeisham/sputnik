@@ -1,6 +1,7 @@
 import Foundation
-import PDFKit
+import FoundationModule
 import Observation
+import PDFKit
 import ResourcesModule
 
 /// Observable view model that owns the loaded `PDFDocument` and all UI state for the
@@ -96,7 +97,7 @@ public final class PDFViewerViewModel {
 
         // File size check before loading — avoids reading a rejected file into RAM.
         if let attrs = try? FileManager.default.attributesOfItem(atPath: url.path),
-           let size = attrs[.size] as? Int64, size > maxFileSize
+            let size = attrs[.size] as? Int64, size > maxFileSize
         {
             isLoading = false
             let mb = size / (1024 * 1024)
@@ -111,7 +112,7 @@ public final class PDFViewerViewModel {
         isLoading = false
 
         guard let loaded = result else {
-            errorMessage = "Cannot open "\(url.lastPathComponent)" — not a valid PDF file."
+            errorMessage = "Cannot open \"\(url.lastPathComponent)\" — not a valid PDF file."
             return
         }
 
@@ -148,7 +149,7 @@ public final class PDFViewerViewModel {
 
         // File size check before loading — avoids reading a rejected file into RAM.
         if let attrs = try? FileManager.default.attributesOfItem(atPath: url.path),
-           let size = attrs[.size] as? Int64, size > maxFileSize
+            let size = attrs[.size] as? Int64, size > maxFileSize
         {
             isLoading = false
             let mb = size / (1024 * 1024)
@@ -163,7 +164,9 @@ public final class PDFViewerViewModel {
             let resolved = await resolver.resolve(reference: filename, relativeTo: baseDir)
             switch resolved {
             case .image(let data, _, _):
-                return NSImage(data: data).flatMap { PDFPage(image: $0) }.map { PDFDocument(pages: [$0]) }
+                return NSImage(data: data).flatMap { PDFPage(image: $0) }.map {
+                    PDFDocument(pages: [$0])
+                }
             case .tooLarge(let name, let bytes):
                 return nil
             default:
@@ -174,7 +177,8 @@ public final class PDFViewerViewModel {
         isLoading = false
 
         guard let loaded = result else {
-            errorMessage = "Cannot open "\(url.lastPathComponent)" — not a valid PNG or JPEG file."
+            errorMessage =
+                "Cannot open \"\(url.lastPathComponent)\" — not a valid PNG or JPEG file."
             return
         }
 
@@ -262,7 +266,7 @@ public final class PDFViewerViewModel {
     /// Runs on a background task; no-ops silently on failure.
     public func generateThumbnail(for pageIndex: Int) {
         guard thumbnailCache[pageIndex] == nil,
-              let page = document?.page(at: pageIndex)
+            let page = document?.page(at: pageIndex)
         else { return }
 
         Task(priority: .background) { [weak self] in

@@ -1,4 +1,5 @@
 import AppKit
+import FoundationModule
 
 /// Detects Markdown context at the cursor and pushes a ghost-text suggestion.
 ///
@@ -22,10 +23,10 @@ public final class MarkdownLanguageProvider {
         settings: SettingsStore,
         completionProvider: any CompletionProviding
     ) {
-        self.textView            = textView
-        self.ghostOverlay        = ghostOverlay
-        self.settings            = settings
-        self.completionProvider  = completionProvider
+        self.textView = textView
+        self.ghostOverlay = ghostOverlay
+        self.settings = settings
+        self.completionProvider = completionProvider
     }
 
     // MARK: - Public interface
@@ -44,7 +45,10 @@ public final class MarkdownLanguageProvider {
     private func generateSuggestion() async {
         guard let textView, let storage = textView.textStorage else { return }
         let cursorPos = textView.selectedRange().location
-        guard cursorPos > 0 else { ghostOverlay?.clear(); return }
+        guard cursorPos > 0 else {
+            ghostOverlay?.clear()
+            return
+        }
         let text = storage.string
 
         let suggestion = await Task(priority: .utility) { [text, cursorPos] in
@@ -66,7 +70,10 @@ public final class MarkdownLanguageProvider {
             Self.currentWordPrefix(in: text, upTo: cursorPos)
         }.value
 
-        guard wordPrefix.count >= 2 else { ghostOverlay?.clear(); return }
+        guard wordPrefix.count >= 2 else {
+            ghostOverlay?.clear()
+            return
+        }
 
         let query = CompletionQuery(
             language: .markdown, prefix: wordPrefix, fullText: text, cursorOffset: cursorPos
@@ -102,8 +109,8 @@ public final class MarkdownLanguageProvider {
 
     private static func suggest(in text: String, cursorPos: Int) -> String? {
         let safeOffset = min(cursorPos, text.count)
-        let idx        = text.index(text.startIndex, offsetBy: safeOffset)
-        let prefix     = String(text[..<idx])
+        let idx = text.index(text.startIndex, offsetBy: safeOffset)
+        let prefix = String(text[..<idx])
         guard let currentLine = prefix.components(separatedBy: "\n").last else { return nil }
 
         // Heading with no trailing space yet: "#", "##", "###" → suggest " "

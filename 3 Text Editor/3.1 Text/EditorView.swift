@@ -101,16 +101,40 @@ public struct EditorView: NSViewRepresentable {
         context.coordinator.asciiProvider = asciiProvider
         context.coordinator.spellingCompletionProvider = spellingCompletionProvider
 
+        // Wire SearchController and TextView into the view model.
+        viewModel.searchController = search
+        viewModel.textView = textView
+
+        // Set up syntax highlighting and debounce timer.
+        if let storage = textView.textStorage {
+            context.coordinator.syntaxHighlighter = SyntaxHighlighter(textStorage: storage)
+            context.coordinator.highlightDebounceTimer = DebounceTimer(interval: 0.3)
+        }
+
         configureTypography(textView, settings: settings)
         return scrollView
     }
 
     public func updateNSView(_ nsView: NSScrollView, context: Context) {
+        guard let textView = nsView.documentView as? NSTextView else { return }
+
+        // Inject loaded text when loadToken changes (prevents re-applying stale content).
+        if context.coordinator.lastAppliedLoadToken != viewModel.loadToken {
+            context.coordinator.lastAppliedLoadToken = viewModel.loadToken
+            textView.string = viewModel.loadedText
+            textView.undoManager?.removeAllActions()
+
+            // Run initial syntax highlight pass.
+            if let storage = textView.textStorage {
+                let highlighter = SyntaxHighlighter(textStorage: storage)
+                highlighter.highlight(mode: viewModel.mode)
+            }
+        }
+
         // Reapply font and background from settings (F-4) — settings may have changed
         // while the view was alive (e.g. per-panel override toggled in Preferences).
-        if let textView = nsView.documentView as? NSTextView {
-            applyFontAndBackground(textView, settings: settings)
-        }
+        applyFontAndBackground(textView, settings: settings)
+
         // Trigger ruler redraw when the view model changes (e.g. on content reload).
         nsView.verticalRulerView?.needsDisplay = true
     }
@@ -152,6 +176,13 @@ public struct EditorView: NSViewRepresentable {
         /// text view's reference is weak).
         var checker: SpellingGrammarChecker?
 
+        // Track the last applied load token to prevent re-applying stale content.
+        private var lastAppliedLoadToken: UUID?
+
+        // Syntax highlighting
+        private var syntaxHighlighter: SyntaxHighlighter?
+        private var highlightDebounceTimer: DebounceTimer?
+
         // Language providers — exactly one is dispatched per text change, based on mode.
         var markdownProvider: MarkdownLanguageProvider?
         var htmlProvider: HTMLLanguageProvider?
@@ -164,6 +195,15 @@ public struct EditorView: NSViewRepresentable {
 
         public func textDidChange(_ notification: Notification) {
             viewModel.isDirty = true
+
+            // Debounced syntax highlighting (skip for plainText mode).
+            if viewModel.mode != .plainText {
+                highlightDebounceTimer?.cancel()
+                highlightDebounceTimer?.schedule { [weak self] in
+                    self?.syntaxHighlighter?.highlight(mode: self?.viewModel.mode ?? .plainText)
+                }
+            }
+
             // Debounced spelling/grammar re-check (no-op when spellCheckActive is false).
             checker?.onTextChange()
             // Dispatch to the active language provider for ghost-text completions.
@@ -171,6 +211,11 @@ public struct EditorView: NSViewRepresentable {
             // Invalidate ruler on every edit so line numbers stay current.
             if let tv = notification.object as? NSTextView {
                 tv.enclosingScrollView?.verticalRulerView?.needsDisplay = true
+            }
+
+            // Schedule debounced crash recovery write (ISS-036, SR-4).
+            if let textView = notification.object as? NSTextView {
+                viewModel.scheduleRecoveryWrite(text: textView.string)
             }
         }
 

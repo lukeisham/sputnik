@@ -1,4 +1,5 @@
 import AppKit
+import FoundationModule
 
 /// Provides inline ghost-text spelling completions from the macOS dictionary.
 ///
@@ -27,9 +28,9 @@ public final class SpellingCompletionProvider {
         settings: SettingsStore,
         spellDocumentTag: Int
     ) {
-        self.textView        = textView
-        self.ghostOverlay    = ghostOverlay
-        self.settings        = settings
+        self.textView = textView
+        self.ghostOverlay = ghostOverlay
+        self.settings = settings
         self.spellDocumentTag = spellDocumentTag
     }
 
@@ -52,13 +53,19 @@ public final class SpellingCompletionProvider {
 
     private func generateCompletion() {
         guard settings.writingAssist.isEnabled(.autoComplete, for: .spelling),
-              let textView,
-              let storage = textView.textStorage,
-              storage.length > 0
-        else { ghostOverlay?.clear(); return }
+            let textView,
+            let storage = textView.textStorage,
+            storage.length > 0
+        else {
+            ghostOverlay?.clear()
+            return
+        }
 
         let cursorPos = textView.selectedRange().location
-        guard cursorPos > 0 else { ghostOverlay?.clear(); return }
+        guard cursorPos > 0 else {
+            ghostOverlay?.clear()
+            return
+        }
 
         // Walk back to find the start of the partial word (letters only).
         let nsStr = storage.string as NSString
@@ -69,23 +76,29 @@ public final class SpellingCompletionProvider {
             wordStart -= 1
         }
         let wordLength = cursorPos - wordStart
-        guard wordLength >= 2 else { ghostOverlay?.clear(); return }
+        guard wordLength >= 2 else {
+            ghostOverlay?.clear()
+            return
+        }
 
-        let partialRange   = NSRange(location: wordStart, length: wordLength)
-        let partialWord    = nsStr.substring(with: partialRange)
-        let fullText       = storage.string
-        let checker        = NSSpellChecker.shared
+        let partialRange = NSRange(location: wordStart, length: wordLength)
+        let partialWord = nsStr.substring(with: partialRange)
+        let fullText = storage.string
+        let checker = NSSpellChecker.shared
         let completionList = checker.completions(
             forPartialWordRange: partialRange,
-            in:                  fullText,
-            language:            settings.spellCheckLocale,
+            in: fullText,
+            language: settings.spellCheckLocale,
             inSpellDocumentWithTag: spellDocumentTag
         )
 
         guard let topMatch = completionList?.first,
-              topMatch.lowercased().hasPrefix(partialWord.lowercased()),
-              topMatch.lowercased() != partialWord.lowercased()
-        else { ghostOverlay?.clear(); return }
+            topMatch.lowercased().hasPrefix(partialWord.lowercased()),
+            topMatch.lowercased() != partialWord.lowercased()
+        else {
+            ghostOverlay?.clear()
+            return
+        }
 
         // Show only the suffix — the part after what the user already typed.
         let suffix = String(topMatch.dropFirst(partialWord.count))

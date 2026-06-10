@@ -82,6 +82,7 @@ public struct FileTreeRowView: View {
         case .markdown: return .green
         case .html: return .orange
         case .pdf: return .red
+        case .image: return .blue
         case .ascii, .text, .binary, .unknown:
             return SputnikColor.secondaryText
         }

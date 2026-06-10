@@ -43,13 +43,13 @@ public struct ContentView: View {
 
                     Divider()
 
-                    EditorView(viewModel: editorViewModel, settings: settings, appState: appState)
+                    TextEditorPanel(viewModel: editorViewModel, settings: settings, appState: appState)
                         .frame(maxWidth: .infinity, maxHeight: .infinity)
 
                     MarkdownPreviewPanel()
                 }
                 .onChange(of: appState.activeDocumentID) { _, _ in
-                    editorViewModel.resetForNewFile(url: appState.activeDocument?.url)
+                    Task { try? await editorViewModel.openDocument(appState.activeDocument?.url) }
                 }
 
                 // Right — help panels or PDF/HTML preview stack

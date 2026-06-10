@@ -1,4 +1,5 @@
 import AppKit
+import FoundationModule
 
 /// Real-time spelling and grammar checker wrapping `NSSpellChecker`.
 ///
@@ -19,7 +20,7 @@ public final class SpellingGrammarChecker {
 
     // MARK: - Dependencies
 
-    private weak var textView:  NSTextView?
+    private weak var textView: NSTextView?
     private weak var viewModel: EditorViewModel?
     private let settings: SettingsStore
     private let debounce = DebounceTimer()
@@ -39,9 +40,9 @@ public final class SpellingGrammarChecker {
     private var ignoredGrammarPhrases: Set<String> = []
 
     public init(textView: NSTextView, viewModel: EditorViewModel, settings: SettingsStore) {
-        self.textView  = textView
+        self.textView = textView
         self.viewModel = viewModel
-        self.settings  = settings
+        self.settings = settings
     }
 
     deinit {
@@ -82,7 +83,8 @@ public final class SpellingGrammarChecker {
         let range = annotation.range
         // Guard against ranges invalidated by a concurrent edit (SR-2).
         guard range.location != NSNotFound,
-              range.location + range.length <= storage.length else { return }
+            range.location + range.length <= storage.length
+        else { return }
 
         let nsString = storage.string as NSString
         let phrase = nsString.substring(with: range)
@@ -110,22 +112,22 @@ public final class SpellingGrammarChecker {
             return
         }
 
-        let text       = storage.string
-        let nsString   = text as NSString
-        let fullRange  = NSRange(location: 0, length: nsString.length)
-        let checker    = NSSpellChecker.shared
+        let text = storage.string
+        let nsString = text as NSString
+        let fullRange = NSRange(location: 0, length: nsString.length)
+        let checker = NSSpellChecker.shared
 
         if let locale = settings.spellCheckLocale {
             checker.setLanguage(locale)
         }
         let results = checker.check(
             text,
-            range:                  fullRange,
-            types:                  NSTextCheckingAllSystemTypes,
-            options:                nil,
+            range: fullRange,
+            types: NSTextCheckingAllSystemTypes,
+            options: nil,
             inSpellDocumentWithTag: spellDocumentTag,
-            orthography:            nil,
-            wordCount:              nil
+            orthography: nil,
+            wordCount: nil
         )
 
         var newAnnotations: [GrammarAnnotation] = []
@@ -135,14 +137,16 @@ public final class SpellingGrammarChecker {
         for result in results where result.resultType == .spelling {
             let range = result.range
             guard range.location != NSNotFound,
-                  range.location + range.length <= storage.length else { continue }
+                range.location + range.length <= storage.length
+            else { continue }
             spellingRanges.append(range)
-            let guesses = checker.guesses(
-                forWordRange:           range,
-                in:                     text,
-                language:               settings.spellCheckLocale,
-                inSpellDocumentWithTag: spellDocumentTag
-            ) ?? []
+            let guesses =
+                checker.guesses(
+                    forWordRange: range,
+                    in: text,
+                    language: settings.spellCheckLocale,
+                    inSpellDocumentWithTag: spellDocumentTag
+                ) ?? []
             newAnnotations.append(
                 GrammarAnnotation(range: range, kind: .spelling, suggestions: guesses)
             )
@@ -152,7 +156,8 @@ public final class SpellingGrammarChecker {
         for result in results where result.resultType == .grammar {
             let range = result.range
             guard range.location != NSNotFound,
-                  range.location + range.length <= storage.length else { continue }
+                range.location + range.length <= storage.length
+            else { continue }
             let phrase = nsString.substring(with: range)
             if ignoredGrammarPhrases.contains(phrase) { continue }
 
@@ -182,9 +187,10 @@ public final class SpellingGrammarChecker {
         storage.removeAttribute(.underlineStyle, range: fullRange)
         storage.removeAttribute(.underlineColor, range: fullRange)
         for annotation in newAnnotations where !annotation.isSuppressed {
-            storage.addAttribute(.underlineStyle,
-                                 value: NSUnderlineStyle.single.rawValue,
-                                 range: annotation.range)
+            storage.addAttribute(
+                .underlineStyle,
+                value: NSUnderlineStyle.single.rawValue,
+                range: annotation.range)
             let color: NSColor = annotation.kind == .spelling ? .systemRed : .systemOrange
             storage.addAttribute(.underlineColor, value: color, range: annotation.range)
         }
@@ -204,14 +210,17 @@ public final class SpellingGrammarChecker {
     /// targeting the word just completed. One correction per trigger to avoid cascade effects.
     private func applyInstantCorrectIfNeeded() {
         guard let textView,
-              let storage = textView.textStorage,
-              storage.length > 0
+            let storage = textView.textStorage,
+            storage.length > 0
         else { return }
 
         // Skip while ghost text is visible — the storage contains ghost characters that
         // would shift annotation ranges and produce false matches.
         if let etv = textView as? EditorTextView,
-           etv.ghostTextOverlay?.isVisible == true { return }
+            etv.ghostTextOverlay?.isVisible == true
+        {
+            return
+        }
 
         let cursorPos = textView.selectedRange().location
         guard cursorPos > 0 else { return }
@@ -222,13 +231,13 @@ public final class SpellingGrammarChecker {
             .max(by: { $0.range.upperBound < $1.range.upperBound })
 
         guard let annotation = candidate,
-              let suggestion  = annotation.suggestions.first
+            let suggestion = annotation.suggestions.first
         else { return }
 
         let range = annotation.range
         guard range.location != NSNotFound,
-              range.location + range.length <= storage.length,
-              range.upperBound < storage.length
+            range.location + range.length <= storage.length,
+            range.upperBound < storage.length
         else { return }
 
         // Require a word-boundary character immediately after the word.

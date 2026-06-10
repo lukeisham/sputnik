@@ -1,4 +1,5 @@
 import AppKit
+import FoundationModule
 
 /// Detects box-drawing sequences at the cursor and dispatches ghost-text or block completion.
 ///
@@ -25,11 +26,11 @@ public final class ASCIIArtLanguageProvider {
         settings: SettingsStore,
         completionProvider: any CompletionProviding
     ) {
-        self.textView            = textView
-        self.ghostOverlay        = ghostOverlay
-        self.blockCompletion     = blockCompletion
-        self.settings            = settings
-        self.completionProvider  = completionProvider
+        self.textView = textView
+        self.ghostOverlay = ghostOverlay
+        self.blockCompletion = blockCompletion
+        self.settings = settings
+        self.completionProvider = completionProvider
     }
 
     // MARK: - Public interface
@@ -48,7 +49,7 @@ public final class ASCIIArtLanguageProvider {
     private func generateSuggestion() async {
         guard let textView, let storage = textView.textStorage else { return }
         let cursorPos = textView.selectedRange().location
-        let text      = storage.string
+        let text = storage.string
 
         let result = await Task(priority: .utility) { [text, cursorPos] in
             Self.analyse(text: text, cursorPos: cursorPos)
@@ -77,7 +78,10 @@ public final class ASCIIArtLanguageProvider {
             Self.currentWordPrefix(in: text, upTo: cursorPos)
         }.value
 
-        guard wordPrefix.count >= 2 else { ghostOverlay?.clear(); return }
+        guard wordPrefix.count >= 2 else {
+            ghostOverlay?.clear()
+            return
+        }
 
         let query = CompletionQuery(
             language: .asciiArt, prefix: wordPrefix, fullText: text, cursorOffset: cursorPos
@@ -120,16 +124,16 @@ public final class ASCIIArtLanguageProvider {
 
     private static func analyse(text: String, cursorPos: Int) -> SuggestionResult {
         let safeOffset = min(cursorPos, text.count)
-        let idx        = text.index(text.startIndex, offsetBy: safeOffset)
-        let prefix     = String(text[..<idx])
+        let idx = text.index(text.startIndex, offsetBy: safeOffset)
+        let prefix = String(text[..<idx])
         guard let currentLine = prefix.components(separatedBy: "\n").last else { return .none }
 
         // ASCII box frame starter: `+--` or `┌─` → offer a full box via BlockCompletion
         if currentLine.hasSuffix("+--") || currentLine.hasSuffix("┌─") {
-            let frame   = "+--------+\n|        |\n+--------+"
+            let frame = "+--------+\n|        |\n+--------+"
             let payload = BlockCompletion.Payload(
                 pattern: String(currentLine.suffix(3)),
-                frame:   frame,
+                frame: frame,
                 preview: "+--------+"
             )
             return .block(payload)

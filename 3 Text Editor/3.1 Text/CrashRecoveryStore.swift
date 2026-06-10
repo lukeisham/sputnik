@@ -1,4 +1,5 @@
 import Foundation
+import FoundationModule
 
 /// Serialises editor text to a recovery cache file after each significant change,
 /// and clears the cache after a clean save.

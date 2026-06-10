@@ -1,4 +1,5 @@
 import SwiftUI
+import FoundationModule
 import PDFKit
 
 /// Lazy-loading thumbnail grid for visual page navigation.

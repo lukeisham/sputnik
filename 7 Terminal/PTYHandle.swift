@@ -1,4 +1,5 @@
 import Foundation
+import FoundationModule
 
 /// Opens a pseudo-terminal using the POSIX sequence
 /// `posix_openpt → grantpt → unlockpt → ptsname` and vends the resulting

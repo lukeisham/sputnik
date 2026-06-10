@@ -1,4 +1,5 @@
 import SwiftUI
+import FoundationModule
 import PDFKit
 import AppKit
 

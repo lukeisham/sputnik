@@ -280,7 +280,11 @@ public final class FileTreeViewModel {
         }
         if var kids = n.children {
             for i in kids.indices {
-                applyChildren(children, toNodeID: id, in: &kids[i])
+                var child: FileTreeNode? = kids[i]
+                applyChildren(children, toNodeID: id, in: &child)
+                if let updated = child {
+                    kids[i] = updated
+                }
             }
             n.children = kids
             node = n

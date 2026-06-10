@@ -1,3 +1,4 @@
+import FoundationModule
 import SwiftUI
 
 /// Top-level SwiftUI view for the Markdown Preview panel.

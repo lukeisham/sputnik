@@ -151,6 +151,21 @@ public final class AppState {
 
     // MARK: - Terminal registry for clean shutdown
 
+    // MARK: - Editor command handler (SR-1)
+
+    /// The registered editor command handler (Save, Save As, Render as HTML, ASCII Studio).
+    /// Set by the text editor module at launch via `registerEditorCommandHandler(_:)`.
+    public private(set) var editorCommandHandler: EditorCommandHandling?
+
+    /// The inter-panel router used by the editor to open files in other panels.
+    /// Set by the app at launch; required for Render as HTML and other routing operations.
+    public weak var router: (any InterPanelRouter)?
+
+    /// Registers the editor command handler (called by EditorViewModel at init).
+    public func registerEditorCommandHandler(_ handler: EditorCommandHandling) {
+        editorCommandHandler = handler
+    }
+
     // MARK: - Multi-window persistence (step 9)
 
     /// Window IDs that still need their SwiftUI scene opened after launch.
