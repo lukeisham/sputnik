@@ -54,8 +54,10 @@ public actor ASCIIArtHelpIndex {
         guard !didLoad else { return }
         didLoad = true
         guard
-            let url = Bundle.main.url(forResource: "ascii_art_help_index",
-                                      withExtension: "json"),
+            let url = Bundle.module.url(
+                forResource: "ascii_art_help_index",
+                withExtension: "json",
+                subdirectory: "9.2 ASCII art Help"),
             let data = try? Data(contentsOf: url),
             let file = try? JSONDecoder().decode(ASCIIArtHelpIndexFile.self, from: data)
         else { return }

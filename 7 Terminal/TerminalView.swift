@@ -83,7 +83,7 @@ public struct TerminalView: View {
                 .font(.system(size: 11, weight: .medium))
                 .foregroundStyle(.secondary)
             Spacer()
-            Text("Profile: Default")
+            Text("\(profile.fontName) \(Int(profile.fontSize))")
                 .font(.system(size: 11))
                 .foregroundStyle(.secondary)
             shellExitedBadge

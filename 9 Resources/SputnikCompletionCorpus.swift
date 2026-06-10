@@ -52,30 +52,33 @@ public actor SputnikCompletionCorpus: CompletionProviding {
 
     private func loadMarkdown() -> [String] {
         if let idx = markdownIndex { return idx }
-        let idx = loadBundle(resource: "markdown_completions") ?? []
+        let idx =
+            loadBundle(resource: "markdown_completions", subdirectory: "9.3 Markdown Help") ?? []
         markdownIndex = idx
         return idx
     }
 
     private func loadHTML() -> [String] {
         if let idx = htmlIndex { return idx }
-        let idx = loadBundle(resource: "html_completions") ?? []
+        let idx = loadBundle(resource: "html_completions", subdirectory: "9.4 Html Help") ?? []
         htmlIndex = idx
         return idx
     }
 
     private func loadASCII() -> [String] {
         if let idx = asciiIndex { return idx }
-        let idx = loadBundle(resource: "ascii_completions") ?? []
+        let idx =
+            loadBundle(resource: "ascii_completions", subdirectory: "9.2 ASCII art Help") ?? []
         asciiIndex = idx
         return idx
     }
 
     // MARK: - Private helpers
 
-    private func loadBundle(resource: String) -> [String]? {
+    private func loadBundle(resource: String, subdirectory: String? = nil) -> [String]? {
         guard
-            let url  = Bundle.main.url(forResource: resource, withExtension: "json"),
+            let url = Bundle.module.url(
+                forResource: resource, withExtension: "json", subdirectory: subdirectory),
             let data = try? Data(contentsOf: url),
             let file = try? JSONDecoder().decode(CompletionsFile.self, from: data)
         else { return nil }

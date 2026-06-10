@@ -16,8 +16,8 @@ public struct MarkdownRenderView: NSViewRepresentable {
 
     // MARK: - Input
 
-    /// The rendered Markdown content to display.
-    let renderedString: AttributedString
+    /// The rendered Markdown content to display (may contain `NSTextAttachment` images).
+    let renderedString: NSAttributedString
 
     /// The current font-scale factor for the content.
     let fontScale: CGFloat

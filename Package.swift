@@ -17,7 +17,7 @@ let package = Package(
     ],
     targets: [
         .executableTarget(
-            name: "SputnikApp",
+            name: "SputnikApp",  // ← this becomes SputnikApp.app
             dependencies: [
                 // Explicitly bind the product name to the package identity
                 .product(name: "FoundationModule", package: "2 Foundation"),
@@ -30,8 +30,11 @@ let package = Package(
                 .product(name: "ResourcesModule", package: "9 Resources"),
             ],
             path: "App-Sputnik",
-            exclude: ["Assets.xcassets", "Info.plist", "Sputnik.entitlements"]
+            resources: [
+                // This bundles your icons and images correctly
+                .process("Assets.xcassets")
+            ]
+            // NO exclude line — we need Info.plist + entitlements + assets
         )
     ]
 )
-

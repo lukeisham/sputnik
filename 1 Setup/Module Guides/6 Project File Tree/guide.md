@@ -106,7 +106,6 @@ PROJECT FILE TREE PANEL  (occupies the left slot; see module 2.0 overview)
   - `FileTreeViewModel` — `@Observable` class; owns the root `FileTreeNode` tree, the active directory URL, expanded node IDs, search filter text, and selection state; loads directory contents on a background `Task(priority: .userInitiated)` and publishes updates on `@MainActor`
   - `FileTreeRowView` — SwiftUI `View` for each row; shows icon + name + status dot; applies file-status colouring based on git status or last-modified delta
   - `FileContextMenu` — SwiftUI `Menu`/context menu builder; actions: New File, New Folder, Rename, Move to Trash, Copy Path, Reveal in Finder
-  - `FileDragDelegate` — `NSViewRepresentable` or SwiftUI `.onDrag`/`.onDrop` handler; packages file URLs onto `NSPasteboard` for drag-out and accepts dropped URLs for import or reorganisation
   - `FileSystemWatcher` — `NSObject` adopting `NSFilePresenter` protocol (MR-2); observes the active directory and its immediate subdirectory for external changes; publishes a notification stream that `FileTreeViewModel` subscribes to for tree refresh
 - **Threading model:**
   - `@MainActor` for all view updates, selection changes, context menu actions, and drag-and-drop UI callbacks

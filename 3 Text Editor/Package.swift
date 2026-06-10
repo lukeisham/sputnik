@@ -8,12 +8,13 @@ let package = Package(
         .library(name: "TextEditorModule", targets: ["TextEditorModule"])
     ],
     dependencies: [
-        .package(name: "FoundationModule", path: "../2 Foundation")
+        .package(name: "FoundationModule", path: "../2 Foundation"),
+        .package(name: "ResourcesModule", path: "../9 Resources"),
     ],
     targets: [
         .target(
             name: "TextEditorModule",
-            dependencies: ["FoundationModule"],
+            dependencies: ["FoundationModule", "ResourcesModule"],
             path: "."
         )
     ]

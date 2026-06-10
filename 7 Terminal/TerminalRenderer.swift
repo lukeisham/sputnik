@@ -13,20 +13,20 @@ import SwiftUI
 public struct TerminalRenderer: NSViewRepresentable {
 
     public let snapshot: EmulatorSnapshot?
-    public let profile:  TerminalProfile
+    public let profile: TerminalProfile
     public let onKeyInput: (Data) -> Void
     public let onResize: (UInt16, UInt16) -> Void
 
     public init(
         snapshot: EmulatorSnapshot?,
-        profile:  TerminalProfile,
+        profile: TerminalProfile,
         onKeyInput: @escaping (Data) -> Void,
-        onResize:   @escaping (UInt16, UInt16) -> Void
+        onResize: @escaping (UInt16, UInt16) -> Void
     ) {
-        self.snapshot   = snapshot
-        self.profile    = profile
+        self.snapshot = snapshot
+        self.profile = profile
         self.onKeyInput = onKeyInput
-        self.onResize   = onResize
+        self.onResize = onResize
     }
 
     // MARK: - NSViewRepresentable
@@ -34,26 +34,25 @@ public struct TerminalRenderer: NSViewRepresentable {
     public func makeNSView(context: Context) -> TerminalTextView {
         let view = TerminalTextView(frame: .zero)
         view.onKeyInput = onKeyInput
+        view.onResize = onResize
         return view
     }
 
     public func updateNSView(_ nsView: TerminalTextView, context: Context) {
+        nsView.onKeyInput = onKeyInput
+        nsView.onResize = onResize
         if let snap = snapshot {
             nsView.update(snapshot: snap, profile: profile)
         }
     }
 
-    public func makeCoordinator() -> Coordinator { Coordinator(onResize: onResize) }
+    public func makeCoordinator() -> Coordinator { Coordinator() }
 
     // MARK: - Coordinator
 
-    /// Observes the NSView's frame changes and forwards resize events to the session.
+    /// Currently unused placeholder retained for future extension.
+    /// The view owns its own frame observation (see `TerminalTextView.viewDidMoveToWindow`).
     public final class Coordinator: NSObject {
-        private let onResize: (UInt16, UInt16) -> Void
-        private var observer: NSObjectProtocol?
-
-        init(onResize: @escaping (UInt16, UInt16) -> Void) {
-            self.onResize = onResize
-        }
+        override init() {}
     }
 }

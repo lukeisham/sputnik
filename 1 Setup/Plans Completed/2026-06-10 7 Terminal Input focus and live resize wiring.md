@@ -8,7 +8,7 @@ depends_on: 2026-06-10 2 Foundation Make project compile.md (app must build to r
 ---
 
 ## Purpose
-Bring the 7 Terminal module to production quality: route keyboard focus so a user/agent can type (ISS-021), propagate panel-size changes to both PTY and emulator (ISS-022), replace deprecated/misleading bits, and align the Module Guide with the verified implementation.
+In order to make this module ready to build bring the 7 Terminal module to production quality: route keyboard focus so a user/agent can type (ISS-021), propagate panel-size changes to both PTY and emulator (ISS-022), replace deprecated/misleading bits, and align the Module Guide with the verified implementation.
 
 ## Success Condition
 - Click the Terminal panel, type `ls` + Return → the command runs and output appears (keystrokes reach Zsh).

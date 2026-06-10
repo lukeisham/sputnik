@@ -68,8 +68,9 @@ public actor ASCIILibrary {
 
     private func loadIndex() {
         guard
-            let url = Bundle.main.url(forResource: "index", withExtension: "json",
-                                      subdirectory: "ASCIILibrary"),
+            let url = Bundle.module.url(
+                forResource: "index", withExtension: "json",
+                subdirectory: "9.1 ASCII Library"),
             let data = try? Data(contentsOf: url),
             let index = try? JSONDecoder().decode(ASCIILibraryIndex.self, from: data)
         else { return }
@@ -80,12 +81,14 @@ public actor ASCIILibrary {
         // filename is e.g. "Arrows/simple_right.txt"
         let components = filename.split(separator: "/", maxSplits: 1)
         guard components.count == 2 else { return nil }
-        let subdir = "ASCIILibrary/" + components[0]
+        let subdir = "9.1 ASCII Library/" + components[0]
         let file = String(components[1])
         let nameWithoutExt = (file as NSString).deletingPathExtension
         let ext = (file as NSString).pathExtension
-        guard let url = Bundle.main.url(forResource: nameWithoutExt, withExtension: ext,
-                                        subdirectory: subdir)
+        guard
+            let url = Bundle.module.url(
+                forResource: nameWithoutExt, withExtension: ext,
+                subdirectory: subdir)
         else { return nil }
         return try? String(contentsOf: url, encoding: .utf8)
     }

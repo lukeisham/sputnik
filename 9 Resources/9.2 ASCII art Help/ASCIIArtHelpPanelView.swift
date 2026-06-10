@@ -284,7 +284,7 @@ private struct ASCIIArtTopicContentView: View {
         let filename = String(components[1])
 
         guard
-            let url = Bundle.main.url(
+            let url = Bundle.module.url(
                 forResource: filename,
                 withExtension: "md",
                 subdirectory: subdirectory

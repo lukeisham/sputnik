@@ -1,4 +1,5 @@
 import Foundation
+import FoundationModule
 
 /// A single file or folder node in the project tree.
 ///
@@ -34,12 +35,12 @@ public struct FileTreeNode: Identifiable, Sendable, Hashable, Equatable {
         }
         switch fileType {
         case .markdown: return "doc.richtext"
-        case .html:     return "chevron.left.slash.chevron.right"
-        case .pdf:      return "doc.text.below.ecg"
-        case .ascii:    return "doc.text.image"
-        case .text:     return "doc.plaintext"
-        case .binary:   return "doc.zipper"
-        case .unknown:  return "doc"
+        case .html: return "chevron.left.slash.chevron.right"
+        case .pdf: return "doc.text.below.ecg"
+        case .ascii: return "doc.text.image"
+        case .text: return "doc.plaintext"
+        case .binary: return "doc.zipper"
+        case .unknown: return "doc"
         }
     }
 

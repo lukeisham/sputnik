@@ -1,6 +1,7 @@
 import Foundation
 import PDFKit
 import Observation
+import ResourcesModule
 
 /// Observable view model that owns the loaded `PDFDocument` and all UI state for the
 /// PDF Viewer panel. All mutations are `@MainActor`-isolated; heavy file I/O runs on
@@ -131,6 +132,53 @@ public final class PDFViewerViewModel {
     public func retryLoad() async {
         guard let url = lastURL else { return }
         await loadPDF(url)
+    }
+
+    /// Loads an image file (PNG, JPEG) as a single-page `PDFDocument` so the viewer's
+    /// zoom, rotate, fit, and print controls work with images. The resolver enforces a
+    /// 20 MB byte cap and 2000 px pixel cap (downsamples on load).
+    public func loadImage(_ url: URL) async {
+        guard !isLoading else { return }
+        lastURL = url
+        isLoading = true
+        errorMessage = nil
+        thumbnailCache.removeAll()
+        currentPageIndex = 0
+        rotation = 0
+
+        // File size check before loading — avoids reading a rejected file into RAM.
+        if let attrs = try? FileManager.default.attributesOfItem(atPath: url.path),
+           let size = attrs[.size] as? Int64, size > maxFileSize
+        {
+            isLoading = false
+            let mb = size / (1024 * 1024)
+            errorMessage = "This image is \(mb) MB, which exceeds the 500 MB limit."
+            return
+        }
+
+        let result = await Task(priority: .utility) {
+            let resolver = PreviewImageResolver()
+            let baseDir = url.deletingLastPathComponent()
+            let filename = url.lastPathComponent
+            let resolved = await resolver.resolve(reference: filename, relativeTo: baseDir)
+            switch resolved {
+            case .image(let data, _, _):
+                return NSImage(data: data).flatMap { PDFPage(image: $0) }.map { PDFDocument(pages: [$0]) }
+            case .tooLarge(let name, let bytes):
+                return nil
+            default:
+                return nil
+            }
+        }.value
+
+        isLoading = false
+
+        guard let loaded = result else {
+            errorMessage = "Cannot open "\(url.lastPathComponent)" — not a valid PNG or JPEG file."
+            return
+        }
+
+        document = loaded
     }
 
     // MARK: - Navigation

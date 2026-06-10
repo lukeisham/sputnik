@@ -19,16 +19,30 @@ public final class TerminalTextView: NSView {
     /// Receives encoded keystroke bytes to forward to the session.
     public var onKeyInput: ((Data) -> Void)?
 
+    /// Receives grid dimensions computed from the view's bounds and cell metrics.
+    /// Fires on frame change with de-duplication. Guarded against zero metrics.
+    public var onResize: ((UInt16, UInt16) -> Void)?
+
     // MARK: - Display state
 
     private var snapshot: EmulatorSnapshot?
-    private var profile:  TerminalProfile = .default
+    private var profile: TerminalProfile = .default
 
     // MARK: - Cached metrics (recomputed on profile change or resize)
 
-    private var cellWidth:  CGFloat = 0
+    private var cellWidth: CGFloat = 0
     private var cellHeight: CGFloat = 0
-    private var font:       NSFont  = NSFont(name: "Menlo", size: 13) ?? .monospacedSystemFont(ofSize: 13, weight: .regular)
+    private var font: NSFont =
+        NSFont(name: "Menlo", size: 13) ?? .monospacedSystemFont(ofSize: 13, weight: .regular)
+
+    // MARK: - Resize de-duplication
+
+    private var lastReportedCols: UInt16 = 0
+    private var lastReportedRows: UInt16 = 0
+
+    // MARK: - Frame observation
+
+    private var frameObserver: NSObjectProtocol?
 
     // MARK: - Init
 
@@ -43,9 +57,16 @@ public final class TerminalTextView: NSView {
     }
 
     private func commonInit() {
-        wantsLayer      = true
+        wantsLayer = true
         layer?.backgroundColor = NSColor.black.cgColor
+        postsFrameChangedNotifications = true
         updateMetrics(for: profile)
+    }
+
+    deinit {
+        if let obs = frameObserver {
+            NotificationCenter.default.removeObserver(obs)
+        }
     }
 
     // MARK: - Public updaters
@@ -54,27 +75,59 @@ public final class TerminalTextView: NSView {
     public func update(snapshot: EmulatorSnapshot, profile: TerminalProfile) {
         let profileChanged = (profile != self.profile)
         self.snapshot = snapshot
-        self.profile  = profile
-        if profileChanged { updateMetrics(for: profile) }
+        self.profile = profile
+        if profileChanged {
+            updateMetrics(for: profile)
+            reportGridSize()
+        }
         needsDisplay = true
     }
 
-    // MARK: - Key handling
+    // MARK: - First responder (focus)
 
     public override var acceptsFirstResponder: Bool { true }
+
+    public override func acceptsFirstMouse(for event: NSEvent?) -> Bool { true }
+
+    public override func viewDidMoveToWindow() {
+        super.viewDidMoveToWindow()
+        if window != nil {
+            window?.makeFirstResponder(self)
+            // Observe frame changes for resize emission.
+            frameObserver = NotificationCenter.default.addObserver(
+                forName: NSView.frameDidChangeNotification,
+                object: self,
+                queue: .main
+            ) { [weak self] _ in
+                self?.reportGridSize()
+            }
+        } else {
+            if let obs = frameObserver {
+                NotificationCenter.default.removeObserver(obs)
+                frameObserver = nil
+            }
+        }
+    }
+
+    public override func mouseDown(with event: NSEvent) {
+        window?.makeFirstResponder(self)
+        super.mouseDown(with: event)
+    }
+
+    // MARK: - Key handling
 
     public override func keyDown(with event: NSEvent) {
         // Convert NSEvent to platform-independent TerminalKeyEvent so KeyEncoder
         // remains AppKit-free (SW-3 / SR-6).
         var mods = TerminalModifiers()
         if event.modifierFlags.contains(.control) { mods.insert(.control) }
-        if event.modifierFlags.contains(.shift)   { mods.insert(.shift) }
-        if event.modifierFlags.contains(.option)  { mods.insert(.option) }
+        if event.modifierFlags.contains(.shift) { mods.insert(.shift) }
+        if event.modifierFlags.contains(.option) { mods.insert(.option) }
         if event.modifierFlags.contains(.command) { mods.insert(.command) }
         let keyEvent = TerminalKeyEvent(
-            keyCode:    event.keyCode,
+            keyCode: event.keyCode,
             characters: event.characters ?? "",
-            modifiers:  mods
+            modifiers: mods
         )
         if let data = KeyEncoder.encode(keyEvent) {
             onKeyInput?(data)
@@ -85,8 +138,9 @@ public final class TerminalTextView: NSView {
 
     public override func draw(_ dirtyRect: NSRect) {
         guard let ctx = NSGraphicsContext.current?.cgContext,
-              let snap = snapshot,
-              cellWidth > 0, cellHeight > 0 else {
+            let snap = snapshot,
+            cellWidth > 0, cellHeight > 0
+        else {
             // Draw background placeholder
             NSColor(terminalColor: profile.background).setFill()
             bounds.fill()
@@ -102,8 +156,8 @@ public final class TerminalTextView: NSView {
 
         // Show scrollback above the active grid
         let scrollbackLines = snap.scrollback
-        let gridLines       = snap.grid
-        allLines  = scrollbackLines + gridLines
+        let gridLines = snap.grid
+        allLines = scrollbackLines + gridLines
         gridOffset = scrollbackLines.count
 
         for (lineIdx, line) in allLines.enumerated() {
@@ -111,9 +165,9 @@ public final class TerminalTextView: NSView {
             for (colIdx, cell) in line.enumerated() {
                 let col = CGFloat(colIdx)
                 let cellRect = CGRect(
-                    x: col  * cellWidth,
+                    x: col * cellWidth,
                     y: bounds.height - (row + 1) * cellHeight,
-                    width:  cellWidth,
+                    width: cellWidth,
                     height: cellHeight
                 )
 
@@ -151,7 +205,7 @@ public final class TerminalTextView: NSView {
             let cursorRect = CGRect(
                 x: CGFloat(snap.cursorCol) * cellWidth,
                 y: bounds.height - CGFloat(cursorAbsRow + 1) * cellHeight,
-                width:  cellWidth,
+                width: cellWidth,
                 height: cellHeight
             )
             NSColor(terminalColor: profile.foreground).withAlphaComponent(0.7).setFill()
@@ -159,17 +213,33 @@ public final class TerminalTextView: NSView {
         }
     }
 
+    // MARK: - Grid size computation
+
+    /// Computes cols/rows from the current bounds and cached cell metrics,
+    /// then fires `onResize` if the values have changed.
+    private func reportGridSize() {
+        guard cellWidth > 0, cellHeight > 0 else { return }
+        let cols = UInt16(floor(bounds.width / cellWidth))
+        let rows = UInt16(floor(bounds.height / cellHeight))
+        guard cols > 0, rows > 0 else { return }
+        guard cols != lastReportedCols || rows != lastReportedRows else { return }
+        lastReportedCols = cols
+        lastReportedRows = rows
+        onResize?(cols, rows)
+    }
+
     // MARK: - Helpers
 
     private func updateMetrics(for profile: TerminalProfile) {
-        let f = NSFont(name: profile.fontName, size: profile.fontSize)
+        let f =
+            NSFont(name: profile.fontName, size: profile.fontSize)
             ?? NSFont.monospacedSystemFont(ofSize: profile.fontSize, weight: .regular)
-        font       = f
+        font = f
         // Measure a monospace reference glyph
         let attrs: [NSAttributedString.Key: Any] = [.font: f]
-        let size   = ("M" as NSString).size(withAttributes: attrs)
-        cellWidth  = size.width
-        cellHeight = size.height + 2   // small leading
+        let size = ("M" as NSString).size(withAttributes: attrs)
+        cellWidth = size.width
+        cellHeight = size.height + 2  // small leading
     }
 
     private func resolveColor(_ color: CellColor, isBackground: Bool) -> NSColor {
@@ -195,7 +265,8 @@ public final class TerminalTextView: NSView {
     private func ansi256Color(index: UInt8) -> NSColor {
         let i = Int(index)
         if i < 16 {
-            let fallback = i < profile.ansiPalette.count ? profile.ansiPalette[i] : profile.foreground
+            let fallback =
+                i < profile.ansiPalette.count ? profile.ansiPalette[i] : profile.foreground
             return NSColor(terminalColor: fallback)
         }
         if i >= 232 {
@@ -212,7 +283,7 @@ public final class TerminalTextView: NSView {
 
     private func styledFont(bold: Bool, italic: Bool) -> NSFont {
         var traits: NSFontTraitMask = []
-        if bold   { traits.insert(.boldFontMask) }
+        if bold { traits.insert(.boldFontMask) }
         if italic { traits.insert(.italicFontMask) }
         return NSFontManager.shared.font(
             withFamily: font.familyName ?? font.fontName,
@@ -225,8 +296,8 @@ public final class TerminalTextView: NSView {
 
 // MARK: - NSColor + TerminalColor
 
-private extension NSColor {
-    convenience init(terminalColor c: TerminalColor) {
+extension NSColor {
+    fileprivate convenience init(terminalColor c: TerminalColor) {
         self.init(calibratedRed: c.red, green: c.green, blue: c.blue, alpha: c.alpha)
     }
 }

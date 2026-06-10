@@ -103,7 +103,7 @@ public actor TerminalSession {
         }
 
         do {
-            try zsh.launch()
+            try zsh.run()
         } catch {
             pty.close()
             self.ptyHandle = nil

@@ -130,6 +130,11 @@ public struct HTMLPreviewView: NSViewRepresentable {
         // WKUserScript for selection capture to function.
         configuration.defaultWebpagePreferences.allowsContentJavaScript = false
 
+        // Register the sputnik-img scheme handler for downsampled image streaming (ISS-047).
+        let imageHandler = SputnikImageSchemeHandler()
+        imageHandler.coordinator = context.coordinator
+        configuration.setURLSchemeHandler(imageHandler, forURLScheme: "sputnik-img")
+
         // Inject a user script that captures selection-change events and posts them to
         // the `selectionChange` message handler on the coordinator. This feeds the
         // "More Context" right-click gesture without requiring full JS execution.
@@ -177,17 +182,18 @@ public struct HTMLPreviewView: NSViewRepresentable {
         webView.loadHTMLString(styled, baseURL: baseURL)
     }
 
-    // MARK: - F-4 CSS injection
+    // MARK: - F-4 CSS injection and image rewriting
 
     /// Wraps user HTML content with CSS overrides for the per-panel font and
-    /// background colour. If the user HTML already has a `<head>`, the style block
-    /// is injected before `</head>`; otherwise the content is wrapped in a minimal
-    /// HTML document.
+    /// background colour. Also rewrites local `<img src>` paths to use the
+    /// `sputnik-img://` scheme handler (ISS-047). If the user HTML already has a `<head>`,
+    /// the style block is injected before `</head>`; otherwise the content is wrapped in
+    /// a minimal HTML document.
     /// - Parameters:
     ///   - html:     The raw HTML from the editor session.
     ///   - settings: The settings store (read for `resolvedHtmlPreviewFont` and
     ///               `htmlPreviewBackground`).
-    /// - Returns: Modified HTML string with injected style overrides.
+    /// - Returns: Modified HTML string with injected style overrides and rewritten img src.
     private func htmlByInjectingOverrides(_ html: String, settings: SettingsStore) -> String {
         let bg = NSColor(settings.htmlPreviewBackground)
         let font = settings.resolvedHtmlPreviewFont
@@ -212,11 +218,14 @@ public struct HTMLPreviewView: NSViewRepresentable {
             </style>
             """
 
-        if let headEnd = html.range(of: "</head>", options: .caseInsensitive) {
-            return html.replacingCharacters(in: headEnd, with: css + "</head>")
+        // Rewrite local <img src> paths to use the sputnik-img scheme
+        let rewritten = rewriteLocalImageSources(html)
+
+        if let headEnd = rewritten.range(of: "</head>", options: .caseInsensitive) {
+            return rewritten.replacingCharacters(in: headEnd, with: css + "</head>")
         }
 
-        if html.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+        if rewritten.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
             // Empty content — load placeholder
             return placeholderHTML
         }
@@ -226,9 +235,45 @@ public struct HTMLPreviewView: NSViewRepresentable {
             <!DOCTYPE html>
             <html>
             <head><meta charset="utf-8">\(css)</head>
-            <body>\(html)</body>
+            <body>\(rewritten)</body>
             </html>
             """
+    }
+
+    /// Rewrites local `<img src="…">` paths to use the `sputnik-img://` scheme.
+    /// Leaves `http(s)`, protocol-relative, and existing `data:` URIs untouched.
+    private func rewriteLocalImageSources(_ html: String) -> String {
+        var result = html
+        // Match <img ... src="..." ... > with capturing group for the src value
+        let pattern = #"<img\s+([^>]*?\s+)?src="([^"]*)""#
+        guard let regex = try? NSRegularExpression(pattern: pattern, options: []) else {
+            return html
+        }
+
+        let nsString = html as NSString
+        let matches = regex.matches(in: html, range: NSRange(location: 0, length: nsString.length))
+
+        // Process matches in reverse order to maintain string indices
+        for match in matches.reversed() {
+            if match.numberOfRanges < 3 { continue }
+            let srcRange = match.range(at: 2)
+            let srcValue = nsString.substring(with: srcRange)
+
+            // Skip remote URLs and data URIs
+            if srcValue.hasPrefix("http://") || srcValue.hasPrefix("https://") ||
+               srcValue.hasPrefix("//") || srcValue.hasPrefix("data:") {
+                continue
+            }
+
+            // Rewrite local path to sputnik-img scheme
+            if let encoded = srcValue.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) {
+                let newSrc = "sputnik-img://host/\(encoded)"
+                let fullRange = NSRange(location: srcRange.location, length: srcRange.length)
+                result = nsString.replacingCharacters(in: fullRange, with: newSrc) as String
+            }
+        }
+
+        return result
     }
 
     // MARK: - Placeholder

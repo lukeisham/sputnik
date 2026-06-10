@@ -39,6 +39,11 @@ public final class TerminalManager: ObservableObject, TerminalLifecycle {
     private var pumpTask: Task<Void, Never>?
     private var currentWorkingDirectory: URL?
 
+    // MARK: - Last known grid size (seeded at session start, updated on resize)
+
+    private var lastCols: UInt16 = 80
+    private var lastRows: UInt16 = 24
+
     // MARK: - Init / deinit
 
     public init() {}
@@ -83,6 +88,14 @@ public final class TerminalManager: ObservableObject, TerminalLifecycle {
 
         isRunning = true
         currentWorkingDirectory = directory
+
+        // Seed the real grid size now that the session is alive (step 5).
+        // This overrides the transient 80×24 used for initial emulator construction.
+        if lastCols != 80 || lastRows != 24 {
+            await emu.resize(cols: Int(lastCols), rows: Int(lastRows))
+        }
+        await sess.resize(cols: lastCols, rows: lastRows)
+        self.snapshot = await emu.snapshot()
 
         // Pump the session's AsyncStream into the emulator and refresh snapshots.
         pumpTask = Task { [weak self] in
@@ -155,10 +168,22 @@ public final class TerminalManager: ObservableObject, TerminalLifecycle {
 
     // MARK: - Resize
 
-    /// Notifies the PTY of a terminal resize.
+    /// Notifies the PTY and emulator of a terminal resize.
+    ///
+    /// Stores the last-known dimensions so they can be re-applied when a new
+    /// session starts (step 5). Resizes both the PTY (`TIOCSWINSZ`) and the
+    /// emulator grid, then refreshes the published snapshot.
     public func resize(cols: UInt16, rows: UInt16) {
+        lastCols = cols
+        lastRows = rows
         guard let sess = session else { return }
-        Task { await sess.resize(cols: cols, rows: rows) }
+        Task {
+            await sess.resize(cols: cols, rows: rows)
+            await emulator?.resize(cols: Int(cols), rows: Int(rows))
+            if let snap = await emulator?.snapshot() {
+                self.snapshot = snap
+            }
+        }
     }
 
     // MARK: - Alert dismissal

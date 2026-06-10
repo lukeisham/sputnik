@@ -1,7 +1,7 @@
 ---
 module: 5 PDF Viewer
 status: complete
-last_updated: 2026-06-08
+last_updated: 2026-06-10
 plan: 1 Setup/Plans New/2026-06-08 5 PDF Viewer Implement PDF Viewer module.md
 ---
 
@@ -123,6 +123,7 @@ PDF VIEWER PANEL  (occupies the right slot; see module 2.0 overview)
   - Non-PDF file routed to PDF Viewer → `PDFDocument(url:)` returns `nil` → display error banner: "Cannot open — not a valid PDF file"
   - Corrupted PDF → `PDFDocument` initialises but has zero pages or throws on page access → catch and display "This PDF appears to be corrupted" with a retry button
   - Oversized PDF → enforce a configurable page-count or file-size limit (default: 10,000 pages or 500 MB) before loading; show warning with option to proceed
+  - **Image display (ISS-048):** PNG/JPEG files are now openable via the PDF Viewer. `FileType` includes `.image` case for `png/jpg/jpeg` (ISS-048); `AppInterPanelRouter.open(_:)` routes `.image` files to module 5. `PDFViewerViewModel.loadImage(_:)` calls `PreviewImageResolver.nsImage(…)` to fetch a downsampled `NSImage` (2000 px max, 20 MB byte cap), wraps it with `PDFPage(image:)` into a single-page `PDFDocument`, and assigns to the document property. This reuses all existing fit/zoom/rotate/print controls with zero new view code. The 2000 px and 20 MB limits are enforced in the shared resolver (module 9.6) — same limit applies to Markdown and HTML (SR-1, SR-3). TOC and thumbnail sidebars are not visible for single-page image documents.
   - Missing file → `PDFDocument(url:)` returns `nil` → route back to Foundation's `.fileNotFound` error pathway
   - Thumbnail generation failure per-page → silently skip that thumbnail (single page failure does not block the grid)
 

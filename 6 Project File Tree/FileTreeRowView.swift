@@ -1,3 +1,4 @@
+import FoundationModule
 import SwiftUI
 
 /// A single row in the file tree: indented icon + name label with a disclosure
@@ -40,7 +41,9 @@ public struct FileTreeRowView: View {
             // Name label
             Text(node.name)
                 .font(.system(size: SputnikFont.body))
-                .foregroundStyle(node.isReadable ? SputnikColor.primaryText : SputnikColor.tertiaryText)
+                .foregroundStyle(
+                    node.isReadable ? SputnikColor.primaryText : SputnikColor.tertiaryText
+                )
                 .lineLimit(1)
                 .truncationMode(.middle)
 
@@ -77,8 +80,8 @@ public struct FileTreeRowView: View {
         if node.isDirectory { return Color.accentColor }
         switch node.fileType {
         case .markdown: return .green
-        case .html:     return .orange
-        case .pdf:      return .red
+        case .html: return .orange
+        case .pdf: return .red
         case .ascii, .text, .binary, .unknown:
             return SputnikColor.secondaryText
         }

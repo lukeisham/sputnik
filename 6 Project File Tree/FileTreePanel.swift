@@ -1,4 +1,5 @@
 import AppKit
+import FoundationModule
 import SwiftUI
 import UniformTypeIdentifiers
 
@@ -12,11 +13,14 @@ import UniformTypeIdentifiers
 public struct FileTreePanel: View {
 
     @Environment(WindowState.self) private var windowState
-    @Environment(AppState.self) private var appState
     @State private var viewModel = FileTreeViewModel()
     @State private var showSearch: Bool = false
 
-    public init() {}
+    private let router: any InterPanelRouter
+
+    public init(router: any InterPanelRouter) {
+        self.router = router
+    }
 
     public var body: some View {
         VStack(spacing: 0) {
@@ -27,7 +31,7 @@ public struct FileTreePanel: View {
         }
         .background(SputnikColor.secondaryBackground)
         .task {
-            viewModel.configure(windowState: windowState)
+            viewModel.configure(windowState: windowState, router: router)
             // Restore last workspace directory if already set
             if let dir = windowState.activeWorkspaceDirectory {
                 await viewModel.selectRootDirectory(dir)

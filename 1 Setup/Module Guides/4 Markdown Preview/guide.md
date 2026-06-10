@@ -1,7 +1,7 @@
 ---
 module: 4 Markdown Preview
 status: complete
-last_updated: 2026-06-09
+last_updated: 2026-06-10
 plan: 1 Setup/Plans New/2026-06-08 4 Markdown Preview Implement Markdown Preview module.md
 ---
 
@@ -128,6 +128,7 @@ MARKDOWN PREVIEW PANEL  (occupies centre lower slot; see module 2.0 overview)
   - Right-click More Context with no selection → `MoreContextMenu` returns `[]`, no menu items are added; the default context menu is shown unchanged
   - `NSTextViewDelegate.textView(_:menu:at:for:)` replaces the menu (by returning a new one), not mutating the passed-in menu — ensures the NSTextView doesn't add duplicate items
   - Markdown parse failure (invalid syntax that `AttributedString(markdown:)` cannot handle) → catch the thrown error; render as plain text with a subtle warning banner, never a crash
+  - **Image display (ISS-046):** Local image references (`![alt](path.png)`) are post-processed after Markdown parsing: for each relative/local path, `PreviewImageResolver.nsImage(relativeTo:baseDir)` decodes and downsamples via ImageIO (2000 px max, 20 MB byte cap). On success, an `NSTextAttachment` splices the downsampled `NSImage` into the `NSAttributedString` at the reference position, preserving text selection/copy around it. Remote `http(s)` image URLs render as labelled links (no network fetch). Missing/corrupt/oversized images show a placeholder cell. The 2000 px and 20 MB limits are enforced in the shared resolver (module 9.6) — same limit applies to HTML and PDF image loading (SR-1, SR-3).
   - Link target is a local file that no longer exists → `InterPanelRouter.open(_:)` classifies it and surfaces a `SputnikAlert` (2.4); the preview is left unchanged
   - Very large Markdown document (10,000+ lines) → conversion runs on background `Task(priority: .utility)`; the UI remains responsive during parsing; intermediate renders are skipped if a newer text arrives before parsing completes
   - External link with unexpected scheme (`javascript:`, `data:`, …) → blocked and logged, never opened

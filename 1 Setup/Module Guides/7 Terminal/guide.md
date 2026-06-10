@@ -1,7 +1,7 @@
 ---
 module: 7 Terminal
 status: active
-last_updated: 2026-06-09
+last_updated: 2026-06-10
 ---
 
 ## Purpose
@@ -43,16 +43,59 @@ Host an interactive Zsh shell inside Sputnik over a pseudo-terminal, rendering i
                     └──▶ for each: manager.killAllPTYs() [concurrent]
 ```
 
+## Wiring Details (verified 2026-06-10)
+
+### Keyboard Focus Path (ISS-021)
+Focus is routed to the `TerminalTextView` so `keyDown(with:)` fires and keystrokes reach
+`KeyEncoder` → Zsh stdin. The view promotes itself in two places:
+
+1. **`viewDidMoveToWindow()`** — when the view is attached to a window (SwiftUI mounts it),
+   calls `window?.makeFirstResponder(self)` so the terminal is immediately interactive
+   without requiring a click.
+2. **`mouseDown(with:)`** — on click, calls `window?.makeFirstResponder(self)` so clicking
+   the panel re-routes focus from another panel back to the terminal.
+
+`acceptsFirstResponder` is `true` and `acceptsFirstMouse(for:)` returns `true`.
+
+### Live Resize Path (ISS-022)
+Grid dimensions propagate from the view to both the PTY and the emulator through this
+chain:
+
+```
+TerminalTextView             (viewDidMoveToWindow registers NSView.frameDidChangeNotification
+  │                            observer; reportGridSize() computes cols/rows from bounds ÷
+  │  onResize                   cell metrics, de-dupes against lastReportedCols/LastReportedRows)
+  ▼
+TerminalRenderer              (forwards onResize closure straight through — view owns
+  │                             observation, Coordinator is an empty placeholder)
+  │  onResize
+  ▼
+TerminalManager.resize      (stores lastCols/lastRows; kicks Task to do both:
+  ├── session.resize(cols:) → PTY TIOCSWINSZ
+  └── emulator.resize(cols:) → grid reshape + snapshot refresh)
+```
+
+**Session-start seeding:** `TerminalManager.startSession` creates the emulator with a
+`80×24` transient default, then after the PTY session is running, re-applies the stored
+`lastCols`/`lastRows` (which may have been set by an earlier `onResize` if the view was
+already sized). This prevents a race between the first frame-change notification and the
+async session launch.
+
+### Profile Chrome
+`TerminalView`'s chrome bar displays `"<fontName> <fontSize>"` (e.g. `"Menlo 13"`) read
+from the live `TerminalProfile`, which is computed from `@Environment(SettingsStore.self)`
+fields. This replaces the misleading hardcoded `"Profile: Default"` label.
+
 ## Technical Summary
 - **Framework(s):** Foundation (`Process`, `FileHandle`), Darwin POSIX (`posix_openpt`, `grantpt`, `unlockpt`, `ptsname`), AppKit via `NSViewRepresentable` (raw rendering per SW-3), SwiftUI, Swift Concurrency
 - **Key types:**
-  - `TerminalSession` — `actor` owning the PTY master `FileHandle` and the Zsh `Process`; exposes `start()`, `send(_ bytes: Data)`, `resize(cols:rows:)`, and `terminate()`; serialises all PTY I/O through actor isolation <!-- assumed -->
-  - `PTYHandle` — wraps the `posix_openpt → grantpt → unlockpt → ptsname` sequence, returning the master `FileHandle` and the slave path; one responsibility, one file (SR-6) <!-- assumed -->
-  - `TerminalEmulator` — parses the raw ANSI/VT byte stream into a grid of screen cells plus a capped scrollback buffer; no AppKit dependency so it is unit-testable <!-- assumed -->
-  - `TerminalRenderer` — `NSViewRepresentable` drawing the emulator's cell grid; AppKit is justified here by ANSI rendering throughput (SW-3) <!-- assumed -->
-  - `KeyEncoder` — translates special keys (arrows, Backspace, Delete, Ctrl-C, etc.) into the ANSI byte sequences Zsh expects (spec 7.6) <!-- assumed -->
-  - `ScrollbackBuffer` — fixed-capacity ring buffer of rendered lines; drops the oldest line on overflow to cap RAM (SR-3) <!-- assumed -->
-  - `TerminalProfile` — `Sendable` value type for customisation (font, colours, scrollback line limit); sourced from Settings (2.3) <!-- assumed -->
+  - `TerminalSession` — `actor` owning the PTY master `FileHandle` and the Zsh `Process`; exposes `start()`, `send(_ bytes: Data)`, `resize(cols:rows:)`, and `terminate()`; serialises all PTY I/O through actor isolation
+  - `PTYHandle` — wraps the `posix_openpt → grantpt → unlockpt → ptsname` sequence, returning the master `FileHandle` and the slave path; one responsibility, one file (SR-6)
+  - `TerminalEmulator` — parses the raw ANSI/VT byte stream into a grid of screen cells plus a capped scrollback buffer; no AppKit dependency so it is unit-testable
+  - `TerminalRenderer` — `NSViewRepresentable` drawing the emulator's cell grid; AppKit is justified here by ANSI rendering throughput (SW-3)
+  - `KeyEncoder` — translates special keys (arrows, Backspace, Delete, Ctrl-C, etc.) into the ANSI byte sequences Zsh expects (spec 7.6)
+  - `ScrollbackBuffer` — fixed-capacity ring buffer of rendered lines; drops the oldest line on overflow to cap RAM (SR-3)
+  - `TerminalProfile` — `Sendable` value type for customisation (font, colours, scrollback line limit); sourced from Settings (2.3)
 - **Per-window terminal:** Each window gets its own `TerminalManager`, stored on `WindowState.terminalManager`. `TerminalView` reads `windowState.activeWorkspaceDirectory` (not `AppState`) for the `cd` sync, and registers itself via `windowState.terminalManager = manager` on appear. This ensures each window's shell runs in its own project directory with no terminal state leaking between windows.
 - **`SputnikMenuBarController`** (`@MainActor`) — observes `AppState.isProcessing` (computed, ORs all windows). Its `observation` closure captures `[weak self]`. Uses `NSStatusItem` buttons' `layer` (AppKit-only, annotated).
 - **Threading model:** PTY reads are consumed as an `AsyncStream<Data>` on a long-lived `Task(priority: .utility)` captured with `[weak self]` so the session deallocates (SW-2 — this is the canonical infinite-loop leak risk). ANSI parsing runs off the main thread inside the emulator; only the final cell-grid hand-off and all `NSView` drawing occur on `@MainActor`. `cd` synchronisation observes `WindowState.activeWorkspaceDirectory` (2.2) on the main actor and writes to the PTY through the session actor.

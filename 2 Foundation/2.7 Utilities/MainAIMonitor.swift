@@ -84,7 +84,7 @@ public final class MainAIMonitor {
         startProcessing()
     }
 
-    deinit {
+    @MainActor deinit {
         processingTask?.cancel()
         statsPollingTask?.cancel()
         fileWatcher?.cancel()

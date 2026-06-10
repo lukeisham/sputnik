@@ -54,9 +54,10 @@ public actor HTMLHelpIndex {
         guard !didLoad else { return }
         didLoad = true
         guard
-            let url = Bundle.main.url(
+            let url = Bundle.module.url(
                 forResource: "html_help_index",
-                withExtension: "json"),
+                withExtension: "json",
+                subdirectory: "9.4 Html Help"),
             let data = try? Data(contentsOf: url),
             let file = try? JSONDecoder().decode(HTMLHelpIndexFile.self, from: data)
         else { return }

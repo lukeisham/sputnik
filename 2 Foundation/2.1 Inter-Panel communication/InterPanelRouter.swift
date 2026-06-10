@@ -22,8 +22,8 @@ public protocol InterPanelRouter: AnyObject {
     /// 2. Otherwise a new `DocumentSession` is created, appended to `openDocuments`,
     ///    and made active. The `FileType` is classified from the URL extension.
     ///
-    /// Preview routing by `FileType` is unchanged: `.html` activates module 8,
-    /// `.markdown` activates module 4, `.pdf` activates module 5, and so on.
+    /// Preview routing by `FileType`: `.html` activates module 8, `.markdown` activates
+    /// module 4, `.pdf` and `.image` activate module 5, and so on.
     ///
     /// - Parameter file: The `URL` of the file to open. Must be a file URL.
     func open(_ file: URL) async

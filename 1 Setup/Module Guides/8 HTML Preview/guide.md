@@ -1,7 +1,7 @@
 ---
 module: 8 HTML Preview
 status: complete
-last_updated: 2026-06-09
+last_updated: 2026-06-10
 plan: 1 Setup/Plans Completed/2026-06-08 8 HTML Preview Complete HTML Preview module.md
 ---
 
@@ -61,6 +61,7 @@ Render the active editor tab's HTML (supporting the **HTML Living Standard**) to
   - Active document is not `.html` → panel shows a neutral placeholder; it does **not** render stale content from a previously active tab.
   - Link target is a local file that no longer exists → `InterPanelRouter.open(_:)` classifies it and surfaces a `SputnikAlert` (2.4); the preview is left unchanged, never blanked.
   - External link with an unexpected scheme (`javascript:`, `data:`, `mailto:` …) → not auto-navigated; `mailto:` is handed to `NSWorkspace`, all other non-`http(s)` schemes are `.cancel`led and logged, never executed in-page (defensive default).
+  - **Image display (ISS-047):** Local `<img src="…">` references in the HTML are rewritten during preprocessing to use a custom `sputnik-img://` scheme: the `HTMLPreviewView.htmlByInjectingOverrides(…)` function finds all `<img src="…">` whose value is a relative or local path, and rewrites it to `src="sputnik-img://host/…"` (the path is percent-encoded). The `WKURLSchemeHandler`-conforming `SputnikImageSchemeHandler` is registered for this scheme; when invoked, it parses the path, calls `PreviewImageResolver.data(relativeTo:baseDir)`, and responds with the downsampled bytes (or a 1×1 transparent placeholder for missing/oversized images). This avoids granting broad file sandbox access and keeps the HTML string bounded. Remote `http(s)` and existing `data:` URIs are left untouched. The 2000 px and 20 MB limits are enforced in the shared resolver (module 9.6) — same limit applies to Markdown and PDF (SR-1, SR-3).
   - Very large HTML string → rendering is bounded by the editor's existing file-size guard (module 3 spec, SR-3); module 8 adds no second copy of the text — it reads the active session's buffer.
   - Web content tries to navigate the top frame on its own (meta refresh, script) → treated like any navigation: same `LinkNavigationPolicy` applies, so it cannot silently desync the preview from the editor.
   - `WKScriptMessageHandler` registration creates a potential retain cycle between `WKUserContentController` and the coordinator — mitigated by the coordinator being the `NSViewRepresentable.Coordinator` whose lifecycle is tied to the view; the coordinator holds `weak` references to the router and app state; no `removeScriptMessageHandler` is needed during normal teardown since the coordinator is released when the representable is destroyed.

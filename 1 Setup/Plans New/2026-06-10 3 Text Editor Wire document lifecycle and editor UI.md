@@ -42,7 +42,7 @@ With the app building and running (see prerequisite), against a small `.md`, `.t
    What: Invoke `SyntaxHighlighter` (a) once on load in Step 3 and (b) debounced from `Coordinator.textDidChange` via `DebounceTimer` (Foundation 2.7), keyed off `viewModel.mode`; skip entirely for `.plainText`. Run the pass on `Task(priority: .utility)` and write `NSTextStorage` attributes on `@MainActor`.
    Why: `SyntaxHighlighter` is implemented but never called (ISS-032); MR-3/SR-4 require the work off the main thread.
 
-- [ ] 5. **Build a module-3 editor container and mount the find bar + mode picker**
+- [ ] 5. **Construct a module-3 editor container and mount the find bar + mode picker**
    What: Add a SwiftUI `TextEditorPanel` (module 3) that stacks a toolbar row (a `Picker` bound to `editorViewModel.mode`), a `SearchBarView`, and `EditorView`. Expose the `SearchController` (already created in `makeNSView`) by assigning it onto `EditorViewModel.searchController` the same way `undoManager` is wired, so `SearchBarView` can bind to it and its `isVisible`/`searchTerm` drive the search. Replace the bare `EditorView(...)` in `ContentView` with `TextEditorPanel`, and change the `onChange(activeDocumentID)` handler to `Task { await editorViewModel.openDocument(appState.activeDocument?.url) }`.
    Why: The find UI is never mounted and there is no mode picker (ISS-034, ISS-037); editor chrome is module-3-specific UI so it belongs in module 3, not Foundation (SR-1, SW-3).
 

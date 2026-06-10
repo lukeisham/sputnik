@@ -52,7 +52,7 @@ public final class SlashCommandRegistry {
         }
 
         // Stable sort by category name.
-        result.sort { $0.category < $1.category }
+        result.sort { a, b in a.0 < b.0 }
         return result
     }
 
