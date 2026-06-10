@@ -124,10 +124,15 @@ public final class MarkdownPreviewCoordinator: NSObject, NSTextViewDelegate {
         for selectedRange: NSRange
     ) -> NSMenu? {
         // Extract the selected text from the text view's storage.
+        // `attributedSubstring(from:)` is non-optional but traps on an out-of-range
+        // range, so bound the selection against the storage length first (SR-2).
         guard let storage = textView.textStorage,
-            let selected = storage.attributedSubstring(from: selectedRange)?.string,
-            !selected.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+            NSMaxRange(selectedRange) <= storage.length
         else {
+            return menu
+        }
+        let selected = storage.attributedSubstring(from: selectedRange).string
+        guard !selected.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
             return menu
         }
 

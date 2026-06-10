@@ -97,48 +97,19 @@ public final class MarkdownPreviewViewModel {
         }
     }
 
-    /// Renders Markdown text and applies a font-size scale to the base system font
-    /// in every run of the resulting `AttributedString`.
+    /// Renders Markdown text at the given font scale.
+    ///
+    /// The scale is **not** baked into the parsed `AttributedString` — it is applied
+    /// downstream in `MarkdownRenderView` via `NSTextView.font` (which scales the base
+    /// font for every run uniformly). This method therefore shares the parse path with
+    /// `render(markdown:)`; the `fontScale` parameter is retained for call-site clarity
+    /// and so the panel can keep `viewModel.fontScale` in sync before re-rendering.
     ///
     /// - Parameters:
     ///   - markdown:   The raw Markdown source text.
-    ///   - fontScale:  The zoom factor to apply (1.0 = default).
+    ///   - fontScale:  The zoom factor; applied by the render view, not here.
     public func render(markdown: String, fontScale: CGFloat) {
-        renderGeneration &+= 1
-        let generation = renderGeneration
-
-        isRendering = true
-        renderError = nil
-
-        Task.detached(priority: .utility) { [weak self, generation] in
-            let result: AttributedString
-            do {
-                var parsed = try AttributedString(
-                    markdown: markdown,
-                    options: AttributedString.MarkdownParsingOptions(
-                        allowsExtendedAttributes: true,
-                        interpretedSyntax: .inlineOnlyPreservingWhitespace
-                    )
-                )
-                // Walk every run and scale the font size.
-                var scaled = AttributedString()
-                for run in parsed.runs {
-                    var segment = AttributedString(parsed[run.range])
-                    if let currentFont = segment.font,
-                        let baseSize = segment.font?.pointSize
-                    {
-                        let scaledSize = baseSize * fontScale
-                        segment.font = currentFont.withSize(scaledSize)
-                    }
-                    scaled.append(segment)
-                }
-                await self?.applyRenderedResult(scaled, generation: generation, markdown: markdown)
-            } catch {
-                let plain = AttributedString(markdown)
-                await self?.applyRenderError(
-                    error, rawText: markdown, fallback: plain, generation: generation)
-            }
-        }
+        render(markdown: markdown)
     }
 
     // MARK: - Private helpers
