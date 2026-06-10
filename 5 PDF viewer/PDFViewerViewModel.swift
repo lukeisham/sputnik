@@ -93,6 +93,16 @@ public final class PDFViewerViewModel {
         currentPageIndex = 0
         rotation = 0
 
+        // File size check before loading — avoids reading a rejected file into RAM.
+        if let attrs = try? FileManager.default.attributesOfItem(atPath: url.path),
+           let size = attrs[.size] as? Int64, size > maxFileSize
+        {
+            isLoading = false
+            let mb = size / (1024 * 1024)
+            errorMessage = "This PDF is \(mb) MB, which exceeds the 500 MB limit."
+            return
+        }
+
         let result = await Task(priority: .utility) {
             PDFDocument(url: url)
         }.value
@@ -101,15 +111,6 @@ public final class PDFViewerViewModel {
 
         guard let loaded = result else {
             errorMessage = "Cannot open "\(url.lastPathComponent)" — not a valid PDF file."
-            return
-        }
-
-        // File size check
-        if let attrs = try? FileManager.default.attributesOfItem(atPath: url.path),
-           let size = attrs[.size] as? Int64, size > maxFileSize
-        {
-            let mb = size / (1024 * 1024)
-            errorMessage = "This PDF is \(mb) MB, which exceeds the 500 MB limit."
             return
         }
 

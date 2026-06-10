@@ -195,7 +195,15 @@ public struct PDFToolbarView: View {
         panel.nameFieldStringValue = viewModel.document?.documentURL?.lastPathComponent ?? "document.pdf"
         panel.begin { response in
             guard response == .OK, let url = panel.url else { return }
-            try? data.write(to: url)
+            do {
+                try data.write(to: url)
+            } catch {
+                let alert = NSAlert()
+                alert.messageText = "Save Failed"
+                alert.informativeText = error.localizedDescription
+                alert.alertStyle = .warning
+                alert.runModal()
+            }
         }
     }
 

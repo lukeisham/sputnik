@@ -76,24 +76,28 @@ public struct PDFKitView: NSViewRepresentable {
         // Sync rotation — PDFView.rotation expects Int degrees but uses the same
         // 0/90/180/270 convention as our view model.
         // We apply rotation per-page to avoid PDFView's deprecated property.
-        applyRotation(pdfView)
+        applyRotation(pdfView, context: context)
     }
 
     public func makeCoordinator() -> Coordinator {
         Coordinator(viewModel: viewModel)
     }
 
+    public static func dismantleNSView(_ pdfView: PDFView, coordinator: Coordinator) {
+        NotificationCenter.default.removeObserver(coordinator)
+    }
+
     // MARK: - Rotation helper
 
-    private func applyRotation(_ pdfView: PDFView) {
+    private func applyRotation(_ pdfView: PDFView, context: Context) {
         guard let doc = pdfView.document else { return }
         let target = viewModel.rotation
+        // Skip the full page walk when rotation hasn't changed since the last apply.
+        guard context.coordinator.lastAppliedRotation != target else { return }
+        context.coordinator.lastAppliedRotation = target
         // PDFPage.rotation is the angle in degrees (multiple of 90) applied to each page.
         for i in 0..<doc.pageCount {
-            guard let page = doc.page(at: i) else { continue }
-            if page.rotation != target {
-                page.rotation = target
-            }
+            doc.page(at: i)?.rotation = target
         }
     }
 
@@ -102,6 +106,9 @@ public struct PDFKitView: NSViewRepresentable {
     public final class Coordinator: NSObject, PDFViewDelegate {
 
         private weak var viewModel: PDFViewerViewModel?
+        /// Tracks the last rotation written to `PDFPage.rotation` so `applyRotation`
+        /// can skip the full page walk when nothing has changed.
+        var lastAppliedRotation: Int = -1
 
         init(viewModel: PDFViewerViewModel) {
             self.viewModel = viewModel

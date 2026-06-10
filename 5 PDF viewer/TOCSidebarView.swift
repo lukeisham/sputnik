@@ -84,7 +84,11 @@ private struct OutlineRowView: View {
                     }
                 }
             } label: {
-                rowLabel
+                // Parent nodes may also carry a destination; tap the label to navigate.
+                Button(action: navigateTo) {
+                    rowLabel
+                }
+                .buttonStyle(.plain)
             }
             .padding(.leading, CGFloat(depth) * SputnikSpacing.md)
             .padding(.horizontal, SputnikSpacing.sm)
