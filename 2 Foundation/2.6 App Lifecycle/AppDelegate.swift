@@ -86,7 +86,7 @@ public final class AppDelegate: NSObject, NSApplicationDelegate {
                     group.addTask { await manager.killAllPTYs() }
                 }
             }
-            NSApp.replyToApplicationShouldTerminate(true)
+            NSApp.reply(toApplicationShouldTerminate: true)
         }
         return .terminateLater
     }

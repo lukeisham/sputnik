@@ -1,6 +1,7 @@
-import Foundation
-import Observation
 import AppKit
+import Foundation
+import FoundationModule
+import Observation
 
 /// Manages the file tree state: directory scanning, node expansion, selection,
 /// search filtering, and file-system operations.
@@ -25,6 +26,7 @@ public final class FileTreeViewModel {
     // MARK: - Dependencies (wired after init via configure)
 
     private weak var windowState: WindowState?
+    private weak var router: (any InterPanelRouter)?
 
     // MARK: - Internals
 
@@ -38,9 +40,10 @@ public final class FileTreeViewModel {
 
     // MARK: - Configuration
 
-    /// Wires up the per-window `WindowState`. Called once from `FileTreePanel.task`.
-    public func configure(windowState: WindowState) {
+    /// Wires up the per-window `WindowState` and inter-panel router. Called once from `FileTreePanel.task`.
+    public func configure(windowState: WindowState, router: any InterPanelRouter) {
         self.windowState = windowState
+        self.router = router
     }
 
     // MARK: - Directory selection
@@ -53,7 +56,8 @@ public final class FileTreeViewModel {
         errorMessage = nil
         expandedNodeIDs = []
         selectedNodeID = nil
-        windowState?.activeWorkspaceDirectory = url
+        // Notify the router so Terminal (module 7) can cd to the new directory
+        router?.syncDirectory(url)
         await refreshTree()
         startWatching(url)
     }
@@ -67,8 +71,10 @@ public final class FileTreeViewModel {
         defer { isScanning = false }
 
         var isDir: ObjCBool = false
-        guard FileManager.default.fileExists(atPath: dir.path, isDirectory: &isDir), isDir.boolValue else {
-            errorMessage = "The folder "\(dir.lastPathComponent)" no longer exists or is unavailable."
+        guard FileManager.default.fileExists(atPath: dir.path, isDirectory: &isDir), isDir.boolValue
+        else {
+            errorMessage =
+                "The folder \"\(dir.lastPathComponent)\" no longer exists or is unavailable."
             return
         }
 
@@ -112,7 +118,9 @@ public final class FileTreeViewModel {
                 await expandNode(id)
             }
         } else {
-            windowState?.openDocument(url: id)
+            // Route through InterPanelRouter so the correct panel (Text Editor,
+            // Markdown Preview, HTML Preview, or PDF Viewer) opens for the file type.
+            await router?.open(id)
         }
     }
 
@@ -122,14 +130,16 @@ public final class FileTreeViewModel {
     public func createFile(named name: String, in directory: URL) async {
         let dest = directory.appendingPathComponent(name)
         guard !FileManager.default.fileExists(atPath: dest.path) else {
-            showAlert(title: "File Already Exists",
-                      message: "A file named "\(name)" already exists in this folder.")
+            showAlert(
+                title: "File Already Exists",
+                message: "A file named \"\(name)\" already exists in this folder.")
             return
         }
         let created = FileManager.default.createFile(atPath: dest.path, contents: nil)
         if !created {
-            showAlert(title: "Could Not Create File",
-                      message: "The file "\(name)" could not be created.")
+            showAlert(
+                title: "Could Not Create File",
+                message: "The file \"\(name)\" could not be created.")
         }
         await refreshTree()
     }
@@ -190,24 +200,30 @@ public final class FileTreeViewModel {
 
     /// Non-isolated helper invoked from background `Task`s; never captures `self`.
     private static func loadLevel(_ url: URL) -> [FileTreeNode] {
-        let keys: [URLResourceKey] = [.isDirectoryKey, .contentModificationDateKey, .isReadableKey]
+        let keys: Set<URLResourceKey> = [
+            .isDirectoryKey, .contentModificationDateKey, .isReadableKey,
+        ]
         do {
             let contents = try FileManager.default.contentsOfDirectory(
                 at: url,
-                includingPropertiesForKeys: keys,
+                includingPropertiesForKeys: Array(keys),
                 options: [.skipsHiddenFiles]
             )
-            return contents.compactMap { itemURL -> FileTreeNode? in
-                guard let rv = try? itemURL.resourceValues(forKeys: Set(keys)) else { return nil }
-                let isDir = rv.isDirectory ?? false
+            return contents.map { itemURL -> FileTreeNode in
+                let rv = try? itemURL.resourceValues(forKeys: keys)
+                let isDir = rv?.isDirectory ?? false
+                let isReadable = rv?.isReadable ?? false
+                // When permission is denied (resourceValues throws), create a node
+                // with isReadable: false so the tree shows a lock icon instead of
+                // silently dropping the item (matches the guide's failure mode spec).
                 return FileTreeNode(
                     id: itemURL,
                     name: itemURL.lastPathComponent,
                     isDirectory: isDir,
-                    children: nil,
-                    fileType: isDir ? .unknown : FileType(url: itemURL),
-                    modificationDate: rv.contentModificationDate,
-                    isReadable: rv.isReadable ?? false
+                    children: isReadable ? nil : [],
+                    fileType: (isDir || !isReadable) ? .unknown : FileType(url: itemURL),
+                    modificationDate: rv?.contentModificationDate,
+                    isReadable: isReadable
                 )
             }
             .sorted { lhs, rhs in
@@ -253,7 +269,9 @@ public final class FileTreeViewModel {
         return nil
     }
 
-    private func applyChildren(_ children: [FileTreeNode], toNodeID id: URL, in node: inout FileTreeNode?) {
+    private func applyChildren(
+        _ children: [FileTreeNode], toNodeID id: URL, in node: inout FileTreeNode?
+    ) {
         guard var n = node else { return }
         if n.id == id {
             n.children = children
@@ -280,9 +298,10 @@ public final class FileTreeViewModel {
     // MARK: - Private: alert
 
     private func showAlert(title: String, message: String) {
+        let sputnikAlert = SputnikAlert.custom(title: title, message: message)
         let alert = NSAlert()
-        alert.messageText = title
-        alert.informativeText = message
+        alert.messageText = sputnikAlert.title
+        alert.informativeText = sputnikAlert.message
         alert.alertStyle = .warning
         alert.addButton(withTitle: "OK")
         alert.runModal()

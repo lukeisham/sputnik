@@ -86,7 +86,8 @@ public final class MainAIMonitor {
 
     deinit {
         processingTask?.cancel()
-        stopStatsPolling()
+        statsPollingTask?.cancel()
+        fileWatcher?.cancel()
     }
 
     // MARK: - Public API
@@ -136,7 +137,7 @@ public final class MainAIMonitor {
             guard let self else { return }
             for await line in self.lineStream {
                 guard !Task.isCancelled else { break }
-                await self.processLine(line)
+                self.processLine(line)
             }
         }
     }
@@ -155,15 +156,9 @@ public final class MainAIMonitor {
             let name = parts[1].trimmingCharacters(in: .whitespaces)
             guard !name.isEmpty else { return }
             setDetected(modelName: name)
-        } else if line.contains("clear") || line.contains("exit") || line.contains("newgrp") {
+        } else if line == "clear" || line == "exit" {
             // Terminal session boundary — clear the detected model when the shell resets.
-            // Only clear if the line appears to be a standalone command (not part of output).
-            // We use a simple heuristic: if the line is short and doesn't contain common
-            // shell output markers.
-            let trimmed = line.trimmingCharacters(in: .whitespaces)
-            if trimmed == "clear" || trimmed == "exit" {
-                clear()
-            }
+            clear()
         }
     }
 
@@ -209,7 +204,7 @@ public final class MainAIMonitor {
 // MARK: - TerminalAIOutputObserving
 
 extension MainAIMonitor: TerminalAIOutputObserving {
-    public func observe(line: String) {
+    public nonisolated func observe(line: String) {
         lineContinuation.yield(line)
     }
 }
@@ -305,6 +300,9 @@ extension MainAIMonitor {
         let watcher = DispatchSource.makeFileSystemObjectSource(
             fileDescriptor: fd,
             eventMask: [.write, .extend, .rename, .delete],
+            // MR-3: DispatchQueue.global is necessary here because DispatchSource
+            // has no async/await equivalent; the QoS is .background to minimise
+            // battery impact.
             queue: DispatchQueue.global(qos: .background)
         )
 

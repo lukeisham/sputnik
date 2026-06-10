@@ -47,7 +47,7 @@ public final class SlashCommandRegistry {
                     || cmd.detail.lowercased().contains(lower)
             }
             if !filtered.isEmpty {
-                result.append((category, filtered.sorted { $0.label < $1.label }))
+                result.append((category, filtered.sorted { lhs, rhs in lhs.label < rhs.label }))
             }
         }
 

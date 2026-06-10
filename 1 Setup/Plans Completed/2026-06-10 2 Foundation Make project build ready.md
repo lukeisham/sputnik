@@ -2,7 +2,7 @@
 plan: Make the project compile — fix Foundation build errors
 module: 2 Foundation
 created: 2026-06-10
-status: pending
+status: complete
 related_issues: ISS-023, ISS-024, ISS-025, ISS-026, ISS-027, ISS-028, ISS-029
 flag: TOUCHES FOUNDATION (module 2) — changes here affect every other module; Step 9 also touches module 6 (file tree)
 ---

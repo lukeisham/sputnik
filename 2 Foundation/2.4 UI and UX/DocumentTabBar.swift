@@ -64,16 +64,24 @@ public struct DocumentTabBar: View {
                         guard let provider = providers.first else { return false }
                         _ = provider.loadObject(ofClass: NSString.self) { item, _ in
                             guard let uuidString = item as? String,
-                                  let fromID = UUID(uuidString: uuidString)
+                                let fromID = UUID(uuidString: uuidString)
                             else { return }
                             Task { @MainActor in
                                 guard fromID != session.id,
-                                      let fromIndex = appState.openDocuments.firstIndex(where: { $0.id == fromID }),
-                                      let toIndex = appState.openDocuments.firstIndex(where: { $0.id == session.id })
-                                else { draggingID = nil; return }
+                                    let fromIndex = appState.openDocuments.firstIndex(where: {
+                                        $0.id == fromID
+                                    }),
+                                    let toIndex = appState.openDocuments.firstIndex(where: {
+                                        $0.id == session.id
+                                    })
+                                else {
+                                    draggingID = nil
+                                    return
+                                }
                                 // Adjust offset: Array.move semantics require +1 when inserting after.
                                 let toOffset = toIndex < fromIndex ? toIndex : toIndex + 1
-                                appState.moveDocument(fromOffsets: IndexSet(integer: fromIndex), toOffset: toOffset)
+                                appState.moveDocument(
+                                    fromOffsets: IndexSet(integer: fromIndex), toOffset: toOffset)
                                 draggingID = nil
                             }
                         }
@@ -119,7 +127,7 @@ private struct TabItem: View {
             // Dirty-state indicator dot
             if session.isDirty {
                 Circle()
-                    .fill(SputnikColor.accentPrimary)
+                    .fill(SputnikColor.accent)
                     .frame(width: 6, height: 6)
             }
 
@@ -154,7 +162,7 @@ private struct TabItem: View {
         .overlay(alignment: .bottom) {
             if isActive {
                 Rectangle()
-                    .fill(SputnikColor.accentPrimary)
+                    .fill(SputnikColor.accent)
                     .frame(height: 2)
             }
         }

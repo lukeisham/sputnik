@@ -1,12 +1,12 @@
-import SwiftUI
+import FileTreeModule
 import FoundationModule
-import TextEditorModule
+import HTMLPreviewModule
 import MarkdownPreviewModule
 import PDFViewerModule
-import FileTreeModule
-import TerminalModule
-import HTMLPreviewModule
 import ResourcesModule
+import SwiftUI
+import TerminalModule
+import TextEditorModule
 
 /// Root layout wiring every named panel slot and the pinned Terminal strip.
 ///
@@ -31,7 +31,7 @@ public struct ContentView: View {
         VStack(spacing: 0) {
             HStack(spacing: 1) {
                 // Left — Project File Tree (module 6) — reads windowState for per-window workspace
-                FileTreePanel()
+                FileTreePanel(router: router)
                     .frame(width: 240)
                     .frame(maxHeight: .infinity)
 
@@ -68,6 +68,7 @@ public struct ContentView: View {
             StatusBarView()
         }
         .frame(minWidth: 900, minHeight: 600)
+        .navigationTitle(windowState.title)
         .overlay(alignment: .bottomTrailing) {
             ScratchpadPanel(
                 isVisible: Binding(

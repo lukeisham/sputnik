@@ -147,6 +147,7 @@ public final class SettingsStore {
         static let markdownPreviewFont = "sputnik.settings.markdownPreviewFont"
         static let htmlPreviewFont = "sputnik.settings.htmlPreviewFont"
         // Terminal
+        static let terminalFontName = "sputnik.settings.terminalFontName"
         static let terminalFontSize = "sputnik.settings.terminalFontSize"
         static let terminalScrollbackLimit = "sputnik.settings.terminalScrollbackLimit"
         static let terminalForeground = "sputnik.settings.terminalForeground"

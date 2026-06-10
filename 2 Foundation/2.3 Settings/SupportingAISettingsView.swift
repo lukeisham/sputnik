@@ -110,7 +110,7 @@ struct SupportingAISettingsView: View {
                     LabeledContent("") {
                         Text(keyStatusMessage)
                             .font(.caption)
-                            .foregroundStyle(isKeySaved ? .secondary : .orange)
+                            .foregroundStyle(isKeySaved ? .secondary : Color.orange)
                     }
                 }
             }
