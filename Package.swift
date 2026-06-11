@@ -31,10 +31,8 @@ let package = Package(
             ],
             path: "App-Sputnik",
             resources: [
-                // This bundles your icons and images correctly
                 .process("Assets.xcassets")
             ]
-            // NO exclude line — we need Info.plist + entitlements + assets
         )
     ]
 )

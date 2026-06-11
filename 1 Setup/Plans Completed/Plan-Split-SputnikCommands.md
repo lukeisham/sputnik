@@ -1,11 +1,19 @@
 # Plan: Refactor SputnikCommands into Modular Menu System
 
-**Status:** New  
+**Status:** Complete  
 **Created:** 2026-06-11  
 **Target Module:** 2 Foundation / 2.0 App Overview  
 **Affected Files:** SputnikCommands.swift (571 → 7 files × 50-100 LOC)  
 **Effort:** Medium (3-4 hours)  
 **Risk:** Low (menus are isolated; easy to verify against macOS menu bar)
+
+---
+
+## Before Starting
+
+> **Read `1 Setup/Vibe_Coding_Rules.md` in full before writing any code.** Every step in this plan must comply with those rules. If a conflict arises, the rules win.
+
+> **Mark each checkbox `[x]` as soon as that step is complete.** Do not batch updates — check off immediately after finishing each item so progress is always visible.
 
 ---
 
@@ -59,7 +67,7 @@ SputnikCommands: Commands (80 LOC, router only)
 
 **Before making any changes, verify that SputnikCommands refactoring won't break other modules.**
 
-1. **Scan for SputnikCommands imports across the codebase**
+- [x] 1. **Scan for SputnikCommands imports across the codebase**
    ```bash
    grep -r "import.*SputnikCommands" --include="*.swift"
    grep -r "SputnikCommands\." --include="*.swift" | grep -v "^2 Foundation/"
@@ -67,51 +75,51 @@ SputnikCommands: Commands (80 LOC, router only)
    - Verify SputnikCommands is only imported in App-Sputnik (as the entry point)
    - No panels or other modules should directly reference menu actions
 
-2. **Check AppState, SettingsStore, AppInterPanelRouter dependencies**
+- [x] 2. **Check AppState, SettingsStore, AppInterPanelRouter dependencies**
    - Verify these types exist in Foundation module with correct signatures
    - Scan which modules use each: `grep -r "AppInterPanelRouter" --include="*.swift"`
    - Ensure all three are already injected/available to menu groups
 
-3. **Verify menu helper functions have no external dependencies**
+- [x] 3. **Verify menu helper functions have no external dependencies**
    - Check `openDocument()`, `saveAs()`, `presentAlert()` usage across codebase
    - Ensure they're internal to SputnikCommands (not called from other modules)
    - `grep -r "openDocument\|saveAs\|presentAlert" --include="*.swift" | grep -v "SputnikCommands"`
    - If found outside SputnikCommands, these functions must remain in SputnikCommands, not extracted
 
-4. **Check for panel actions that might conflict with menu commands**
+- [x] 4. **Check for panel actions that might conflict with menu commands**
    - Verify panels don't define their own ⌘S, ⌘O, ⌘N handlers that would conflict
    - `grep -r "keyboardShortcut.*\\(\"s\"\\|\"o\"\\|\"n\"\\)" --include="*.swift" | grep -v "SputnikCommands"`
    - Ensure menu command dispatch is the single source of truth
 
-5. **Verify AppInterPanelRouter can broadcast to all panels**
+- [x] 5. **Verify AppInterPanelRouter can broadcast to all panels**
    - Check that router has methods for: file operations, view toggles, focus changes
    - Confirm no panel directly listens for menu broadcasts (should go through router only)
 
-6. **Document findings & proceed only if green light**
-   - [ ] SputnikCommands imported only from App-Sputnik
-   - [ ] All dependencies (AppState, SettingsStore, AppInterPanelRouter) available
-   - [ ] Helper functions not called from outside SputnikCommands
-   - [ ] No menu shortcut conflicts in panel code
-   - [ ] Router can broadcast to all affected panels
-   - [ ] Safe to proceed with extraction
+- [x] 6. **Document findings & proceed only if green light**
+   - [x] SputnikCommands imported only from App-Sputnik
+   - [x] All dependencies (AppState, SettingsStore, AppInterPanelRouter) available
+   - [x] Helper functions not called from outside SputnikCommands
+   - [x] No menu shortcut conflicts in panel code
+   - [x] Router can broadcast to all affected panels
+   - [x] Safe to proceed with extraction
 
 **If any issues found:** Log to Issues.md before continuing.
 
 ---
 
 ### Phase 1: Extract Helpers (30 min)
-1. Create **MenuHelpers.swift**:
+- [x] 1. Create **MenuHelpers.swift**:
    - Extract `openDocument()` (lines 534–543)
    - Extract `saveAs()` (lines 545–561)
    - Extract `presentAlert(_:)` (lines 563–570)
    - Make private functions internal for the new menu modules
 
-2. **Verify:** Compile. SputnikCommands still runs unchanged.
+- [x] 2. **Verify:** Compile. SputnikCommands still runs unchanged.
 
 ### Phase 2: Extract Each Menu (3 hours)
 For each menu (in order: Sputnik, File, Edit, Spelling/Grammar, Format, View, Window, Help):
 
-1. **Create MenuGroup.swift** (e.g., `FileMenuGroup.swift`)
+- [x] 1. **Create MenuGroup.swift** (e.g., `FileMenuGroup.swift`)
    ```swift
    import AppKit
    import SwiftUI
@@ -139,7 +147,7 @@ For each menu (in order: Sputnik, File, Edit, Spelling/Grammar, Format, View, Wi
    }
    ```
 
-2. **Update SputnikCommands** to call the new group:
+- [x] 2. **Update SputnikCommands** to call the new group:
    ```swift
    public var body: some Commands {
        SputnikMenuGroup(appState: appState, ...)
@@ -148,32 +156,32 @@ For each menu (in order: Sputnik, File, Edit, Spelling/Grammar, Format, View, Wi
    }
    ```
 
-3. **Run** and verify menu bar is unchanged.
+- [x] 3. **Run** and verify menu bar is unchanged.
 
-4. **Delete** the old inline menu from SputnikCommands.
+- [x] 4. **Delete** the old inline menu from SputnikCommands.
 
 ### Phase 3: Test & Cleanup (30 min)
-1. Build and run app
-2. Click each menu (Sputnik, File, Edit, Format, View, Window, Help)
-3. Verify all keyboard shortcuts work (⌘N, ⌘S, ⌘⌥A, etc.)
-4. Check "Merge All Windows" action (complex, line 451–482)
-5. Delete old commented code
+- [x] 1. Build and run app
+- [x] 2. Click each menu (Sputnik, File, Edit, Format, View, Window, Help)
+- [x] 3. Verify all keyboard shortcuts work (⌘N, ⌘S, ⌘⌥A, etc.)
+- [x] 4. Check "Merge All Windows" action (complex, line 451–482)
+- [x] 5. Delete old commented code
 
 ---
 
 ## Files to Create
-- `SputnikMenuGroup.swift` (40 LOC)
-- `FileMenuGroup.swift` (100 LOC)
-- `EditMenuGroup.swift` (90 LOC)
-- `WritingAssistanceMenuGroup.swift` (40 LOC)
-- `FormatMenuGroup.swift` (15 LOC)
-- `ViewMenuGroup.swift` (70 LOC)
-- `WindowMenuGroup.swift` (60 LOC)
-- `HelpMenuGroup.swift` (40 LOC)
-- `MenuHelpers.swift` (37 LOC)
+- [ ] `SputnikMenuGroup.swift` (40 LOC)
+- [ ] `FileMenuGroup.swift` (100 LOC)
+- [ ] `EditMenuGroup.swift` (90 LOC)
+- [ ] `WritingAssistanceMenuGroup.swift` (40 LOC)
+- [ ] `FormatMenuGroup.swift` (15 LOC)
+- [ ] `ViewMenuGroup.swift` (70 LOC)
+- [ ] `WindowMenuGroup.swift` (60 LOC)
+- [ ] `HelpMenuGroup.swift` (40 LOC)
+- [ ] `MenuHelpers.swift` (37 LOC)
 
 ## Files to Modify
-- `SputnikCommands.swift` (571 → 80 LOC)
+- [ ] `SputnikCommands.swift` (571 → 80 LOC)
 
 ## Files to Delete
 - None (old SputnikCommands is rewritten in place)
@@ -183,22 +191,22 @@ For each menu (in order: Sputnik, File, Edit, Spelling/Grammar, Format, View, Wi
 ## Testing Checklist
 
 ### Manual Testing
-- [ ] App launches (no crashes in menu setup)
-- [ ] File → New Tab (⌘T)
-- [ ] File → New Window (⌘⇧N)
-- [ ] File → Open (⌘O)
-- [ ] File → Save (⌘S)
-- [ ] File → Save As (⌘⇧S)
-- [ ] File → Render as HTML (⌘⌥P)
-- [ ] Edit → Undo/Redo (⌘Z, ⌘⇧Z)
-- [ ] Edit → Cut/Copy/Paste (⌘X, ⌘C, ⌘V)
-- [ ] Edit → Find (⌘F)
-- [ ] View → Toggle File Tree (⌘⌥1)
-- [ ] View → Toggle Preview (⌘⌥2)
-- [ ] View → Focus: Editor (⌘⌃E)
-- [ ] Window → Minimize (⌘M)
-- [ ] Window → Merge All Windows
-- [ ] Help → Sputnik Help (⌘?)
+- [x] App launches (no crashes in menu setup)
+- [x] File → New Tab (⌘T)
+- [x] File → New Window (⌘⇧N)
+- [x] File → Open (⌘O)
+- [x] File → Save (⌘S)
+- [x] File → Save As (⌘⇧S)
+- [x] File → Render as HTML (⌘⌥P)
+- [x] Edit → Undo/Redo (⌘Z, ⌘⇧Z)
+- [x] Edit → Cut/Copy/Paste (⌘X, ⌘C, ⌘V)
+- [x] Edit → Find (⌘F)
+- [x] View → Toggle File Tree (⌘⌥1)
+- [x] View → Toggle Preview (⌘⌥2)
+- [x] View → Focus: Editor (⌘⌃E)
+- [x] Window → Minimize (⌘M)
+- [x] Window → Merge All Windows
+- [x] Help → Sputnik Help (⌘?)
 
 ### Automated Tests (Future)
 Once writing tests, create:

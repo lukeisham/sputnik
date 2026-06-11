@@ -300,6 +300,68 @@ FOCUS / TOGGLE MODES  (View menu):
 
 ---
 
+## Menu Item Reference
+
+### Standard macOS items — Sputnik behaviour
+
+- **About Sputnik** — opens a dedicated `"about"` SwiftUI window (id registered in `SputnikApp`); does not use the default `NSApp` About panel.
+- **Settings… ⌘,** — sends the standard `showSettingsWindow:` action to `NSApp`; opens the SwiftUI `Settings` scene.
+- **Hide Sputnik ⌘H** — calls `NSApp.hide(nil)`; standard macOS hide.
+- **Hide Others ⌥⌘H** — calls `NSApp.hideOtherApplications(nil)`.
+- **Show All** — calls `NSApp.unhideAllApplications(nil)`.
+- **Quit Sputnik ⌘Q** — calls `NSApp.terminate(nil)`; `AppDelegate.applicationWillTerminate` kills all PTYs before exit.
+- **New Tab ⌘T** — calls `appState.newUntitledDocument()`; appends an untitled `DocumentSession` to the active `WindowState`.
+- **Open… ⌘O** — presents `NSOpenPanel` (single file, no directories); on confirmation calls `appState.openDocument(url:)`.
+- **Open Recent ▶** — lists `appState.recentFiles` (URLs); selecting one calls `appState.openDocument(url:)`; "Clear Menu" calls `appState.clearRecentFiles()`.
+- **Close Tab ⌘W** — calls `appState.closeDocument(id:)` on the active document ID; if it's the last tab the window stays open with an empty state.
+- **Close Window ⇧⌘W** — calls `NSApp.keyWindow?.close()`; `AppDelegate` handles PTY cleanup on window close.
+- **Save ⌘S** — calls `appState.editorCommandHandler?.save()`; disabled when no document is open.
+- **Save As… ⇧⌘S** — presents `NSSavePanel` pre-filled with the current filename; on confirmation calls `editorCommandHandler?.saveAs(to:)`; disabled when no document is open.
+- **Print… ⌘P** — sends `NSDocument.printDocument(_:)` to the responder chain.
+- **Undo ⌘Z / Redo ⇧⌘Z** — forwards `undo:` / `redo:` selectors to the responder chain (handled by `NSTextView` inside the editor).
+- **Cut ⌘X / Copy ⌘C / Paste ⌘V / Select All ⌘A** — forwards the standard `NSText` selectors to the responder chain.
+- **Find… ⌘F / Find and Replace… ⌥⌘F / Find Next ⌘G / Find Previous ⇧⌘G** — forwards `performFindPanelAction(_:)` to `NSTextView`; the native find bar appears inside the editor.
+- **Check Spelling Now ⌘;** — forwards `checkSpelling(_:)` to `NSTextView`.
+- **Check While Typing (toggle)** — reads/writes `settings.spellCheckEnabled` via `SettingsStore`; live spell-check underlines update immediately.
+- **Grammar Checking (toggle)** — reads/writes `settings.grammarCheckEnabled`.
+- **Minimize ⌘M** — calls `NSApp.keyWindow?.miniaturize(nil)`.
+- **Zoom** — calls `NSApp.keyWindow?.zoom(nil)`; toggles between user-set size and macOS-computed ideal size.
+
+---
+
+### Sputnik-unique items
+
+- **New Window ⇧⌘N** — calls `appState.createWindow()` to allocate a new `WindowState`, then calls `openWindow(id: "main", value: ws.id)` to open a fully independent Sputnik window with its own file tree, editor, previews, and terminal.
+- **Render as HTML ⌥⌘P** — calls `editorCommandHandler?.renderAsHTML()`; converts the active Markdown document to an HTML file and opens it in the HTML Preview panel; disabled when no document is open.
+- **Toggle File Tree ⌥⌘1** — calls `appState.toggleVisibility(.left)`; shows or hides the left File Tree panel without affecting other panels.
+- **Toggle Preview ⌥⌘2** — calls `appState.toggleVisibility(.centerLower)`; shows or hides the centre-lower Markdown/HTML Preview panel.
+- **Toggle Right Panel ⌥⌘3** — calls `appState.toggleVisibility(.right)`; shows or hides the right PDF Viewer / Preview panel.
+- **Toggle Terminal ⌥⌘4** — calls `appState.toggleTerminal()`; shows or hides the pinned Terminal strip at the bottom of the window.
+- **Scratchpad ⇧⌘K** — toggles `appState.scratchpadVisible`; a floating overlay scratchpad that persists independently of the open document.
+- **Focus: Editor ⌃⌘E** — sets left and right panel visibility to `false`, centre-upper to `true`, centre-lower to `false`; expands the editor to full window width.
+- **Focus: Reader ⌃⌘R** — hides left, right, and centre-upper panels; expands the preview (Markdown, HTML, or PDF) to fill the window.
+- **Restore Default Layout ⌃⌘0** — calls `appState.restoreDefaultLayout()`; returns all panels to the default three-column arrangement.
+- **Appearance ▶ (Light / Dark / Use System Setting)** — calls `settings.setTheme(.light / .dark / .system)`; overrides the per-app colour scheme independently of macOS system appearance.
+- **ASCII Studio ⌥⌘A** — calls `editorCommandHandler?.showASCIIStudio()`; opens the ASCII art creation panel for the active document; disabled when no document is open.
+- **Writing Assistance ▶** — per-language AI writing feature toggles backed by `SettingsStore.writingAssist`:
+  - **All On / All Off** — calls `settings.setWritingAssistMatrix(.allOn() / .allOff())`; bulk-enables or disables every writing feature at once.
+  - **Spelling ▶** — Instant Correct (auto-fixes typos on space) and Auto-Complete (inline word suggestions).
+  - **Grammar ▶** — Instant Correct and More Context (sends surrounding sentences for richer grammar analysis).
+  - **Markdown ▶** — Auto-Complete (suggests Markdown syntax) and More Context.
+  - **HTML ▶** — Auto-Complete (tag and attribute suggestions) and More Context.
+  - **ASCII Art ▶** — Auto-Complete (suggests shapes from the ASCII library).
+- **Move Tab to New Window** — routes through `router.moveActiveTabToNewWindow()`; the router fires a dirty-tab guard (ISS-020) before detaching the `DocumentSession` and opening a new window via `openWindow`.
+- **Merge All Windows** — iterates `appState.orderedWindowIDs`; moves all `DocumentSession`s into the active window (deduplicating by URL), closes each source `NSWindow` by matching its `identifier` to the `WindowState` UUID (ISS-018), then asynchronously kills all terminal PTYs from the closed windows.
+- **Sputnik Help ⌘?** — sets `appState.requestedHelpTopic = .sputnik`; the help overlay panel observes this and opens the built-in Sputnik guide.
+- **Markdown Help** — sets `appState.requestedHelpTopic = .markdown`; opens the Markdown reference guide.
+- **HTML Help** — sets `appState.requestedHelpTopic = .html`; opens the HTML reference guide.
+- **ASCII Art Help** — sets `appState.requestedHelpTopic = .asciiArt`; opens the ASCII Art reference guide.
+- **Grammar Help** — sets `appState.requestedHelpTopic = .grammar`; opens the Grammar reference guide.
+- **Release Notes** — currently disabled (no URL assigned yet).
+- **Report an Issue…** — constructs a `mailto:` URL with a pre-filled subject and calls `NSWorkspace.shared.open(_:)`; opens the user's default mail client addressed to the developer.
+
+---
+
 ## 2.7.4 Error & Performance Utilities
 
 Four utility types added during the Foundation Polish phase live under `2.7 Utilities/`:

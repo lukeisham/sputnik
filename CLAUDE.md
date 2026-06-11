@@ -89,6 +89,7 @@ Invoke these by name at the start of a prompt. Skill prompt files live in `1 Set
 | **!GenerateAPlan** | Read the relevant Module Guide(s) and Vibe Coding Rules, invoke !TrackIssues if issues are found, update the Module Guide, save a plan to `Plans New/`, mark it complete when done. |
 | **!TrackIssues** | Log new bugs, regressions, or design problems to `References/Issues.md` with a short description and the affected module. |
 | **!CreateAModuleGuide** | Scaffold a new Module Guide file using the standard format (see below). |
+| **!CreateTests** | Generate Swift Testing unit tests for a module. Use when bootstrapping test coverage for a new module, or expanding tests for existing logic. Reads the Module Guide to understand architecture, analyzes source code, generates 20–70 tests per module, and prints a coverage summary (what was tested, what was skipped, what needs manual tests). Invoke as `!CreateTests: <module-name>`. |
 
 ---
 

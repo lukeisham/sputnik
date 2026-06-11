@@ -9,6 +9,14 @@
 
 ---
 
+## Before Starting
+
+> **Read `1 Setup/Vibe_Coding_Rules.md` in full before writing any code.** Every step in this plan must comply with those rules. If a conflict arises, the rules win.
+
+> **Mark each checkbox `[x]` as soon as that step is complete.** Do not batch updates — check off immediately after finishing each item so progress is always visible.
+
+---
+
 ## Objective
 
 Split **SputnikApp.swift** (505 lines) into focused components:
@@ -89,7 +97,7 @@ SettingsHelpers.swift (22 LOC)
 
 **Before making any changes, verify that SputnikApp refactoring won't break other modules.**
 
-1. **Scan for SputnikApp imports across the codebase**
+- [ ] 1. **Scan for SputnikApp imports across the codebase**
    ```bash
    grep -r "import.*SputnikApp" --include="*.swift"
    grep -r "SputnikApp\." --include="*.swift" | grep -v "^App-Sputnik/"
@@ -97,20 +105,20 @@ SettingsHelpers.swift (22 LOC)
    - Verify nothing outside App-Sputnik directly imports SputnikApp
    - SputnikApp.swift should only be an entry point; other modules should depend on Foundation module types
 
-2. **Check SettingsStore dependencies**
+- [ ] 2. **Check SettingsStore dependencies**
    - Verify SettingsStore is in Foundation module and has no imports from App-Sputnik
    - Scan which modules import SettingsStore: `grep -r "SettingsStore" --include="*.swift" | grep -v "App-Sputnik"`
    - Confirm all usages are via @Environment injection, not direct instantiation
 
-3. **Verify WindowGroup & Scene setup has no hard module dependencies**
+- [ ] 3. **Verify WindowGroup & Scene setup has no hard module dependencies**
    - Check that main content panels (FileTree, TextEditor, MarkdownPreview, HTMLPreview, Terminal, PDFViewer) are all injected via @Environment or SceneStorage
    - Ensure no panel code directly imports SputnikApp
 
-4. **Check for circular import risks**
+- [ ] 4. **Check for circular import risks**
    - Verify new tab files (AppearanceTab, EditorTab, etc.) don't import any module that imports from App-Sputnik
    - Ensure SettingsHelpers.swift only imports SwiftUI + Foundation module types
 
-5. **Document findings in section below & proceed only if green light**
+- [ ] 5. **Document findings in section below & proceed only if green light**
    - [ ] No external imports of SputnikApp found
    - [ ] SettingsStore has no App-Sputnik dependencies
    - [ ] All panels use environment injection (no direct instantiation)
@@ -123,20 +131,20 @@ SettingsHelpers.swift (22 LOC)
 
 ### Phase 1: Extract WindowRestorerView (30 min)
 
-1. **Create WindowRestorerView.swift**
+- [ ] 1. **Create WindowRestorerView.swift**
    - Copy lines 104–152 from SputnikApp
    - Keep the `WindowRestorerView` struct as-is
    - Keep the static `hasRestored` flag
 
-2. **Update SputnikApp:**
+- [ ] 2. **Update SputnikApp:**
    - Remove lines 104–152
    - Add `import` at the top (or assume same module)
 
-3. **Verify:** Compile. Window restoration still works.
+- [ ] 3. **Verify:** Compile. Window restoration still works.
 
 ### Phase 2: Extract Settings Helpers (20 min)
 
-1. **Create SettingsHelpers.swift:**
+- [ ] 1. **Create SettingsHelpers.swift:**
    ```swift
    import SwiftUI
    
@@ -147,17 +155,17 @@ SettingsHelpers.swift (22 LOC)
    func perPanelFontSection(...) -> some View { ... }
    ```
 
-2. **Update SputnikApp:**
+- [ ] 2. **Update SputnikApp:**
    - Delete lines 244–303 from current SputnikApp
    - Each tab will import and call these helpers
 
-3. **Verify:** Compile.
+- [ ] 3. **Verify:** Compile.
 
 ### Phase 3: Extract Each Settings Tab (2.5 hours)
 
 For each tab (in order: Appearance, Editor, Spelling, Terminal):
 
-1. **Create TabName.swift** (e.g., `AppearanceTab.swift`)
+- [ ] 1. **Create TabName.swift** (e.g., `AppearanceTab.swift`)
    ```swift
    import SwiftUI
    import FoundationModule  // For EditorFont, SputnikColor, SputnikSpacing
@@ -179,21 +187,21 @@ For each tab (in order: Appearance, Editor, Spelling, Terminal):
    }
    ```
 
-2. **Copy the relevant lines from SputnikApp**
+- [ ] 2. **Copy the relevant lines from SputnikApp**
    - AppearanceTab: lines 187–242 (56 LOC actual content + state)
    - EditorTab: lines 308–377
    - SpellingTab: lines 381–421
    - TerminalTab: lines 426–505
 
-3. **Update SputnikApp:**
+- [ ] 3. **Update SputnikApp:**
    - Remove the old tab view from SputnikApp
    - Keep only the TabView container and tab setup
 
-4. **Test:** Build and open Settings (⌘,). Verify each tab renders.
+- [ ] 4. **Test:** Build and open Settings (⌘,). Verify each tab renders.
 
 ### Phase 4: Extract SettingsView Container (15 min)
 
-1. **Create SettingsView.swift:**
+- [ ] 1. **Create SettingsView.swift:**
    ```swift
    import SwiftUI
    import FoundationModule
@@ -221,25 +229,25 @@ For each tab (in order: Appearance, Editor, Spelling, Terminal):
    }
    ```
 
-2. **Update SputnikApp:**
+- [ ] 2. **Update SputnikApp:**
    - Replace lines 156–175 with: `SettingsView()`
    - Remove all tab struct definitions
 
-3. **Test:** Build and open Settings. All tabs should render.
+- [ ] 3. **Test:** Build and open Settings. All tabs should render.
 
 ### Phase 5: Clean Up SputnikApp (30 min)
 
-1. **Review final SputnikApp.swift** (~120 LOC remaining):
+- [ ] 1. **Review final SputnikApp.swift** (~120 LOC remaining):
    - Init block (28 LOC)
    - WindowGroup setup (62 LOC)
    - wireAppDelegate helper (8 LOC)
    - Settings scene (using new SettingsView, 3 LOC)
 
-2. **Remove dead code:**
+- [ ] 2. **Remove dead code:**
    - Delete old SettingsView, tab structs, helpers
    - Clean up imports (remove unused)
 
-3. **Final verification:**
+- [ ] 3. **Final verification:**
    - Build & run
    - Open main window
    - Open Settings (⌘,)
@@ -250,16 +258,16 @@ For each tab (in order: Appearance, Editor, Spelling, Terminal):
 ---
 
 ## Files to Create
-- `SettingsView.swift` (20 LOC)
-- `AppearanceTab.swift` (120 LOC)
-- `EditorTab.swift` (75 LOC)
-- `SpellingTab.swift` (42 LOC)
-- `TerminalTab.swift` (80 LOC)
-- `WindowRestorerView.swift` (48 LOC)
-- `SettingsHelpers.swift` (22 LOC)
+- [ ] `SettingsView.swift` (20 LOC)
+- [ ] `AppearanceTab.swift` (120 LOC)
+- [ ] `EditorTab.swift` (75 LOC)
+- [ ] `SpellingTab.swift` (42 LOC)
+- [ ] `TerminalTab.swift` (80 LOC)
+- [ ] `WindowRestorerView.swift` (48 LOC)
+- [ ] `SettingsHelpers.swift` (22 LOC)
 
 ## Files to Modify
-- `SputnikApp.swift` (505 → 120 LOC)
+- [ ] `SputnikApp.swift` (505 → 120 LOC)
 
 ## Files to Delete
 - None (all content is moved/extracted)
