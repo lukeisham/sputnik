@@ -1,6 +1,8 @@
+import AppKit
 import Foundation
-import WebKit
+import FoundationModule
 import ResourcesModule
+import WebKit
 
 /// A `WKURLSchemeHandler` that streams downsampled image bytes for the `sputnik-img` scheme.
 ///
@@ -25,7 +27,8 @@ final class SputnikImageSchemeHandler: NSObject, WKURLSchemeHandler {
 
         // Extract the percent-encoded path from sputnik-img://host/<path>
         guard let encodedPath = url.host.flatMap({ _ in url.path }),
-              !encodedPath.isEmpty else {
+            !encodedPath.isEmpty
+        else {
             respondWithError(to: urlRequest)
             return
         }
@@ -42,18 +45,24 @@ final class SputnikImageSchemeHandler: NSObject, WKURLSchemeHandler {
             return
         }
 
-        // Fetch the image data on a background queue
+        // Fetch the image via the shared cache (avoids redundant decode — SR-3)
         Task(priority: .utility) { [weak self, weak urlRequest] in
             guard let self, let urlRequest else { return }
 
-            let resolver = PreviewImageResolver()
-            let resolved = await resolver.resolve(reference: relativePath, relativeTo: baseDir)
+            let fileURL = baseDir.appendingPathComponent(relativePath)
+            let cachedImage = await PreviewImageCache.shared.image(for: fileURL) {
+                let resolver = PreviewImageResolver()
+                let resolved = await resolver.resolve(reference: relativePath, relativeTo: baseDir)
+                if case .image(let data, _, _) = resolved {
+                    return NSImage(data: data)
+                }
+                return nil
+            }
 
             await MainActor.run {
-                switch resolved {
-                case .image(let data, let mime, _):
-                    self.respond(to: urlRequest, data: data, mimeType: mime)
-                case .tooLarge, .unsupported, .notFound:
+                if let cachedImage, let tiffData = cachedImage.tiffRepresentation {
+                    self.respond(to: urlRequest, data: tiffData, mimeType: "image/tiff")
+                } else {
                     // Serve a 1×1 transparent PNG placeholder
                     self.respondWithPlaceholder(to: urlRequest)
                 }
@@ -85,7 +94,8 @@ final class SputnikImageSchemeHandler: NSObject, WKURLSchemeHandler {
     /// Serves a 1×1 transparent PNG placeholder.
     private func respondWithPlaceholder(to urlRequest: URLRequest) {
         // 1×1 transparent PNG (base64)
-        let pngBase64 = "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg=="
+        let pngBase64 =
+            "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg=="
         guard let data = Data(base64Encoded: pngBase64) else {
             respondWithError(to: urlRequest)
             return

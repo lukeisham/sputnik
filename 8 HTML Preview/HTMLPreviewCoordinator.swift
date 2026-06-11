@@ -1,4 +1,5 @@
 import AppKit
+import FoundationModule
 import WebKit
 
 /// The `NSViewRepresentable.Coordinator` for `HTMLPreviewView`.
@@ -42,6 +43,22 @@ public final class HTMLPreviewCoordinator: NSObject, WKNavigationDelegate {
 
     /// The shared help-context resolver.
     var helpContextResolver: HelpContextResolving?
+
+    /// Weak reference to the web view, set by `HTMLPreviewView.updateNSView`.
+    weak var webView: WKWebView?
+
+    /// Throttles rapid re-renders during fast HTML edits (SR-4).
+    let renderThrottle = RenderThrottle()
+
+    /// Throttled HTML load — debounces rapid keystroke-triggered updates.
+    func throttledLoad(html: String, baseURL: URL?) {
+        currentBaseURL = baseURL
+        renderThrottle.throttle { [weak self] in
+            await MainActor.run {
+                self?.webView?.loadHTMLString(html, baseURL: baseURL)
+            }
+        }
+    }
 
     // MARK: - Init
 

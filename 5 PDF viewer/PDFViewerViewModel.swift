@@ -158,20 +158,17 @@ public final class PDFViewerViewModel {
         }
 
         let result = await Task(priority: .utility) {
-            let resolver = PreviewImageResolver()
-            let baseDir = url.deletingLastPathComponent()
-            let filename = url.lastPathComponent
-            let resolved = await resolver.resolve(reference: filename, relativeTo: baseDir)
-            switch resolved {
-            case .image(let data, _, _):
-                return NSImage(data: data).flatMap { PDFPage(image: $0) }.map {
-                    PDFDocument(pages: [$0])
+            let img = await PreviewImageCache.shared.image(for: url) {
+                let resolver = PreviewImageResolver()
+                let baseDir = url.deletingLastPathComponent()
+                let filename = url.lastPathComponent
+                let resolved = await resolver.resolve(reference: filename, relativeTo: baseDir)
+                if case .image(let data, _, _) = resolved {
+                    return NSImage(data: data)
                 }
-            case .tooLarge(let name, let bytes):
-                return nil
-            default:
                 return nil
             }
+            return img.flatMap { PDFPage(image: $0) }.map { PDFDocument(pages: [$0]) }
         }.value
 
         isLoading = false

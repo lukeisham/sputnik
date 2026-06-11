@@ -1,7 +1,138 @@
 import AppKit
 import Foundation
+import FoundationModule
 import Observation
 import ResourcesModule
+
+// MARK: - PresentationIntent styling
+
+/// Font sizes (in points) for Markdown heading levels (1…6).
+private let headingFontSizes: [CGFloat] = [28, 22, 18, 16, 14, 13]
+
+/// A lightweight Swift-side snapshot of a `PresentationIntent` kind and its
+/// character range. Collected from `AttributedString.runs` before bridging to
+/// `NSAttributedString`, so we avoid referencing the Objective-C `NSPresentationIntent`
+/// type entirely.
+private enum ParsedIntentKind: Equatable {
+    case header(level: Int)
+    case codeBlock
+    case blockQuote
+    case unorderedList
+    case orderedList
+    case listItem
+    case table
+    case tableCell
+}
+
+/// Applies visual attributes to an `NSAttributedString` based on `PresentationIntent`
+/// metadata emitted by `AttributedString(markdown:options:)` with `.full` parsing.
+///
+/// `NSTextView` does **not** automatically render `PresentationIntent` attributes —
+/// headings appear as plain text, code blocks have no background, etc. This function
+/// extracts intent information from the Swift `AttributedString` runs (before bridging)
+/// and maps it to standard `NSAttributedString` visual attributes (font, color,
+/// paragraph style) that `NSTextView` renders natively.
+///
+/// - Parameter attributed: The parsed `AttributedString` (Swift type) containing
+///   `PresentationIntent` information in its runs.
+/// - Returns: An `NSAttributedString` with visual styling applied.
+private func applyPresentationIntentStyling(_ attributed: AttributedString) -> NSAttributedString {
+    // 1. Collect intent kinds and their ranges from the Swift AttributedString runs.
+    var intents: [(NSRange, ParsedIntentKind)] = []
+
+    for run in attributed.runs {
+        guard let intent = run.presentationIntent else { continue }
+        guard let kind = parseIntentKind(intent) else { continue }
+        let nsRange = NSRange(run.range, in: attributed)
+        intents.append((nsRange, kind))
+    }
+
+    // 2. Bridge to NSMutableAttributedString and apply visual attributes.
+    let result = NSMutableAttributedString(attributed)
+    for (range, kind) in intents {
+        applyKindAttributes(kind, to: result, range: range)
+    }
+
+    return result
+}
+
+/// Extracts a `ParsedIntentKind` from a Swift `AttributedString.PresentationIntent`.
+private func parseIntentKind(
+    _ intent: AttributedString.PresentationIntent
+) -> ParsedIntentKind? {
+    switch intent.kind {
+    case .header(let level):
+        return .header(level: level)
+    case .codeBlock:
+        return .codeBlock
+    case .blockQuote:
+        return .blockQuote
+    case .unorderedList:
+        return .unorderedList
+    case .orderedList:
+        return .orderedList
+    case .listItem:
+        return .listItem
+    case .table:
+        return .table
+    case .tableCell:
+        return .tableCell
+    default:
+        return nil
+    }
+}
+
+/// Maps a `ParsedIntentKind` to visual `NSAttributedString` attributes and applies
+/// them to the given range.
+private func applyKindAttributes(
+    _ kind: ParsedIntentKind,
+    to string: NSMutableAttributedString,
+    range: NSRange
+) {
+    switch kind {
+    case .header(let level):
+        let idx = max(0, min(level - 1, headingFontSizes.count - 1))
+        let fontSize = headingFontSizes[Int(idx)]
+        string.addAttribute(.font, value: NSFont.boldSystemFont(ofSize: fontSize), range: range)
+
+    case .codeBlock:
+        string.addAttribute(
+            .font,
+            value: NSFont.monospacedSystemFont(ofSize: 12, weight: .regular),
+            range: range
+        )
+        string.addAttribute(
+            .backgroundColor,
+            value: NSColor.systemGray.withAlphaComponent(0.12),
+            range: range
+        )
+
+    case .blockQuote:
+        string.addAttribute(.foregroundColor, value: NSColor.systemGray, range: range)
+        let paragraphStyle = NSMutableParagraphStyle()
+        paragraphStyle.headIndent = 20
+        paragraphStyle.firstLineHeadIndent = 20
+        paragraphStyle.tailIndent = -8
+        string.addAttribute(.paragraphStyle, value: paragraphStyle, range: range)
+
+    case .unorderedList, .orderedList:
+        // List container — no direct visual styling; child `.listItem` ranges carry
+        // the actual list content.
+        break
+
+    case .listItem:
+        let paragraphStyle = NSMutableParagraphStyle()
+        paragraphStyle.paragraphSpacing = 4
+        paragraphStyle.headIndent = 16
+        string.addAttribute(.paragraphStyle, value: paragraphStyle, range: range)
+
+    case .table, .tableCell:
+        // Tables in AttributedString(markdown:) produce structured cells but without
+        // grid/border attributes. A full table layout (NSTableView overlay) is complex;
+        // for now, leave table cells styled as plain inline text so content is legible.
+        break
+    }
+}
 
 /// @unchecked Sendable box for crossing actor boundaries with NSAttributedString.
 /// NSAttributedString is immutable after creation, making the transfer safe.
@@ -54,6 +185,9 @@ public final class MarkdownPreviewViewModel {
     /// counter has advanced further by the time it completes.
     private var renderGeneration: UInt64 = 0
 
+    /// Throttles rapid re-render requests during fast typing (SR-4).
+    private let renderThrottle = RenderThrottle()
+
     // MARK: - AppState observation
 
     /// Weak reference to the shared `AppState`, set by the panel on appear.
@@ -91,7 +225,7 @@ public final class MarkdownPreviewViewModel {
         isRendering = true
         renderError = nil
 
-        Task.detached(priority: .utility) { [weak self, generation] in
+        renderThrottle.throttle { [weak self, generation] in
             let nsResult = await buildNSAttributedString(markdown: markdown, baseDir: baseDir)
             let wrapped = SendableAttributedString(value: nsResult)
             await self?.applyRenderedResult(wrapped.value, generation: generation)
@@ -158,10 +292,12 @@ private func buildNSAttributedString(markdown: String, baseDir: URL?) async -> N
             result.append(parseMarkdownSegment(textPart))
         }
 
-        let alt  = String(match.output.1)
+        let alt = String(match.output.1)
         let path = String(match.output.2)
-        result.append(await resolveImageAttachment(path: path, alt: alt,
-                                                   baseDir: baseDir, resolver: resolver))
+        result.append(
+            await resolveImageAttachment(
+                path: path, alt: alt,
+                baseDir: baseDir, resolver: resolver))
         lastEnd = match.range.upperBound
     }
 
@@ -178,14 +314,14 @@ private func buildNSAttributedString(markdown: String, baseDir: URL?) async -> N
 /// Falls back to plain text if the parser throws.
 private func parseMarkdownSegment(_ text: String) -> NSAttributedString {
     do {
-        let attributed = try AttributedString(
+        var attributed = try AttributedString(
             markdown: text,
             options: AttributedString.MarkdownParsingOptions(
                 allowsExtendedAttributes: true,
-                interpretedSyntax: .inlineOnlyPreservingWhitespace
+                interpretedSyntax: .full
             )
         )
-        return NSAttributedString(attributed)
+        return applyPresentationIntentStyling(attributed)
     } catch {
         return NSAttributedString(string: text)
     }
@@ -214,7 +350,11 @@ private func resolveImageAttachment(
     let resolved = await resolver.resolve(reference: path, relativeTo: dir)
     switch resolved {
     case .image(let data, _, _):
-        if let img = NSImage(data: data) {
+        let fileURL = dir.appendingPathComponent(path)
+        let img = await PreviewImageCache.shared.image(for: fileURL) {
+            NSImage(data: data)
+        }
+        if let img {
             let attachment = NSTextAttachment()
             attachment.image = img
             let str = NSMutableAttributedString(attachment: attachment)

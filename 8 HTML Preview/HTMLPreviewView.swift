@@ -176,10 +176,11 @@ public struct HTMLPreviewView: NSViewRepresentable {
         context.coordinator.isLinkNavigationEnabled = isLinkNavigationEnabled
         context.coordinator.onLoadError = onLoadError
         context.coordinator.fullSessionText = session.text
+        context.coordinator.webView = webView
 
-        // Inject per-panel font and background CSS (F-4), then load.
+        // Inject per-panel font and background CSS (F-4), then load (throttled — SR-4).
         let styled = htmlByInjectingOverrides(session.text, settings: settings)
-        webView.loadHTMLString(styled, baseURL: baseURL)
+        context.coordinator.throttledLoad(html: styled, baseURL: baseURL)
     }
 
     // MARK: - F-4 CSS injection and image rewriting
@@ -260,13 +261,15 @@ public struct HTMLPreviewView: NSViewRepresentable {
             let srcValue = nsString.substring(with: srcRange)
 
             // Skip remote URLs and data URIs
-            if srcValue.hasPrefix("http://") || srcValue.hasPrefix("https://") ||
-               srcValue.hasPrefix("//") || srcValue.hasPrefix("data:") {
+            if srcValue.hasPrefix("http://") || srcValue.hasPrefix("https://")
+                || srcValue.hasPrefix("//") || srcValue.hasPrefix("data:")
+            {
                 continue
             }
 
             // Rewrite local path to sputnik-img scheme
-            if let encoded = srcValue.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) {
+            if let encoded = srcValue.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed)
+            {
                 let newSrc = "sputnik-img://host/\(encoded)"
                 let fullRange = NSRange(location: srcRange.location, length: srcRange.length)
                 result = nsString.replacingCharacters(in: fullRange, with: newSrc) as String

@@ -1,5 +1,6 @@
 import AppKit
 import Foundation
+import FoundationModule
 
 /// An `NSView` that draws the terminal cell grid directly with Core Text.
 ///
@@ -27,6 +28,9 @@ public final class TerminalTextView: NSView {
 
     private var snapshot: EmulatorSnapshot?
     private var profile: TerminalProfile = .default
+
+    /// Throttles rapid snapshot updates to prevent frame drops during output floods (SR-4).
+    private let renderThrottle = RenderThrottle(delay: 0.05)
 
     // MARK: - Cached metrics (recomputed on profile change or resize)
 
@@ -71,16 +75,23 @@ public final class TerminalTextView: NSView {
 
     // MARK: - Public updaters
 
-    /// Push a new snapshot for rendering.
+    /// Push a new snapshot for rendering, throttled to coalesce rapid updates (SR-4).
     public func update(snapshot: EmulatorSnapshot, profile: TerminalProfile) {
-        let profileChanged = (profile != self.profile)
-        self.snapshot = snapshot
-        self.profile = profile
-        if profileChanged {
-            updateMetrics(for: profile)
-            reportGridSize()
+        let capturedSnapshot = snapshot
+        let capturedProfile = profile
+        renderThrottle.throttle { [weak self] in
+            await MainActor.run {
+                guard let self else { return }
+                let profileChanged = (capturedProfile != self.profile)
+                self.snapshot = capturedSnapshot
+                self.profile = capturedProfile
+                if profileChanged {
+                    self.updateMetrics(for: capturedProfile)
+                    self.reportGridSize()
+                }
+                self.needsDisplay = true
+            }
         }
-        needsDisplay = true
     }
 
     // MARK: - First responder (focus)
