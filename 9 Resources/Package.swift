@@ -19,10 +19,6 @@ let package = Package(
                 // .copy preserves directory structure so subdirectory: paths work
                 // without resource-name collisions (e.g. multiple index.json files).
                 .copy("9.1 ASCII Library"),
-                .copy("9.2 ASCII art Help"),
-                .copy("9.3 Markdown Help"),
-                .copy("9.4 Html Help"),
-                .copy("9.5 Grammar Help"),
             ]
         )
     ]

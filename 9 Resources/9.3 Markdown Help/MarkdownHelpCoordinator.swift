@@ -1,4 +1,5 @@
 import Foundation
+import FoundationModule
 
 // MARK: - Markdown Help Coordinator
 

@@ -30,7 +30,6 @@ let package = Package(
             name: "TestingSupport",
             dependencies: ["FoundationModule"],
             path: "2.7 Utilities",
-            sources: ["TestingSupport.swift"],
             exclude: [
                 "ClosureMenuItem.swift",
                 "CompletionProviding.swift",
@@ -46,7 +45,8 @@ let package = Package(
                 "SlashCommand.swift",
                 "SlashCommandRegistry.swift",
                 "SupportingAIMonitor.swift",
-            ]
+            ],
+            sources: ["TestingSupport.swift"]
         ),
         .testTarget(
             name: "FoundationModuleTests",

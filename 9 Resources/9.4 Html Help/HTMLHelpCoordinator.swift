@@ -1,4 +1,5 @@
 import Foundation
+import FoundationModule
 
 /// Provides context-sensitive HTML Help lookups from the HTML editor.
 ///

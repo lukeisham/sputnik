@@ -1,5 +1,6 @@
 import SwiftUI
 import WebKit
+import FoundationModule
 
 // MARK: - Sandboxed HTML Demo
 

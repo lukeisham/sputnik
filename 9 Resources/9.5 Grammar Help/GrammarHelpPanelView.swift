@@ -1,4 +1,5 @@
 import SwiftUI
+import FoundationModule
 
 /// A SwiftUI view wrapping `SputnikHelpPanel` for Grammar Help topics.
 ///

@@ -1,4 +1,5 @@
 import SwiftUI
+import FoundationModule
 
 // MARK: - Markdown Help Panel View
 

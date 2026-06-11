@@ -1,4 +1,5 @@
 import SwiftUI
+import FoundationModule
 
 // MARK: - ASCII Art Help Panel View
 

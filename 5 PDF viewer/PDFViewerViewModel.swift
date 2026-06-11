@@ -105,7 +105,7 @@ public final class PDFViewerViewModel {
             return
         }
 
-        let result = await Task(priority: .utility) {
+        let result = await Task.detached(priority: .utility) {
             PDFDocument(url: url)
         }.value
 
@@ -162,7 +162,7 @@ public final class PDFViewerViewModel {
         let filename = url.lastPathComponent
         let resolved = await resolver.resolve(reference: filename, relativeTo: baseDir)
 
-        let result = await Task(priority: .utility) -> PDFDocument? {
+        let result = await Task.detached(priority: .utility) { () -> PDFDocument? in
             let img = await PreviewImageCache.shared.image(for: url) {
                 if case .image(let data, _, _) = resolved {
                     return NSImage(data: data)

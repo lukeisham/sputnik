@@ -80,8 +80,8 @@ public final class TerminalTextView: NSView {
         let capturedSnapshot = snapshot
         let capturedProfile = profile
         renderThrottle.throttle { [weak self] in
+            guard let self else { return }
             await MainActor.run {
-                guard let self else { return }
                 let profileChanged = (capturedProfile != self.profile)
                 self.snapshot = capturedSnapshot
                 self.profile = capturedProfile
@@ -110,7 +110,9 @@ public final class TerminalTextView: NSView {
                 object: self,
                 queue: .main
             ) { [weak self] _ in
-                self?.reportGridSize()
+                Task { @MainActor in
+                    self?.reportGridSize()
+                }
             }
         } else {
             if let obs = frameObserver {

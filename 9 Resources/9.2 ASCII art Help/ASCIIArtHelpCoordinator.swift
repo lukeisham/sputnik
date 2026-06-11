@@ -20,10 +20,6 @@ public final class ASCIIArtHelpCoordinator {
 
     // MARK: - Properties
 
-    /// The panel view this coordinator routes topics into.
-    /// Set by the panel on appear; held weakly to avoid retain cycles.
-    public weak var panelView: ASCIIArtHelpPanelView?
-
     /// Callback invoked when a topic should be opened.
     /// The panel view sets this to its own `openTopic(_:)` method.
     public var onOpenTopic: ((String) -> Void)?
