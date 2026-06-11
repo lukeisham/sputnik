@@ -62,7 +62,7 @@ public struct SlashCommandPopup: View {
     /// All commands grouped by `category`, each group sorted by `label`.
     private var groupedByCategory: [(category: String, commands: [SlashCommand])] {
         Dictionary(grouping: commands) { $0.category }
-            .map { (key: $0.key, commands: $0.value.sorted { $0.label < $1.label }) }
+            .map { (category: $0.key, commands: $0.value.sorted { $0.label < $1.label }) }
             .sorted { $0.category < $1.category }
     }
 

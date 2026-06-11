@@ -1,6 +1,6 @@
 import AppKit
-import SwiftUI
 import FoundationModule
+import SwiftUI
 
 /// The single app entry point.
 ///
@@ -62,7 +62,8 @@ public struct SputnikApp: App {
                     appState.setActiveWindow(windowState.id)
                     // Tag the NSWindow with the WindowState UUID so Merge All Windows
                     // can close it by identity (ISS-018).
-                    NSApp.keyWindow?.identifier = NSUserInterfaceItemIdentifier(windowState.id.uuidString)
+                    NSApp.keyWindow?.identifier = NSUserInterfaceItemIdentifier(
+                        windowState.id.uuidString)
                 }
                 .focusedSceneValue(\.activeWindowID, windowState.id)
                 // Opens additional restored windows (step 9) on first render.
@@ -347,33 +348,30 @@ private struct EditorTab: View {
 
             Divider()
 
-            LabeledContent("Markdown debounce (s)") {
-                TextField(
-                    "",
-                    value: Binding(
-                        get: { settings.markdownDebounceInterval },
-                        set: { settings.setMarkdownDebounceInterval($0) }), format: .number
+            Text("Auto-complete delay")
+                .font(.headline)
+
+            DebounceStepPicker(
+                label: "Markdown",
+                step: Binding(
+                    get: { settings.markdownAutoCompleteStep },
+                    set: { settings.setMarkdownAutoCompleteStep($0) }
                 )
-                .frame(width: 64)
-            }
-            LabeledContent("ASCII debounce (s)") {
-                TextField(
-                    "",
-                    value: Binding(
-                        get: { settings.asciiDebounceInterval },
-                        set: { settings.setAsciiDebounceInterval($0) }), format: .number
+            )
+            DebounceStepPicker(
+                label: "ASCII",
+                step: Binding(
+                    get: { settings.asciiAutoCompleteStep },
+                    set: { settings.setAsciiAutoCompleteStep($0) }
                 )
-                .frame(width: 64)
-            }
-            LabeledContent("HTML debounce (s)") {
-                TextField(
-                    "",
-                    value: Binding(
-                        get: { settings.htmlDebounceInterval },
-                        set: { settings.setHtmlDebounceInterval($0) }), format: .number
+            )
+            DebounceStepPicker(
+                label: "HTML",
+                step: Binding(
+                    get: { settings.htmlAutoCompleteStep },
+                    set: { settings.setHtmlAutoCompleteStep($0) }
                 )
-                .frame(width: 64)
-            }
+            )
         }
     }
 }
@@ -398,15 +396,16 @@ private struct SpellingTab: View {
 
             Divider()
 
-            LabeledContent("Spell-check debounce (s)") {
-                TextField(
-                    "",
-                    value: Binding(
-                        get: { settings.spellCheckDebounceInterval },
-                        set: { settings.setSpellCheckDebounceInterval($0) }), format: .number
+            Text("Auto-complete delay")
+                .font(.headline)
+
+            DebounceStepPicker(
+                label: "Spelling",
+                step: Binding(
+                    get: { settings.spellingAutoCompleteStep },
+                    set: { settings.setSpellingAutoCompleteStep($0) }
                 )
-                .frame(width: 64)
-            }
+            )
 
             LabeledContent("Language (BCP-47)") {
                 TextField(

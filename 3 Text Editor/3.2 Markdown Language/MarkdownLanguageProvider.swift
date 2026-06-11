@@ -33,7 +33,7 @@ public final class MarkdownLanguageProvider {
 
     /// Call on every keypress while `EditorMode` is `.markdown`.
     public func onKeypress() {
-        debounce.schedule(delay: settings.markdownDebounceInterval) { [weak self] in
+        debounce.schedule(delay: settings.markdownAutoCompleteStep.timeInterval) { [weak self] in
             Task { @MainActor [weak self] in
                 await self?.generateSuggestion()
             }

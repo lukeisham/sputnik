@@ -1,7 +1,7 @@
 ---
 module: 2.0 App Overview
 status: active
-last_updated: 2026-06-09
+last_updated: 2026-06-11
 ---
 
 ## Purpose
@@ -297,6 +297,19 @@ FOCUS / TOGGLE MODES  (View menu):
 - **State owned:** `AppState` owns the window registry and global state (Supporting AI usage, recent files); `WindowState` owns per-window state; each module owns its own view-local scroll and selection state
 - **Dependencies:** All other modules (3–8) depend on Foundation; Foundation has no upstream module dependencies
 - **Failure modes:** missing file at open → `InterPanelRouter` emits `.fileNotFound` error; corrupted `LayoutState` on disk → reset to default silently; Terminal PTY spawn failure → error shown in terminal strip with retry button; window close while terminal running → `AppDelegate` collects and kills all PTYs across all windows
+
+---
+
+## 2.7.4 Error & Performance Utilities
+
+Four utility types added during the Foundation Polish phase live under `2.7 Utilities/`:
+
+- **`ErrorReporting`** (`actor`) — Centralized non-fatal error logger. Writes to `os_log` and an in-memory ring buffer (1,000 entries). Thread-safe via actor isolation; call with `await ErrorReporting.shared.log(...)` or `report(...)` from any module (see [2.7 Utilities guide](2.7%20Utilities/guide.md) for full API).
+- **`PreviewImageCache`** (`actor`) — Thread-safe `NSCache`-backed image store with generation-based invalidation and auto-downsampling to 2048 px max dimension. Use `PreviewImageCache.shared.image(for:loader:)` from preview panels to avoid redundant image decoding and reduce peak RAM (SR-3).
+- **`RenderThrottle`** (`final class`) — Generation-based render coalescer wrapping `DebounceTimer`. Prevents redundant re-renders when input arrives faster than the render can complete (e.g., fast typing). Configured with a 0.1 s debounce by default. Use `throttle(render:)` in preview view-models (SR-4).
+- **`TestingSupport`** — Mock implementations (`MockInterPanelRouter`, `MockAppState`, `MockWindowState`) for unit-testing module logic without setting up real panels or state. See the test file at `2 Foundation/Tests/FoundationModuleTests.swift`.
+
+See the [2.7 Utilities guide](2.7%20Utilities/guide.md) for detailed API documentation, threading model, and known consumers.
 
 ---
 

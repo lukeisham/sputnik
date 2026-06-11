@@ -1,7 +1,7 @@
 ---
 module: 2.3 Foundation – Settings
 status: active
-last_updated: 2026-06-09
+last_updated: 2026-06-11
 ---
 
 ## Purpose
@@ -69,6 +69,8 @@ Own all user-configurable preferences — appearance, editor behaviour, and spel
   - `WritingAssistMatrix` — `Codable Sendable` struct; stores one `Bool` per applicable `WritingAssistFunction × WritingAssistLanguage` cell; non-applicable cells always return `false`; resolves ISS-011
   - `WritingAssistLanguage` — enum: `.spelling`, `.grammar`, `.markdown`, `.html`, `.asciiArt`
   - `WritingAssistFunction` — enum: `.instantCorrect`, `.autoComplete`, `.moreContext`
+  - `AutoCompleteDebounceStep` — enum (`CaseIterable`, `Codable`, `Sendable`) with 7 steps from Instant (0 s) to 3 s; computed `timeInterval: TimeInterval` and `label: String`; owned once in Foundation (SR-1)
+  - `DebounceStepPicker` — reusable SwiftUI `Picker` (`.menu` style) accepting `Binding<AutoCompleteDebounceStep>` and a label string; lives in 2.4 UI/UX
 - **Threading model:** `SettingsStore` is `@MainActor`. All property changes are on the main thread; `PersistenceService` writes are dispatched with `Task(priority: .utility)` so UI is never blocked by a `UserDefaults` write.
 - **Data flow:** User changes a setting in the Settings window → `SettingsStore` property updates → `@Observable` propagates the change to any view observing it → `PersistenceService` persists the new value asynchronously.
 - **State owned:**
@@ -96,10 +98,14 @@ Own all user-configurable preferences — appearance, editor behaviour, and spel
   - `terminalForeground: TerminalColor`
   - `terminalBackground: TerminalColor`
   - `editorMaxFileSizeBytes: Int`
-  - `markdownDebounceInterval: TimeInterval`
-  - `asciiDebounceInterval: TimeInterval`
-  - `htmlDebounceInterval: TimeInterval`
-  - `spellCheckDebounceInterval: TimeInterval`
+  - `markdownDebounceInterval: TimeInterval` — remains for legacy; consumers migrated to `markdownAutoCompleteStep`
+  - `asciiDebounceInterval: TimeInterval` — remains for legacy; consumers migrated to `asciiAutoCompleteStep`
+  - `htmlDebounceInterval: TimeInterval` — remains for legacy; consumers migrated to `htmlAutoCompleteStep`
+  - `spellCheckDebounceInterval: TimeInterval` — used by `SpellingGrammarChecker` (squiggly underline) only
+  - `markdownAutoCompleteStep: AutoCompleteDebounceStep` — stepped debounce for Markdown ghost-text auto-complete
+  - `asciiAutoCompleteStep: AutoCompleteDebounceStep` — stepped debounce for ASCII art ghost-text auto-complete
+  - `htmlAutoCompleteStep: AutoCompleteDebounceStep` — stepped debounce for HTML ghost-text auto-complete
+  - `spellingAutoCompleteStep: AutoCompleteDebounceStep` — stepped debounce for spelling ghost-text auto-complete
   - `asciiTriggerKey: String`
   - `spellCheckLocale: String?`
 - **Dependencies:** `PersistenceService` (2.5) for read/write to `UserDefaults`. No other module dependencies.

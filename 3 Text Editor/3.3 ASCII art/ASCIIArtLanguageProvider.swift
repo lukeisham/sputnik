@@ -37,7 +37,7 @@ public final class ASCIIArtLanguageProvider {
 
     /// Call on every keypress while `EditorMode` is `.asciiArt`.
     public func onKeypress() {
-        debounce.schedule(delay: settings.asciiDebounceInterval) { [weak self] in
+        debounce.schedule(delay: settings.asciiAutoCompleteStep.timeInterval) { [weak self] in
             Task { @MainActor [weak self] in
                 await self?.generateSuggestion()
             }

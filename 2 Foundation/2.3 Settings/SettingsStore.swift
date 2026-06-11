@@ -124,6 +124,20 @@ public final class SettingsStore {
     /// Debounce interval (seconds) for spell/grammar checking. Default: `0.5`.
     public var spellCheckDebounceInterval: TimeInterval = 0.5
 
+    // MARK: - Auto-complete debounce steps
+
+    /// Stepped debounce for Markdown ghost-text auto-complete. Default: `.half` (0.5 s).
+    public var markdownAutoCompleteStep: AutoCompleteDebounceStep = .default
+
+    /// Stepped debounce for ASCII art ghost-text auto-complete. Default: `.half` (0.5 s).
+    public var asciiAutoCompleteStep: AutoCompleteDebounceStep = .default
+
+    /// Stepped debounce for HTML ghost-text auto-complete. Default: `.half` (0.5 s).
+    public var htmlAutoCompleteStep: AutoCompleteDebounceStep = .default
+
+    /// Stepped debounce for spelling ghost-text auto-complete. Default: `.half` (0.5 s).
+    public var spellingAutoCompleteStep: AutoCompleteDebounceStep = .default
+
     /// Trigger key character for ASCII art block completion. Default: `"_"`.
     public var asciiTriggerKey: String = "_"
 
@@ -158,6 +172,11 @@ public final class SettingsStore {
         static let asciiDebounceInterval = "sputnik.settings.asciiDebounceInterval"
         static let htmlDebounceInterval = "sputnik.settings.htmlDebounceInterval"
         static let spellCheckDebounceInterval = "sputnik.settings.spellCheckDebounceInterval"
+        // Auto-complete debounce steps
+        static let markdownAutoCompleteStep = "sputnik.settings.markdownAutoCompleteStep"
+        static let asciiAutoCompleteStep = "sputnik.settings.asciiAutoCompleteStep"
+        static let htmlAutoCompleteStep = "sputnik.settings.htmlAutoCompleteStep"
+        static let spellingAutoCompleteStep = "sputnik.settings.spellingAutoCompleteStep"
         static let asciiTriggerKey = "sputnik.settings.asciiTriggerKey"
         static let spellCheckLocale = "sputnik.settings.spellCheckLocale"
         // AI
@@ -278,6 +297,28 @@ public final class SettingsStore {
     public func setSpellCheckDebounceInterval(_ value: TimeInterval) {
         spellCheckDebounceInterval = value
         persistence.saveSetting(value, forKey: DefaultsKey.spellCheckDebounceInterval)
+    }
+
+    // MARK: - Auto-complete step mutators
+
+    public func setMarkdownAutoCompleteStep(_ value: AutoCompleteDebounceStep) {
+        markdownAutoCompleteStep = value
+        persistence.saveSetting(value, forKey: DefaultsKey.markdownAutoCompleteStep)
+    }
+
+    public func setAsciiAutoCompleteStep(_ value: AutoCompleteDebounceStep) {
+        asciiAutoCompleteStep = value
+        persistence.saveSetting(value, forKey: DefaultsKey.asciiAutoCompleteStep)
+    }
+
+    public func setHtmlAutoCompleteStep(_ value: AutoCompleteDebounceStep) {
+        htmlAutoCompleteStep = value
+        persistence.saveSetting(value, forKey: DefaultsKey.htmlAutoCompleteStep)
+    }
+
+    public func setSpellingAutoCompleteStep(_ value: AutoCompleteDebounceStep) {
+        spellingAutoCompleteStep = value
+        persistence.saveSetting(value, forKey: DefaultsKey.spellingAutoCompleteStep)
     }
 
     public func setAsciiTriggerKey(_ value: String) {
@@ -405,6 +446,27 @@ public final class SettingsStore {
             forKey: DefaultsKey.spellCheckDebounceInterval)
         {
             spellCheckDebounceInterval = saved
+        }
+        // Auto-complete debounce steps
+        if let saved: AutoCompleteDebounceStep = persistence.loadSetting(
+            forKey: DefaultsKey.markdownAutoCompleteStep)
+        {
+            markdownAutoCompleteStep = saved
+        }
+        if let saved: AutoCompleteDebounceStep = persistence.loadSetting(
+            forKey: DefaultsKey.asciiAutoCompleteStep)
+        {
+            asciiAutoCompleteStep = saved
+        }
+        if let saved: AutoCompleteDebounceStep = persistence.loadSetting(
+            forKey: DefaultsKey.htmlAutoCompleteStep)
+        {
+            htmlAutoCompleteStep = saved
+        }
+        if let saved: AutoCompleteDebounceStep = persistence.loadSetting(
+            forKey: DefaultsKey.spellingAutoCompleteStep)
+        {
+            spellingAutoCompleteStep = saved
         }
         if let saved: String = persistence.loadSetting(forKey: DefaultsKey.asciiTriggerKey) {
             asciiTriggerKey = saved

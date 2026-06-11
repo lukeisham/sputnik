@@ -148,13 +148,37 @@ public final class MainAIMonitor {
         } else if line.hasPrefix("ollama run ") {
             let name = line.dropFirst("ollama run ".count)
                 .trimmingCharacters(in: .whitespaces)
-            guard !name.isEmpty else { return }
+            guard !name.isEmpty else {
+                Task {
+                    await ErrorReporting.shared.log(
+                        "Empty model name after 'ollama run' prefix",
+                        category: "MainAI"
+                    )
+                }
+                return
+            }
             setDetected(modelName: String(name))
         } else if line.contains("loaded model: ") {
             let parts = line.components(separatedBy: "loaded model: ")
-            guard parts.count >= 2 else { return }
+            guard parts.count >= 2 else {
+                Task {
+                    await ErrorReporting.shared.log(
+                        "Failed to parse model name from 'loaded model:' line",
+                        category: "MainAI"
+                    )
+                }
+                return
+            }
             let name = parts[1].trimmingCharacters(in: .whitespaces)
-            guard !name.isEmpty else { return }
+            guard !name.isEmpty else {
+                Task {
+                    await ErrorReporting.shared.log(
+                        "Empty model name after 'loaded model:' prefix",
+                        category: "MainAI"
+                    )
+                }
+                return
+            }
             setDetected(modelName: name)
         } else if line == "clear" || line == "exit" {
             // Terminal session boundary — clear the detected model when the shell resets.
@@ -165,7 +189,22 @@ public final class MainAIMonitor {
     // MARK: - Claude detection
 
     private func detectClaude() {
-        let resolvedName = resolveClaudeModelFromSettings() ?? "claude"
+        guard let resolvedName = resolveClaudeModelFromSettings() else {
+            Task {
+                await ErrorReporting.shared.log(
+                    "Could not resolve Claude model from settings.json; falling back to 'claude'",
+                    category: "MainAI"
+                )
+            }
+            let contextWindow = ModelCapacity.contextWindow(for: "claude")
+            appState.mainAIState = MainAIState(
+                modelName: "claude",
+                contextWindow: contextWindow,
+                usage: nil
+            )
+            startStatsPolling()
+            return
+        }
         let contextWindow = ModelCapacity.contextWindow(for: resolvedName)
         appState.mainAIState = MainAIState(
             modelName: resolvedName,
@@ -224,6 +263,12 @@ extension MainAIMonitor {
                         nanoseconds: UInt64(Self.pollingInterval * 1_000_000_000)
                     )
                 } catch {
+                    Task {
+                        await ErrorReporting.shared.log(
+                            "Stats polling interrupted: \(error.localizedDescription)",
+                            category: "MainAI"
+                        )
+                    }
                     break
                 }
             }
@@ -267,6 +312,12 @@ extension MainAIMonitor {
                 )
             }
         } catch {
+            Task {
+                await ErrorReporting.shared.report(
+                    error,
+                    category: "MainAI"
+                )
+            }
             clearClaudeUsage()
         }
     }
@@ -295,7 +346,15 @@ extension MainAIMonitor {
         }
 
         let fd = open(url.path, O_EVTONLY)
-        guard fd >= 0 else { return }
+        guard fd >= 0 else {
+            Task {
+                await ErrorReporting.shared.log(
+                    "Could not open file descriptor for stats.json watcher",
+                    category: "MainAI"
+                )
+            }
+            return
+        }
 
         let watcher = DispatchSource.makeFileSystemObjectSource(
             fileDescriptor: fd,

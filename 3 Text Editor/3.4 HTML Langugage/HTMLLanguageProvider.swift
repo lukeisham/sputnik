@@ -40,7 +40,7 @@ public final class HTMLLanguageProvider {
             ghostOverlay?.clear()
             return
         }
-        debounce.schedule(delay: settings.htmlDebounceInterval) { [weak self] in
+        debounce.schedule(delay: settings.htmlAutoCompleteStep.timeInterval) { [weak self] in
             Task { @MainActor [weak self] in
                 await self?.generateSuggestion()
             }

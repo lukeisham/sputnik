@@ -63,8 +63,9 @@ public final class SputnikMenuBarController {
             button.image = image
         } else {
             // Fallback symbol so the item is still functional without the asset.
-            button.image = NSImage(systemSymbolName: "antenna.radiowaves.left.and.right",
-                                   accessibilityDescription: "Sputnik")
+            button.image = NSImage(
+                systemSymbolName: "antenna.radiowaves.left.and.right",
+                accessibilityDescription: "Sputnik")
             button.image?.isTemplate = true
         }
 
@@ -82,7 +83,7 @@ public final class SputnikMenuBarController {
         observationTask = Task { [weak self] in
             // Capture the previous value so we only act on transitions.
             var wasProcessing = appState.isProcessing
-            applyAnimation(spinning: wasProcessing)
+            self?.applyAnimation(spinning: wasProcessing)
 
             // Poll via withObservationTracking inside a loop.
             while !Task.isCancelled {
@@ -115,10 +116,10 @@ public final class SputnikMenuBarController {
         if spinning {
             guard layer.animation(forKey: "sputnikSpin") == nil else { return }
             let spin = CABasicAnimation(keyPath: "transform.rotation.z")
-            spin.fromValue    = 0
-            spin.toValue      = -2 * Double.pi   // counter-clockwise like an orbiting satellite
-            spin.duration     = 2.0
-            spin.repeatCount  = .infinity
+            spin.fromValue = 0
+            spin.toValue = -2 * Double.pi  // counter-clockwise like an orbiting satellite
+            spin.duration = 2.0
+            spin.repeatCount = .infinity
             spin.isRemovedOnCompletion = false
             layer.add(spin, forKey: "sputnikSpin")
         } else {

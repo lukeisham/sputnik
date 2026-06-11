@@ -231,7 +231,10 @@ public struct MarkdownPreviewPanel: View {
             Image(systemName: "doc.text.magnifyingglass")
                 .font(.system(size: 32))
                 .foregroundStyle(SputnikColor.tertiaryText)
-            Text("No Markdown file open")
+            let message = session.fileType == .ascii 
+                ? "ASCII file selected — open a Markdown file to preview"
+                : "Plain text file selected — open a Markdown file to preview"
+            Text(message)
                 .font(.system(size: SputnikFont.body, weight: .medium))
                 .foregroundStyle(SputnikColor.secondaryText)
             if let name = session.url?.lastPathComponent {
@@ -248,7 +251,7 @@ public struct MarkdownPreviewPanel: View {
             Image(systemName: "doc.richtext")
                 .font(.system(size: 32))
                 .foregroundStyle(SputnikColor.tertiaryText)
-            Text("Open a Markdown file to preview")
+            Text("No file open")
                 .font(.system(size: SputnikFont.body, weight: .medium))
                 .foregroundStyle(SputnikColor.secondaryText)
         }
@@ -286,7 +289,7 @@ public struct MarkdownPreviewPanel: View {
     /// a render if the new session is Markdown.
     private func handleActiveDocumentChange() {
         guard let session = appState.activeDocument else {
-            viewModel.renderedString = AttributedString()
+            viewModel.renderedString = NSAttributedString()
             viewModel.renderError = nil
             return
         }
@@ -294,7 +297,7 @@ public struct MarkdownPreviewPanel: View {
         if session.fileType == .markdown || session.fileType == .ascii {
             viewModel.render(markdown: session.text, fontScale: viewModel.fontScale)
         } else {
-            viewModel.renderedString = AttributedString()
+            viewModel.renderedString = NSAttributedString()
             viewModel.renderError = nil
         }
     }

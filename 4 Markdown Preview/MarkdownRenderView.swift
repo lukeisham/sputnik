@@ -38,7 +38,7 @@ public struct MarkdownRenderView: NSViewRepresentable {
     ///   - coordinator:    The link-click coordinator.
     ///   - settings:       The app settings store (for per-panel font/background).
     public init(
-        renderedString: AttributedString,
+        renderedString: NSAttributedString,
         fontScale: CGFloat,
         coordinator: MarkdownPreviewCoordinator,
         settings: SettingsStore
@@ -94,7 +94,7 @@ public struct MarkdownRenderView: NSViewRepresentable {
 
         // Only update the text storage when the content has actually changed,
         // to avoid unnecessary layout invalidation.
-        guard textView.textStorage?.string != String(renderedString.characters) else {
+        guard textView.textStorage?.string != renderedString.string else {
             return
         }
 
@@ -109,7 +109,7 @@ public struct MarkdownRenderView: NSViewRepresentable {
         // Use NSAttributedString bridging for NSTextStorage compatibility.
         if let textStorage = textView.textStorage {
             textStorage.beginEditing()
-            textStorage.setAttributedString(NSAttributedString(renderedString))
+            textStorage.setAttributedString(renderedString)
             textStorage.endEditing()
         }
     }

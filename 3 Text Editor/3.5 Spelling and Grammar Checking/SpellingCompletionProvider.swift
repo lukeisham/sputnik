@@ -42,7 +42,7 @@ public final class SpellingCompletionProvider {
             ghostOverlay?.clear()
             return
         }
-        debounce.schedule(delay: settings.spellCheckDebounceInterval) { [weak self] in
+        debounce.schedule(delay: settings.spellingAutoCompleteStep.timeInterval) { [weak self] in
             Task { @MainActor [weak self] in
                 self?.generateCompletion()
             }

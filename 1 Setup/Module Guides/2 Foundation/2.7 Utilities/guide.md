@@ -1,7 +1,7 @@
 ---
 module: 2.7 Foundation – Utilities
 status: active
-last_updated: 2026-06-09
+last_updated: 2026-06-11
 ---
 
 ## Purpose
@@ -142,6 +142,63 @@ Provide small, general-purpose utilities that have no module-specific logic and 
 │  │  Foundation-owned protocol.      │    │
 │  │  Terminal depends only on this.  │    │
 │  └──────────────────────────────────┘    │
+│                                          │
+│  ─── Foundation Polish (2026-06-11) ───  │
+│                                          │
+│  ErrorReporting (actor)                  │
+│  ┌──────────────────────────────────┐    │
+│  │  shared (singleton)              │    │
+│  │  log(message:category:)          │    │
+│  │  report(error:category:)         │    │
+│  │  recentEntries(limit:) -> [Str]  │    │
+│  │                                  │    │
+│  │  os_log + ring buffer (1000 max) │    │
+│  │  Thread-safe via actor isolation │    │
+│  └──────────────────────────────────┘    │
+│                                          │
+│  PreviewImageCache (actor)               │
+│  ┌──────────────────────────────────┐    │
+│  │  shared (singleton)              │    │
+│  │  image(for:loader:) -> NSImage?  │    │
+│  │  set(_:for:) (nonisolated)       │    │
+│  │  invalidate()                    │    │
+│  │  invalidate(for:)                │    │
+│  │  maxDimension: CGFloat (2048)    │    │
+│  │                                  │    │
+│  │  NSCache<NSURL, NSImage> +       │    │
+│  │  generation-based invalidation   │    │
+│  │  auto-downsample on cache fill   │    │
+│  └──────────────────────────────────┘    │
+│                                          │
+│  RenderThrottle (final class)            │
+│  ┌──────────────────────────────────┐    │
+│  │  init(delay:)                    │    │
+│  │  throttle(render:)               │    │
+│  │  cancel()                        │    │
+│  │  delay: TimeInterval (0.1 def)   │    │
+│  │                                  │    │
+│  │  wraps DebounceTimer + generation │
+│  │  coalescing; skips stale renders │
+│  └──────────────────────────────────┘    │
+│                                          │
+│  TestingSupport                          │
+│  ┌──────────────────────────────────┐    │
+│  │  MockInterPanelRouter            │
+│  │    open(_:) / close(_:) /        │
+│  │    syncDirectory(_:) /           │
+│  │    moveActiveTabToNewWindow()    │
+│  │    shouldSucceed: Bool           │
+│  │                                  │
+│  │  MockAppState                    │
+│  │    isProcessing: Bool            │
+│  │    beginProcessing() /           │
+│  │    endProcessing()               │
+│  │                                  │
+│  │  MockWindowState                 │
+│  │    openDocument(_:) /            │
+│  │    closeDocument(_:) /           │
+│  │    moveDocument(from:to:)        │
+│  └──────────────────────────────────┘    │
 └──────────────────────────────────────────┘
 ```
 
@@ -162,13 +219,20 @@ Provide small, general-purpose utilities that have no module-specific logic and 
   - `TerminalAIOutputObserving` (protocol, `2 Foundation/2.7 Utilities/MainAIMonitor.swift`) — Foundation-owned protocol with `func observe(line: String)`; Terminal module calls this when a new output line arrives so Foundation can detect Main AI sessions without Terminal importing the monitor implementation directly (SR-1); `MainAIMonitor` conforms to this protocol
   - `MainAIMonitor` (`@Observable @MainActor`, `2 Foundation/2.7 Utilities/MainAIMonitor.swift`) — monitors terminal output to detect and track the Main AI (user-loaded AI in the terminal, e.g. Claude Code CLI, Ollama); receives output lines via `TerminalAIOutputObserving.observe(line:)`; detects Claude sessions via `"✻ Welcome to Claude Code"`, Ollama via `"ollama run "` and `"loaded model: "`; resolves exact Claude model name from `~/.claude/settings.json`; polls `~/.claude/stats.json` for usage metrics (migrated from `ClaudeStatusLineReader`); exposes `setManual(modelName:)` for unknown AIs, `updateUsage(usedTokens:contextWindow:)` for usage updates, and `clear()` to reset detection; writes `MainAIState` to `AppState.mainAIState` exclusively (SR-1); created in `SputnikApp`, injected via `.environment(mainAIMonitor)`, and registered as `aiOutputObserver` on `TerminalManager` via `TerminalView.onAppear`
   - `SupportingAIMonitor` (`@Observable @MainActor`, `2 Foundation/2.7 Utilities/SupportingAIMonitor.swift`) — single accountant for all Supporting AI resource-feature API calls (help lookups, completions, More Context); accumulates `totalTokensSinceLaunch` across the app session; `recordUsage(inputTokens:outputTokens:contextWindow:)` is called by any resource feature after a Supporting AI API response; writes `SupportingAIUsage` to `AppState.supportingAIUsage` exclusively (SR-1); `modelName` computed from `SettingsStore.supportingAIConfig.modelName`; `reset()` zeroes the accumulator (called at app launch); created in `SputnikApp`, injected via `.environment(supportingAIMonitor)`
+  - `ErrorReporting` (`actor`, `2 Foundation/2.7 Utilities/ErrorReporting.swift`) — centralized non-fatal error logger; `ErrorReporting.shared.log(message:category:)` writes a warning to `os_log` and an in-memory ring buffer; `ErrorReporting.shared.report(error:category:)` does the same at error level; `recentEntries(limit:) -> [String]` returns formatted log entries for debugging/telemetry; ring buffer is capped at 1,000 entries (FIFO eviction); actor-isolated so safe to call from any concurrency context — use `await ErrorReporting.shared.log(...)` or `report(...)`; resolves SR-6 (no fatal unwraps in non-test code)
+  - `PreviewImageCache` (`actor`, `2 Foundation/2.7 Utilities/PreviewImageCache.swift`) — thread-safe image cache for preview panels; `PreviewImageCache.shared.image(for:loader:)` returns a cached `NSImage` on hit, or calls `loader()` on a `.utility` background task, downsamples the result to `maxDimension` (default 2048 px), caches it, and returns the downsampled image; `set(_:for:)` allows synchronous injection (nonisolated — uses `NSCache` directly); `invalidate()` purges the entire cache and bumps the generation counter; `invalidate(for:)` removes a single entry; `maxDimension` can be changed at runtime (triggers full invalidate); `NSCache` auto-evicts under memory pressure; resolves SR-3 (low RAM)
+  - `RenderThrottle` (`final class`, `2 Foundation/2.7 Utilities/RenderThrottle.swift`) — generation-based render coalescer wrapping `DebounceTimer`; `throttle(render:)` increments a generation counter, then schedules `render` via `timer.schedule(delay:)`; when the debounce fires, only the most recent generation's render is executed — stale renders are silently skipped; `cancel()` cancels any pending render; `delay` defaults to 0.1 s, clamped to `[0.01, 2.0]`; `deinit` cancels pending work automatically; resolves SR-4 (reduce CPU on fast typing)
+  - `TestingSupport` (`2 Foundation/2.7 Utilities/TestingSupport.swift`) — three mock implementations for unit testing module logic without real panels or state:
+    - `MockInterPanelRouter`: conforms to `InterPanelRouter`; records calls to `open(_:)`, `close(_:)`, `syncDirectory(_:)`, `moveActiveTabToNewWindow()` in tracked arrays/counters; `shouldSucceed` controls whether `moveActiveTabToNewWindow()` returns a `UUID` or `nil`; `events` returns a no-op `AsyncStream`
+    - `MockAppState`: tracks `isProcessing` via `beginProcessing()`/`endProcessing()`; holds `activeDocument`, `activeWindowID`, `requestedHelpTarget`, and `contextUsageForTesting` for assertions
+    - `MockWindowState`: tracks `openDocuments`, `activeDocumentID`, `panelLayout`, `panelSizes`; records `moveDocumentCalls` and `closeDocumentCalls`; `openDocument(_:)` appends and sets `activeDocumentID`; `closeDocument(_:)` removes and returns the session or `nil`
 - **Threading model:**
   - `ClosureMenuItem` and `MoreContextMenu` are `@MainActor` — menu construction and activation happen on the main thread
   - `HelpContextResolving.resolve` is `async` — the resolver runs the coordinator lookup (which may be actor-isolated) inside a `Task`; the host's `onRequest` sink writes to `AppState.requestedHelpTarget` on `@MainActor`
   - `HelpContextQuery` is `Sendable` — safe to pass across actor boundaries
 - **Data flow:** Host captures selection → calls `MoreContextMenu.items(...)` → builds one `ClosureMenuItem` per candidate kind → user clicks item → `Task` resolves query via `resolver.resolve(query)` → on completion, `onRequest(request)` writes to `AppState.requestedHelpTarget`
-- **State owned:** None — these are stateless utilities. `ClosureMenuItem` holds its closure; `MoreContextMenu` is an uninstantiable enum.
-- **Dependencies:** None on other Sputnik modules beyond Foundation types `HelpTopic` and `HelpRequest` (2.4 UI/UX). No dependency on module 9 (SR-1).
+- **State owned:** None — these are stateless utilities. `ClosureMenuItem` holds its closure; `MoreContextMenu` is an uninstantiable enum. `ErrorReporting` owns its ring buffer (actor-isolated). `PreviewImageCache` owns the `NSCache` (actor-isolated). `RenderThrottle` owns the `DebounceTimer` and generation counter.
+- **Dependencies:** None on other Sputnik modules beyond Foundation types `HelpTopic` and `HelpRequest` (2.4 UI/UX). No dependency on module 9 (SR-1). `PreviewImageCache` depends on AppKit (`NSImage`, `NSCache`).
 
 ## Known consumers
 | Module | Use |
@@ -185,6 +249,10 @@ Provide small, general-purpose utilities that have no module-specific logic and 
 | 2.4 Status Bar (F-5) | `MainAIMonitor` provides `MainAIState` for the Main AI model name + CTX % segment in `StatusBarView` |
 | 7 Terminal | Calls `TerminalAIOutputObserving.observe(line:)` for each decoded output line; depends only on the protocol, not `MainAIMonitor` directly (SR-1) |
 | 3 Text Editor / 4 Markdown Preview / 8 HTML Preview / 9 Resources | Resource-feature code calls `SupportingAIMonitor.recordUsage(inputTokens:outputTokens:contextWindow:)` after each Supporting AI API response |
+| All modules | `ErrorReporting.shared.log(...)` / `report(...)` for non-fatal errors; ring buffer for future telemetry |
+| 4 Markdown Preview / 8 HTML Preview | `PreviewImageCache.shared.image(for:loader:)` to avoid redundant image decoding across preview panels |
+| 4 Markdown Preview | `RenderThrottle.throttle(render:)` to coalesce Markdown re-renders during fast typing |
+| 2 Foundation (Tests) | `MockInterPanelRouter`, `MockAppState`, `MockWindowState` for unit tests that verify module logic without real state |
 
 ## Spec Reference
 > `DebounceTimer` has no direct spec bullet — it is an implementation utility inferred from the debouncing requirements described across multiple sub-modules:
