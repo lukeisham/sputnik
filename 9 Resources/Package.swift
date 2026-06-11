@@ -15,10 +15,13 @@ let package = Package(
             name: "ResourcesModule",
             dependencies: ["FoundationModule"],
             path: ".",
+            exclude: ["Package.swift", ".build", ".swiftpm"],
             resources: [
-                // .copy preserves directory structure so subdirectory: paths work
-                // without resource-name collisions (e.g. multiple index.json files).
-                .copy("9.1 ASCII Library"),
+                .process("9.1 ASCII Library"),
+                .process("9.2 ASCII art Help"),
+                .process("9.3 Markdown Help"),
+                .process("9.4 Html Help"),
+                .process("9.5 Grammar Help"),
             ]
         )
     ]

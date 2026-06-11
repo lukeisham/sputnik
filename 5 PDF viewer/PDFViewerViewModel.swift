@@ -170,7 +170,7 @@ public final class PDFViewerViewModel {
                 return nil
             }
             guard let image = img else { return nil }
-            let page = PDFPage(image: image)
+            guard let page = PDFPage(image: image) else { return nil }
             let doc = PDFDocument()
             doc.insert(page, at: 0)
             return doc

@@ -4,7 +4,7 @@ import Foundation
 ///
 /// All error paths that surface a dialog to the user produce a `SputnikAlert` so
 /// presentation is consistent and testable.
-public enum SputnikAlert: Error, Sendable {
+public enum SputnikAlert: Error, Sendable, Equatable {
     /// A file was opened whose type is not handled by any registered panel.
     case unsupportedFileType(URL)
     /// A file could not be read from disk.

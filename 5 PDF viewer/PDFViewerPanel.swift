@@ -1,6 +1,7 @@
-import SwiftUI
-import FoundationModule
 import AppKit
+import FoundationModule
+import Observation
+import SwiftUI
 
 /// Top-level SwiftUI view for the PDF Viewer panel.
 ///
@@ -147,7 +148,8 @@ public struct PDFViewerPanel: View {
             if let doc = viewModel.document {
                 let filename = doc.documentURL?.lastPathComponent ?? "Untitled"
                 let fileSizeStr = fileSizeString(for: doc.documentURL)
-                let scaleStr = viewModel.isFitToWidth
+                let scaleStr =
+                    viewModel.isFitToWidth
                     ? "Fit"
                     : "\(Int(viewModel.scaleFactor * 100))%"
 
@@ -181,8 +183,8 @@ public struct PDFViewerPanel: View {
 
     private func handleActiveDocumentChange() {
         guard let session = appState.activeDocument,
-              session.fileType == .pdf,
-              let url = session.url
+            session.fileType == FileType.pdf,
+            let url = session.url
         else {
             // Non-PDF or no document — don't clear so we don't flash empty state
             // when switching back from a non-PDF tab while a PDF is already loaded.
@@ -213,8 +215,8 @@ public struct PDFViewerPanel: View {
 
     private func fileSizeString(for url: URL?) -> String {
         guard let url,
-              let attrs = try? FileManager.default.attributesOfItem(atPath: url.path),
-              let size = attrs[.size] as? Int64
+            let attrs = try? FileManager.default.attributesOfItem(atPath: url.path),
+            let size = attrs[.size] as? Int64
         else { return "—" }
         let mb = Double(size) / (1024 * 1024)
         return String(format: "%.1f MB", mb)

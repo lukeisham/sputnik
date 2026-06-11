@@ -9,13 +9,43 @@ let package = Package(
     ],
     dependencies: [
         .package(name: "FoundationModule", path: "../2 Foundation"),
-        .package(name: "ResourcesModule", path: "../9 Resources")
+        .package(name: "ResourcesModule", path: "../9 Resources"),
     ],
     targets: [
         .target(
             name: "PDFViewerModule",
             dependencies: ["FoundationModule", "ResourcesModule"],
-            path: "."
+            path: ".",
+            exclude: [
+                ".build",
+                ".swiftpm",
+                "Package.swift",
+                // Stale build artifacts from a prior build
+                "ASCIIArtHelpContent-2.d",
+                "ASCIIArtHelpContent-2.dia",
+                "ASCIIArtHelpContent-2.swiftdeps",
+                "ASCIIArtHelpContent-2.swiftmodule",
+                "ASCIIArtHelpCoordinator-2.d",
+                "ASCIIArtHelpCoordinator-2.dia",
+                "ASCIIArtHelpCoordinator-2.swiftdeps",
+                "ASCIIArtHelpCoordinator-2.swiftmodule",
+                "ASCIIArtHelpIndex-2.d",
+                "ASCIIArtHelpIndex-2.dia",
+                "ASCIIArtHelpIndex-2.swiftdeps",
+                "ASCIIArtHelpIndex-2.swiftmodule",
+                "ASCIIArtHelpPanelView-2.d",
+                "ASCIIArtHelpPanelView-2.dia",
+                "ASCIIArtHelpPanelView-2.swiftdeps",
+                "ASCIIArtHelpPanelView-2.swiftmodule",
+                "MarkdownHelpContent-2.d",
+                "MarkdownHelpContent-2.dia",
+                "MarkdownHelpContent-2.swiftdeps",
+                "MarkdownHelpContent-2.swiftmodule",
+                "MarkdownHelpCoordinator-2.d",
+                "MarkdownHelpCoordinator-2.dia",
+                "MarkdownHelpCoordinator-2.swiftdeps",
+                "MarkdownHelpCoordinator-2.swiftmodule",
+            ]
         )
     ]
 )

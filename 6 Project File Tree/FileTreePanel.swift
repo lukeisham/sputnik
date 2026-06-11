@@ -1,5 +1,6 @@
 import AppKit
 import FoundationModule
+import Observation
 import SwiftUI
 import UniformTypeIdentifiers
 
@@ -141,23 +142,29 @@ public struct FileTreePanel: View {
 
     // MARK: - Recursive tree rows
 
-    @ViewBuilder
-    private func treeRows(for node: FileTreeNode, depth: Int, isRoot: Bool) -> some View {
-        // Skip rendering the root node itself; show its children directly
+    // AnyView is used here intentionally to break the recursive opaque-type inference
+    // that would otherwise produce an infinite `some View` type (e.g. _ConditionalContent<…some View…>).
+    private func treeRows(for node: FileTreeNode, depth: Int, isRoot: Bool) -> AnyView {
         if isRoot {
             let children = viewModel.displayedChildren(for: node)
-            ForEach(children) { child in
-                treeRows(for: child, depth: depth, isRoot: false)
-            }
-        } else {
-            FileTreeRowView(node: node, depth: depth, viewModel: viewModel)
-
-            if node.isDirectory && viewModel.expandedNodeIDs.contains(node.id) {
-                let children = viewModel.displayedChildren(for: node)
+            return AnyView(
                 ForEach(children) { child in
-                    treeRows(for: child, depth: depth + 1, isRoot: false)
+                    self.treeRows(for: child, depth: depth, isRoot: false)
                 }
-            }
+            )
+        } else {
+            return AnyView(
+                Group {
+                    FileTreeRowView(node: node, depth: depth, viewModel: viewModel)
+
+                    if node.isDirectory && viewModel.expandedNodeIDs.contains(node.id) {
+                        let children = viewModel.displayedChildren(for: node)
+                        ForEach(children) { child in
+                            self.treeRows(for: child, depth: depth + 1, isRoot: false)
+                        }
+                    }
+                }
+            )
         }
     }
 

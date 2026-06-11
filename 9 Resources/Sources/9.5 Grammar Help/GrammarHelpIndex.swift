@@ -93,7 +93,7 @@ public actor GrammarHelpIndex {
         didLoad = true
         guard
             let url = Bundle.module.url(
-                forResource: "index",
+                forResource: "grammar_help_index",
                 withExtension: "json",
                 subdirectory: "9.5 Grammar Help"),
             let data = try? Data(contentsOf: url),

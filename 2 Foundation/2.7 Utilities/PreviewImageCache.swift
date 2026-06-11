@@ -67,13 +67,13 @@ public actor PreviewImageCache: @unchecked Sendable {
         return downsampled
     }
 
-    /// Synchronously stores an image in the cache (for cases where the image
-    /// is already decoded and should be cached without awaiting).
+    /// Stores an image in the cache (for cases where the image
+    /// is already decoded).
     ///
     /// - Parameters:
     ///   - image: The image to cache.
     ///   - url: The cache key.
-    public nonisolated func set(_ image: NSImage, for url: URL) {
+    public func set(_ image: NSImage, for url: URL) {
         let downsampled = downsample(image, maxDimension: 2048)
         cache.setObject(downsampled, forKey: url as NSURL)
     }
@@ -105,10 +105,11 @@ public actor PreviewImageCache: @unchecked Sendable {
 
         let downsampled = NSImage(size: newSize)
         downsampled.lockFocus()
-        image.draw(in: NSRect(origin: .zero, size: newSize),
-                   from: NSRect(origin: .zero, size: size),
-                   operation: .copy,
-                   fraction: 1.0)
+        image.draw(
+            in: NSRect(origin: .zero, size: newSize),
+            from: NSRect(origin: .zero, size: size),
+            operation: .copy,
+            fraction: 1.0)
         downsampled.unlockFocus()
 
         return downsampled

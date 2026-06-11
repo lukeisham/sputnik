@@ -48,7 +48,7 @@ public actor MarkdownHelpIndex {
         didLoad = true
         guard
             let url = Bundle.module.url(
-                forResource: "index",
+                forResource: "markdown_help_index",
                 withExtension: "json",
                 subdirectory: "9.3 Markdown Help"),
             let data = try? Data(contentsOf: url),
