@@ -31,7 +31,7 @@ extension FocusedValues {
 /// **Threading:** `@MainActor` — all reads and writes happen on the main thread.
 @Observable
 @MainActor
-public final class WindowState {
+public final class WindowState: @unchecked Sendable {
 
     // MARK: - Identity
 

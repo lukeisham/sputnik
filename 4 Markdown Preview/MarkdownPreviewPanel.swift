@@ -1,6 +1,6 @@
 import FoundationModule
-import SwiftUI
 import ResourcesModule
+import SwiftUI
 
 /// Top-level SwiftUI view for the Markdown Preview panel.
 ///
@@ -43,12 +43,13 @@ public struct MarkdownPreviewPanel: View {
     ///                          tab-open behaviour for link clicks (preview becomes read-only).
     ///   - helpContextResolver: The resolver for right-click "More Context" help.
     ///                          Defaults to `SputnikHelpContextResolver.shared`.
+    @MainActor
     public init(
         router: (any InterPanelRouter)? = nil,
-        helpContextResolver: HelpContextResolving = SputnikHelpContextResolver.shared
+        helpContextResolver: HelpContextResolving? = nil
     ) {
         self.coordinator = MarkdownPreviewCoordinator(router: router)
-        self.helpContextResolver = helpContextResolver
+        self.helpContextResolver = helpContextResolver ?? SputnikHelpContextResolver.shared
     }
 
     // MARK: - Body
@@ -232,7 +233,8 @@ public struct MarkdownPreviewPanel: View {
             Image(systemName: "doc.text.magnifyingglass")
                 .font(.system(size: 32))
                 .foregroundStyle(SputnikColor.tertiaryText)
-            let message = session.fileType == .ascii 
+            let message =
+                session.fileType == .ascii
                 ? "ASCII file selected — open a Markdown file to preview"
                 : "Plain text file selected — open a Markdown file to preview"
             Text(message)

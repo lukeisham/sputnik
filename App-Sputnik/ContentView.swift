@@ -2,6 +2,7 @@ import FileTreeModule
 import FoundationModule
 import HTMLPreviewModule
 import MarkdownPreviewModule
+import Observation
 import PDFViewerModule
 import ResourcesModule
 import SwiftUI
@@ -43,8 +44,10 @@ public struct ContentView: View {
 
                     Divider()
 
-                    TextEditorPanel(viewModel: editorViewModel, settings: settings, appState: appState)
-                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    TextEditorPanel(
+                        viewModel: editorViewModel, settings: settings, appState: appState
+                    )
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
 
                     MarkdownPreviewPanel()
                 }

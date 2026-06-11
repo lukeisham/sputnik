@@ -1,5 +1,6 @@
 import AppKit
 import FoundationModule
+import Observation
 import ResourcesModule
 import SwiftUI
 import WebKit
@@ -98,17 +99,18 @@ public struct HTMLPreviewView: NSViewRepresentable {
     ///   - helpContextResolver:     Resolver for "More Context" right-click help. Defaults to
     ///                              `SputnikHelpContextResolver.shared`.
     ///   - settings:                The app settings store (for per-panel font/background).
+    @MainActor
     public init(
         router: (any InterPanelRouter)? = nil,
         isLinkNavigationEnabled: Bool = true,
         onLoadError: ((String) -> Void)? = nil,
-        helpContextResolver: HelpContextResolving = SputnikHelpContextResolver.shared,
+        helpContextResolver: HelpContextResolving? = nil,
         settings: SettingsStore
     ) {
         self.router = router
         self.isLinkNavigationEnabled = isLinkNavigationEnabled
         self.onLoadError = onLoadError
-        self.helpContextResolver = helpContextResolver
+        self.helpContextResolver = helpContextResolver ?? SputnikHelpContextResolver.shared
         self.settings = settings
     }
 
@@ -163,7 +165,7 @@ public struct HTMLPreviewView: NSViewRepresentable {
     public func updateNSView(_ webView: WKWebView, context: Context) {
         let session = appState.activeDocument
 
-        guard let session, session.fileType == .html else {
+        guard let session, session.fileType == FileType.html else {
             // No active session or wrong type — load a blank placeholder.
             webView.loadHTMLString(placeholderHTML, baseURL: nil)
             context.coordinator.currentBaseURL = nil

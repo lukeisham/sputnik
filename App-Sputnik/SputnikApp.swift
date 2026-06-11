@@ -1,5 +1,6 @@
 import AppKit
 import FoundationModule
+import Observation
 import SwiftUI
 
 /// The single app entry point.
@@ -84,6 +85,7 @@ public struct SputnikApp: App {
         Settings {
             SettingsView()
                 .environment(settingsStore)
+                .environment(supportingAIMonitor)
         }
     }
 

@@ -1,4 +1,5 @@
 import FoundationModule
+import Observation
 import ResourcesModule
 import SwiftUI
 
@@ -40,12 +41,13 @@ public struct HTMLPreviewPanel: View {
     ///                            tab-open behaviour for link clicks (preview becomes read-only).
     ///   - helpContextResolver:   Resolver for "More Context" right-click help. Defaults to
     ///                            `SputnikHelpContextResolver.shared`.
+    @MainActor
     public init(
         router: (any InterPanelRouter)? = nil,
-        helpContextResolver: HelpContextResolving = SputnikHelpContextResolver.shared
+        helpContextResolver: HelpContextResolving? = nil
     ) {
         self.router = router
-        self.helpContextResolver = helpContextResolver
+        self.helpContextResolver = helpContextResolver ?? SputnikHelpContextResolver.shared
     }
 
     // MARK: - Body

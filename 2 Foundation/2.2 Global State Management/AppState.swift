@@ -13,7 +13,7 @@ import Observation
 /// **Threading:** `@MainActor` — all reads and writes happen on the main thread.
 @Observable
 @MainActor
-public final class AppState {
+public final class AppState: @unchecked Sendable {
 
     // MARK: - Window registry
 

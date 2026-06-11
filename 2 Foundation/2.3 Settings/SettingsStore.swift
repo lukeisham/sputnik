@@ -9,7 +9,7 @@ import SwiftUI
 /// not access `UserDefaults` or `PersistenceService` directly.
 @Observable
 @MainActor
-public final class SettingsStore {
+public final class SettingsStore: @unchecked Sendable {
 
     // MARK: - Stored properties (trigger @Observable change notifications)
 

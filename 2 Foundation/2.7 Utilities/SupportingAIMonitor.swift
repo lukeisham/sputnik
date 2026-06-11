@@ -17,7 +17,7 @@ import Observation
 /// `.environment(supportingAIMonitor)`. Reset on app launch only (never mid-session).
 @Observable
 @MainActor
-public final class SupportingAIMonitor {
+public final class SupportingAIMonitor: @unchecked Sendable {
 
     // MARK: - Dependencies
 

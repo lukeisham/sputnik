@@ -194,7 +194,7 @@ public final class EditorViewModel: EditorCommandHandling {
             // 500ms debounce: wait for typing to pause before writing.
             try? await Task.sleep(nanoseconds: 500_000_000)
             guard !Task.isCancelled else { return }
-            await self?.recoveryStore?.scheduleWrite(for: fileURL, content: text)
+            self?.recoveryStore?.scheduleWrite(for: fileURL, content: text)
         }
     }
 
