@@ -101,12 +101,12 @@ public struct StatusBarView<Content: View>: View {
 
     // MARK: - Private helpers
 
-    /// The satellite icon with a continuous rotation animation when processing.
+    /// The antenna icon with a continuous rotation animation when processing.
     @ViewBuilder
     private var satelliteIcon: some View {
         let isProcessing = appState.isProcessing
 
-        Image(systemName: "satellite")
+        Image(systemName: "antenna.radiowaves.left.and.right")
             .font(.system(size: SputnikFont.body))
             .foregroundStyle(isProcessing ? SputnikColor.accent : SputnikColor.secondaryText)
             .rotationEffect(.degrees(isProcessing ? 360 : 0))
