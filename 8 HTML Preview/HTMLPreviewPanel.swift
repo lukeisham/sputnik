@@ -1,3 +1,5 @@
+import FoundationModule
+import ResourcesModule
 import SwiftUI
 
 /// Top-level SwiftUI view for the HTML Preview panel.

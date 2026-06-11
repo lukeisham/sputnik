@@ -55,6 +55,50 @@ SputnikCommands: Commands (80 LOC, router only)
 
 ## Step-by-Step Implementation
 
+### Phase 0: Verify Module Dependencies & Cross-Module Impact (20 min)
+
+**Before making any changes, verify that SputnikCommands refactoring won't break other modules.**
+
+1. **Scan for SputnikCommands imports across the codebase**
+   ```bash
+   grep -r "import.*SputnikCommands" --include="*.swift"
+   grep -r "SputnikCommands\." --include="*.swift" | grep -v "^2 Foundation/"
+   ```
+   - Verify SputnikCommands is only imported in App-Sputnik (as the entry point)
+   - No panels or other modules should directly reference menu actions
+
+2. **Check AppState, SettingsStore, AppInterPanelRouter dependencies**
+   - Verify these types exist in Foundation module with correct signatures
+   - Scan which modules use each: `grep -r "AppInterPanelRouter" --include="*.swift"`
+   - Ensure all three are already injected/available to menu groups
+
+3. **Verify menu helper functions have no external dependencies**
+   - Check `openDocument()`, `saveAs()`, `presentAlert()` usage across codebase
+   - Ensure they're internal to SputnikCommands (not called from other modules)
+   - `grep -r "openDocument\|saveAs\|presentAlert" --include="*.swift" | grep -v "SputnikCommands"`
+   - If found outside SputnikCommands, these functions must remain in SputnikCommands, not extracted
+
+4. **Check for panel actions that might conflict with menu commands**
+   - Verify panels don't define their own ⌘S, ⌘O, ⌘N handlers that would conflict
+   - `grep -r "keyboardShortcut.*\\(\"s\"\\|\"o\"\\|\"n\"\\)" --include="*.swift" | grep -v "SputnikCommands"`
+   - Ensure menu command dispatch is the single source of truth
+
+5. **Verify AppInterPanelRouter can broadcast to all panels**
+   - Check that router has methods for: file operations, view toggles, focus changes
+   - Confirm no panel directly listens for menu broadcasts (should go through router only)
+
+6. **Document findings & proceed only if green light**
+   - [ ] SputnikCommands imported only from App-Sputnik
+   - [ ] All dependencies (AppState, SettingsStore, AppInterPanelRouter) available
+   - [ ] Helper functions not called from outside SputnikCommands
+   - [ ] No menu shortcut conflicts in panel code
+   - [ ] Router can broadcast to all affected panels
+   - [ ] Safe to proceed with extraction
+
+**If any issues found:** Log to Issues.md before continuing.
+
+---
+
 ### Phase 1: Extract Helpers (30 min)
 1. Create **MenuHelpers.swift**:
    - Extract `openDocument()` (lines 534–543)

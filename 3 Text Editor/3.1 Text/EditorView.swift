@@ -1,4 +1,6 @@
 import AppKit
+import FoundationModule
+import ResourcesModule
 import SwiftUI
 
 /// SwiftUI wrapper for the Sputnik text-editing surface.
@@ -108,7 +110,7 @@ public struct EditorView: NSViewRepresentable {
         // Set up syntax highlighting and debounce timer.
         if let storage = textView.textStorage {
             context.coordinator.syntaxHighlighter = SyntaxHighlighter(textStorage: storage)
-            context.coordinator.highlightDebounceTimer = DebounceTimer(interval: 0.3)
+            context.coordinator.highlightDebounceTimer = DebounceTimer()
         }
 
         configureTypography(textView, settings: settings)
@@ -177,11 +179,11 @@ public struct EditorView: NSViewRepresentable {
         var checker: SpellingGrammarChecker?
 
         // Track the last applied load token to prevent re-applying stale content.
-        private var lastAppliedLoadToken: UUID?
+        fileprivate var lastAppliedLoadToken: UUID?
 
         // Syntax highlighting
-        private var syntaxHighlighter: SyntaxHighlighter?
-        private var highlightDebounceTimer: DebounceTimer?
+        fileprivate var syntaxHighlighter: SyntaxHighlighter?
+        fileprivate var highlightDebounceTimer: DebounceTimer?
 
         // Language providers — exactly one is dispatched per text change, based on mode.
         var markdownProvider: MarkdownLanguageProvider?
@@ -197,10 +199,11 @@ public struct EditorView: NSViewRepresentable {
             viewModel.isDirty = true
 
             // Debounced syntax highlighting (skip for plainText mode).
-            if viewModel.mode != .plainText {
+            let currentMode = viewModel.mode
+            if currentMode != .plainText {
                 highlightDebounceTimer?.cancel()
-                highlightDebounceTimer?.schedule { [weak self] in
-                    self?.syntaxHighlighter?.highlight(mode: self?.viewModel.mode ?? .plainText)
+                highlightDebounceTimer?.schedule(delay: 0.3) { [weak self] in
+                    self?.syntaxHighlighter?.highlight(mode: currentMode)
                 }
             }
 
@@ -219,6 +222,7 @@ public struct EditorView: NSViewRepresentable {
             }
         }
 
+        @MainActor
         private func dispatchCompletionProvider() {
             switch viewModel.mode {
             case .markdown: markdownProvider?.onKeypress()

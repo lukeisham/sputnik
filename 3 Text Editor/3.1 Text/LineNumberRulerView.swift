@@ -10,9 +10,9 @@ public final class LineNumberRulerView: NSRulerView {
 
     // MARK: - Configuration
 
-    private let gutterFont:   NSFont  = .monospacedSystemFont(ofSize: 11, weight: .regular)
-    private let gutterColor:  NSColor = .tertiaryLabelColor
-    private let gutterBg:     NSColor = .windowBackgroundColor
+    private let gutterFont: NSFont = .monospacedSystemFont(ofSize: 11, weight: .regular)
+    private let gutterColor: NSColor = .tertiaryLabelColor
+    private let gutterBg: NSColor = .windowBackgroundColor
     private static let padding: CGFloat = 8
 
     // MARK: - Init
@@ -31,18 +31,18 @@ public final class LineNumberRulerView: NSRulerView {
         rect.fill()
 
         guard
-            let textView      = clientView as? NSTextView,
-            let layoutMgr     = textView.layoutManager,
+            let textView = clientView as? NSTextView,
+            let layoutMgr = textView.layoutManager,
             let textContainer = textView.textContainer,
-            let textStorage   = textView.textStorage
+            let textStorage = textView.textStorage
         else { return }
 
-        let visibleRect  = scrollView?.contentView.bounds ?? bounds
-        let glyphRange   = layoutMgr.glyphRange(forBoundingRect: visibleRect, in: textContainer)
-        let charRange    = layoutMgr.characterRange(forGlyphRange: glyphRange, actualGlyphRange: nil)
+        let visibleRect = scrollView?.contentView.bounds ?? bounds
+        let glyphRange = layoutMgr.glyphRange(forBoundingRect: visibleRect, in: textContainer)
+        let charRange = layoutMgr.characterRange(forGlyphRange: glyphRange, actualGlyphRange: nil)
 
-        let nsText       = textStorage.string as NSString
-        var lineNumber   = 1
+        let nsText = textStorage.string as NSString
+        var lineNumber = 1
 
         // Count newlines before the visible range to establish the starting line number.
         let precedingRange = NSRange(location: 0, length: charRange.location)
@@ -54,7 +54,7 @@ public final class LineNumberRulerView: NSRulerView {
         }
 
         let attrs: [NSAttributedString.Key: Any] = [
-            .font:            gutterFont,
+            .font: gutterFont,
             .foregroundColor: gutterColor,
         ]
 
@@ -62,16 +62,19 @@ public final class LineNumberRulerView: NSRulerView {
             in: charRange,
             options: [.byLines, .substringNotRequired]
         ) { [weak self] _, _, enclosingRange, stop in
-            guard let self else { stop = true; return }
+            guard let self else {
+                stop.pointee = true
+                return
+            }
 
-            let glyphIdx       = layoutMgr.glyphIndexForCharacter(at: enclosingRange.location)
-            var fragRect       = layoutMgr.lineFragmentRect(forGlyphAt: glyphIdx, effectiveRange: nil)
-            fragRect           = fragRect.offsetBy(dx: 0, dy: -visibleRect.minY)
+            let glyphIdx = layoutMgr.glyphIndexForCharacter(at: enclosingRange.location)
+            var fragRect = layoutMgr.lineFragmentRect(forGlyphAt: glyphIdx, effectiveRange: nil)
+            fragRect = fragRect.offsetBy(dx: 0, dy: -visibleRect.minY)
 
-            let label          = "\(lineNumber)" as NSString
-            let labelSize      = label.size(withAttributes: attrs)
-            let x              = bounds.width - labelSize.width - Self.padding
-            let y              = fragRect.minY + (fragRect.height - labelSize.height) / 2
+            let label = "\(lineNumber)" as NSString
+            let labelSize = label.size(withAttributes: attrs)
+            let x = bounds.width - labelSize.width - Self.padding
+            let y = fragRect.minY + (fragRect.height - labelSize.height) / 2
             label.draw(at: NSPoint(x: x, y: y), withAttributes: attrs)
 
             lineNumber += 1

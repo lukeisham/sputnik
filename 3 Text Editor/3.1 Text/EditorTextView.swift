@@ -1,4 +1,6 @@
 import AppKit
+import FoundationModule
+import ResourcesModule
 import SwiftUI
 
 /// The primary text-editing surface for Sputnik.
@@ -164,7 +166,8 @@ public final class EditorTextView: NSTextView {
 
         // Gate on the writingAssist matrix — non-applicable or disabled cells skip items.
         if let lang = assistLanguage(for: kind),
-           settings?.writingAssist.isEnabled(.moreContext, for: lang) == false {
+            settings?.writingAssist.isEnabled(.moreContext, for: lang) == false
+        {
             return menu
         }
 
@@ -210,10 +213,10 @@ public final class EditorTextView: NSTextView {
     private func assistLanguage(for kind: HelpTopic) -> WritingAssistLanguage? {
         switch kind {
         case .markdown: return .markdown
-        case .html:     return .html
-        case .grammar:  return .grammar
+        case .html: return .html
+        case .grammar: return .grammar
         case .asciiArt: return .asciiArt
-        case .sputnik:  return nil
+        case .sputnik: return nil
         }
     }
 

@@ -260,7 +260,10 @@ private struct AppearanceTab: View {
                 value: Binding(
                     get: { font.pointSize },
                     set: {
-                        onChange(EditorFont(postScriptName: font.postScriptName, pointSize: $0))
+                        onChange(
+                            EditorFont(
+                                postScriptName: font.postScriptName,
+                                pointSize: CGFloat($0 ?? font.pointSize)))
                     }
                 ),
                 format: .number

@@ -1,6 +1,7 @@
+import AppKit
 import Foundation
-import Observation
 import FoundationModule
+import Observation
 
 /// Centralised, thread-safe editor state for module 3.
 ///
@@ -62,9 +63,10 @@ public final class EditorViewModel: EditorCommandHandling {
     // MARK: - Crash recovery
 
     /// Serializes editor buffer to recovery cache on text changes (ISS-036).
-    private lazy var recoveryStore: CrashRecoveryStore? = {
+    private var recoveryStore: CrashRecoveryStore? = {
         if let appDelegate = NSApp.delegate as? AppDelegate,
-           let persistence = appDelegate.persistenceService {
+            let persistence = appDelegate.persistenceService
+        {
             return CrashRecoveryStore(persistence: persistence)
         }
         return nil
@@ -78,7 +80,8 @@ public final class EditorViewModel: EditorCommandHandling {
     public init() {
         // Register as the editor command handler (Save, Save As, etc.).
         if let appDelegate = NSApp.delegate as? AppDelegate,
-           let appState = appDelegate.appState {
+            let appState = appDelegate.appState
+        {
             appState.registerEditorCommandHandler(self)
         }
     }
@@ -87,8 +90,10 @@ public final class EditorViewModel: EditorCommandHandling {
 
     deinit {
         // Clean up resources on app teardown or view model deallocation (Step 12).
-        stopWatchingFile()
-        stopRecoveryWrite()
+        MainActor.assumeIsolated {
+            stopWatchingFile()
+            stopRecoveryWrite()
+        }
     }
 
     // MARK: - Document loading
@@ -145,11 +150,11 @@ public final class EditorViewModel: EditorCommandHandling {
     /// Mode is inferred by the caller from the file extension; reset to `.plainText`
     /// as a safe default so no sub-module is left active from the previous session.
     private func resetForNewFile(url: URL?) {
-        fileURL         = url
-        isDirty         = false
-        htmlModeActive  = false
+        fileURL = url
+        isDirty = false
+        htmlModeActive = false
         spellCheckActive = false
-        mode            = .plainText
+        mode = .plainText
     }
 
     /// Maps a `FileType` to an `EditorMode`.
@@ -215,7 +220,7 @@ public final class EditorViewModel: EditorCommandHandling {
         }
 
         // Suppress the watcher's notification of our own write (ISS-035).
-        fileWatcher?.suppressNextChange()
+        fileWatcher?.setSuppressNextChange()
 
         // Atomic write on background task to keep UI thread clear (SR-4).
         try await Task(priority: .userInitiated) { [weak self] () -> Void in
@@ -237,7 +242,7 @@ public final class EditorViewModel: EditorCommandHandling {
     /// Saves the buffer to a user-selected file location.
     public func saveAs(to newURL: URL) async throws {
         // Suppress the old watcher's notification of the file deletion (ISS-035).
-        fileWatcher?.suppressNextChange()
+        fileWatcher?.setSuppressNextChange()
 
         // Atomic write on background task (SR-4).
         try await Task(priority: .userInitiated) { [weak self] () -> Void in
@@ -262,7 +267,8 @@ public final class EditorViewModel: EditorCommandHandling {
     public func renderAsHTML() async throws {
         guard htmlModeActive, let url = fileURL else { return }
         if let appDelegate = NSApp.delegate as? AppDelegate,
-           let router = appDelegate.appState?.router {
+            let router = appDelegate.appState?.router
+        {
             await router.open(url)
         }
     }

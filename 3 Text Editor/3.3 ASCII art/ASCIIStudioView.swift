@@ -1,5 +1,5 @@
-import SwiftUI
 import AppKit
+import SwiftUI
 import UniformTypeIdentifiers
 
 /// SwiftUI two-tab content for the ASCII Studio panel.
@@ -13,21 +13,21 @@ public struct ASCIIStudioView: View {
 
     // MARK: - State
 
-    @State private var selectedTab:      Tab                             = .imageToASCII
-    @State private var selectedImage:    NSImage?                        = nil
-    @State private var asciiPreview:     String                          = ""
-    @State private var targetWidth:      Double                          = 80
-    @State private var invert:           Bool                            = false
-    @State private var rampStyle:        ImageToASCIIConverter.RampStyle = .block
-    @State private var selectedCategory: ASCIILibraryBrowser.Category   = .frames
-    @State private var isConverting:     Bool                            = false
+    @State private var selectedTab: Tab = .imageToASCII
+    @State private var selectedImage: NSImage? = nil
+    @State private var asciiPreview: String = ""
+    @State private var targetWidth: Double = 80
+    @State private var invert: Bool = false
+    @State private var rampStyle: ImageToASCIIConverter.RampStyle = .block
+    @State private var selectedCategory: ASCIILibraryBrowser.Category = .frames
+    @State private var isConverting: Bool = false
 
     private let textView: NSTextView
-    private let library  = ASCIILibraryBrowser()
+    private let library = ASCIILibraryBrowser()
 
     public enum Tab: String, CaseIterable {
         case imageToASCII = "Image → ASCII"
-        case library      = "Library"
+        case library = "Library"
     }
 
     public init(textView: NSTextView) {
@@ -51,7 +51,7 @@ public struct ASCIIStudioView: View {
             Group {
                 switch selectedTab {
                 case .imageToASCII: imageTab
-                case .library:      libraryTab
+                case .library: libraryTab
                 }
             }
         }
@@ -129,7 +129,7 @@ public struct ASCIIStudioView: View {
             if clips.isEmpty {
                 VStack {
                     Spacer()
-                    Text("No clips available for "\(selectedCategory.rawValue)".")
+                    Text("No clips available for \(selectedCategory.rawValue).")
                         .foregroundStyle(.secondary)
                     Text("Add .txt files to Resources/ASCIILibrary/\(selectedCategory.rawValue)/")
                         .font(.caption)
@@ -175,11 +175,11 @@ public struct ASCIIStudioView: View {
 
     private func importImage() {
         let panel = NSOpenPanel()
-        panel.allowedContentTypes     = [.png, .jpeg, .tiff]
+        panel.allowedContentTypes = [.png, .jpeg, .tiff]
         panel.allowsMultipleSelection = false
         guard panel.runModal() == .OK,
-              let url   = panel.url,
-              let image = NSImage(contentsOf: url)
+            let url = panel.url,
+            let image = NSImage(contentsOf: url)
         else { return }
         selectedImage = image
         regenerate()
@@ -188,7 +188,9 @@ public struct ASCIIStudioView: View {
     private func regenerate() {
         guard let image = selectedImage else { return }
         isConverting = true
-        let w = Int(targetWidth), inv = invert, style = rampStyle
+        let w = Int(targetWidth)
+        let inv = invert
+        let style = rampStyle
         Task(priority: .userInitiated) {
             let result = ImageToASCIIConverter.convert(image, width: w, invert: inv, style: style)
             await MainActor.run {

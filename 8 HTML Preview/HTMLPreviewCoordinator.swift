@@ -54,7 +54,7 @@ public final class HTMLPreviewCoordinator: NSObject, WKNavigationDelegate {
     func throttledLoad(html: String, baseURL: URL?) {
         currentBaseURL = baseURL
         renderThrottle.throttle { [weak self] in
-            await MainActor.run {
+            Task { @MainActor in
                 self?.webView?.loadHTMLString(html, baseURL: baseURL)
             }
         }

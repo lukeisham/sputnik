@@ -166,7 +166,7 @@ Module guide: {guide_path}
    - Swift Testing syntax examples
    - Error handling patterns
 
-2. **Store skill** in `1 Setup/SKILLS/!CreateTests.md`:
+2. **Create skill file** at `1 Setup/SKILLS/!CreateTests.md`:
    ```markdown
    # Skill: !CreateTests
    
@@ -187,6 +187,10 @@ Module guide: {guide_path}
    
    [Full prompt body...]
    ```
+   
+   **Ensure the skill file is saved to:** `/Users/lukeishammacbookair/Developer/App_Sputnik/1 Setup/SKILLS/!CreateTests.md`
+   
+   (Verify directory structure matches CLAUDE.md Module Guide format.)
 
 3. **Test the skill manually:**
    - Invoke on Foundation module (already has tests)
@@ -254,22 +258,45 @@ Module guide: {guide_path}
    - Run full test suite: `swift test`
    - Fix any failures (usually mocking issues)
 
-### Phase 5: Documentation & Integration (1 day)
+### Phase 5: Skill Registration & Documentation (1 day)
 
-1. **Update CLAUDE.md:**
-   - Add !CreateTests to skill list
-   - Document when to use (adding new module, expanding test coverage)
+1. **Register skill in CLAUDE.md:**
+   
+   **Location:** `/Users/lukeishammacbookair/Developer/App_Sputnik/CLAUDE.md`
+   
+   **Action:** Add !CreateTests to the Agent Skills table:
+   ```markdown
+   | Skill | When to use |
+   |---|---|
+   | ... (existing skills) |
+   | **!CreateTests** | Generates unit tests for a module. Use when bootstrapping test coverage for a new module, or expanding tests for existing logic. Reads Module Guide to understand architecture, analyzes source code, generates 20–70 tests per module. |
+   ```
+   
+   **Verify:**
+   - [ ] Skill entry added to CLAUDE.md Agent Skills section
+   - [ ] Skill file exists at `1 Setup/SKILLS/!CreateTests.md`
+   - [ ] Skill can be invoked via `/create-tests <module-name>`
 
-2. **Update README.md:**
-   - Mention testing framework (Swift Testing)
+2. **Update CLAUDE.md Module Guide reference (if needed):**
+   - Ensure Module Guides section links to `1 Setup/Module Guides/<N> <Name>/`
+   - Confirm skill documentation matches expected input format (module name, module path, guide path)
+
+3. **Update README.md:**
+   - Add section: "Testing Strategy"
+   - Mention Swift Testing framework (not XCTest)
    - Link to TestingSupport module
-   - Testing roadmap
+   - Point to !CreateTests skill for automated test generation
+   - Testing roadmap (which modules have tests, coverage targets)
 
-3. **Create testing guide:**
-   - `1 Setup/Guides/Testing.md`
-   - Best practices for Sputnik tests
-   - How to run tests
-   - How to write custom tests (for areas skill can't cover)
+4. **Create testing guide** (optional but recommended):
+   - File: `1 Setup/Guides/Testing.md`
+   - Content:
+     * Swift Testing syntax overview
+     * @Test and #expect examples
+     * How to run tests (`swift test`)
+     * How to use !CreateTests skill
+     * Best practices for Sputnik modules
+     * How to write custom tests (for UI, integration, areas skill can't cover)
 
 ---
 
@@ -342,6 +369,48 @@ Once implemented, test the skill on:
 - **Public API coverage:** 80%+ of testable code
 - **Test execution time:** <10 seconds (full suite)
 - **Test reliability:** 100% (no flaky tests)
+
+---
+
+## Deliverables & Sign-Off
+
+### Files Created
+- **Skill definition:** `1 Setup/SKILLS/!CreateTests.md`
+  - Location: `/Users/lukeishammacbookair/Developer/App_Sputnik/1 Setup/SKILLS/!CreateTests.md`
+  - Content: Detailed prompt for generating module tests
+  - Size: 500–800 lines (comprehensive instructions + examples)
+
+### Files Modified
+- **CLAUDE.md**
+  - Add !CreateTests to "Agent Skills" table with description and use cases
+  - Location: `/Users/lukeishammacbookair/Developer/App_Sputnik/CLAUDE.md`
+  - Verify skill is listed and documented
+
+- **README.md** (if exists)
+  - Add testing section referencing the new skill
+  - Link to `1 Setup/SKILLS/!CreateTests.md`
+
+### Test Files Generated (via skill)
+- `2 Foundation/Tests/FoundationModuleTests.swift` (append/update)
+- `7 Terminal/Tests/TerminalModuleTests.swift` (new)
+- `4 Markdown Preview/Tests/MarkdownPreviewModuleTests.swift` (new)
+- `6 Project File Tree/Tests/FileTreeModuleTests.swift` (new)
+- `3 Text Editor/Tests/TextEditorModuleTests.swift` (new)
+- `5 PDF Viewer/Tests/PDFViewerModuleTests.swift` (new)
+- `8 HTML Preview/Tests/HTMLPreviewModuleTests.swift` (new)
+- `9 Resources/Tests/ResourcesModuleTests.swift` (new)
+
+### Sign-Off Checklist
+
+- [ ] Skill file created at `1 Setup/SKILLS/!CreateTests.md`
+- [ ] Skill registered in CLAUDE.md Agent Skills table
+- [ ] Skill can be invoked: `/create-tests <module-name>`
+- [ ] Test files exist for all 8 modules
+- [ ] All generated test files compile without errors
+- [ ] Test suite passes: `swift test`
+- [ ] CLAUDE.md updated with skill documentation
+- [ ] README.md updated (if applicable)
+- [ ] Testing guide created at `1 Setup/Guides/Testing.md` (recommended)
 
 ---
 

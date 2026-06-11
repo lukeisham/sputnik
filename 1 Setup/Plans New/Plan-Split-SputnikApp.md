@@ -85,6 +85,42 @@ SettingsHelpers.swift (22 LOC)
 
 ## Step-by-Step Implementation
 
+### Phase 0: Verify Module Dependencies & Cross-Module Impact (20 min)
+
+**Before making any changes, verify that SputnikApp refactoring won't break other modules.**
+
+1. **Scan for SputnikApp imports across the codebase**
+   ```bash
+   grep -r "import.*SputnikApp" --include="*.swift"
+   grep -r "SputnikApp\." --include="*.swift" | grep -v "^App-Sputnik/"
+   ```
+   - Verify nothing outside App-Sputnik directly imports SputnikApp
+   - SputnikApp.swift should only be an entry point; other modules should depend on Foundation module types
+
+2. **Check SettingsStore dependencies**
+   - Verify SettingsStore is in Foundation module and has no imports from App-Sputnik
+   - Scan which modules import SettingsStore: `grep -r "SettingsStore" --include="*.swift" | grep -v "App-Sputnik"`
+   - Confirm all usages are via @Environment injection, not direct instantiation
+
+3. **Verify WindowGroup & Scene setup has no hard module dependencies**
+   - Check that main content panels (FileTree, TextEditor, MarkdownPreview, HTMLPreview, Terminal, PDFViewer) are all injected via @Environment or SceneStorage
+   - Ensure no panel code directly imports SputnikApp
+
+4. **Check for circular import risks**
+   - Verify new tab files (AppearanceTab, EditorTab, etc.) don't import any module that imports from App-Sputnik
+   - Ensure SettingsHelpers.swift only imports SwiftUI + Foundation module types
+
+5. **Document findings in section below & proceed only if green light**
+   - [ ] No external imports of SputnikApp found
+   - [ ] SettingsStore has no App-Sputnik dependencies
+   - [ ] All panels use environment injection (no direct instantiation)
+   - [ ] No circular import risks detected
+   - [ ] Safe to proceed with extraction
+
+**If any issues found:** Log to Issues.md before continuing.
+
+---
+
 ### Phase 1: Extract WindowRestorerView (30 min)
 
 1. **Create WindowRestorerView.swift**

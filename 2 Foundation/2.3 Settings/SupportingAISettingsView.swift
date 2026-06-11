@@ -9,7 +9,7 @@ import SwiftUI
 /// Presents a provider selector (DeepSeek / Gemini / Local), model name field, API
 /// key field (Keychain-backed via `KeychainService`), optional base URL override,
 /// and live session-usage metrics.
-struct SupportingAISettingsView: View {
+public struct SupportingAISettingsView: View {
     let settings: SettingsStore
     let supportingAIMonitor: SupportingAIMonitor?
     @Environment(AppState.self) private var appState
@@ -19,7 +19,12 @@ struct SupportingAISettingsView: View {
     @State private var showKey: Bool = false
     @State private var keyStatusMessage: String = ""
 
-    var body: some View {
+    public init(settings: SettingsStore, supportingAIMonitor: SupportingAIMonitor?) {
+        self.settings = settings
+        self.supportingAIMonitor = supportingAIMonitor
+    }
+
+    public var body: some View {
         Form {
             // MARK: Provider
             Section {

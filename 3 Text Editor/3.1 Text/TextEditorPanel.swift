@@ -1,5 +1,5 @@
-import SwiftUI
 import FoundationModule
+import SwiftUI
 
 /// SwiftUI container for the text editor, including mode picker toolbar, search bar, and editor view.
 ///
@@ -8,7 +8,7 @@ import FoundationModule
 /// a cohesive editor interface.
 public struct TextEditorPanel: View {
 
-    @ObservedObject var viewModel: EditorViewModel
+    @Bindable var viewModel: EditorViewModel
     var settings: SettingsStore
     var appState: AppState
 
@@ -27,7 +27,7 @@ public struct TextEditorPanel: View {
             // Toolbar: mode picker
             HStack(spacing: SputnikSpacing.sm) {
                 Text("Mode:")
-                    .font(.system(size: SputnikFont.small))
+                    .font(.system(size: SputnikFont.caption))
                     .foregroundStyle(SputnikColor.secondaryText)
 
                 Picker("Editor Mode", selection: $viewModel.mode) {
@@ -41,12 +41,12 @@ public struct TextEditorPanel: View {
                 Spacer()
             }
             .padding(SputnikSpacing.sm)
-            .background(SputnikColor.panelBackground)
+            .background(SputnikColor.secondaryBackground)
             .borderTop(Color(nsColor: .separatorColor), width: 1)
 
             // Search bar (mounted but initially hidden)
             if let search = viewModel.searchController {
-                SearchBarView(searchController: search)
+                SearchBarView(controller: search)
             }
 
             // Editor view

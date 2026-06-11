@@ -39,7 +39,7 @@ public final class FileWatcher: NSObject, NSFilePresenter, @unchecked Sendable {
     }
 
     /// Suppress the next file-change notification (used when saving locally).
-    public func suppressNextChange() {
+    public func setSuppressNextChange() {
         suppressNextChange = true
     }
 

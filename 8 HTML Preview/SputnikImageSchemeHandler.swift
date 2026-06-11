@@ -19,9 +19,11 @@ final class SputnikImageSchemeHandler: NSObject, WKURLSchemeHandler {
 
     weak var coordinator: HTMLPreviewCoordinator?
 
-    func webView(_ webView: WKWebView, start urlRequest: URLRequest) {
+    func webView(_ webView: WKWebView, start urlSchemeTask: WKURLSchemeTask) {
+        let urlRequest = urlSchemeTask.request
+
         guard let url = urlRequest.url else {
-            respondWithError(to: urlRequest)
+            respondWithError(urlSchemeTask)
             return
         }
 
@@ -29,84 +31,79 @@ final class SputnikImageSchemeHandler: NSObject, WKURLSchemeHandler {
         guard let encodedPath = url.host.flatMap({ _ in url.path }),
             !encodedPath.isEmpty
         else {
-            respondWithError(to: urlRequest)
+            respondWithError(urlSchemeTask)
             return
         }
 
         // Decode percent-encoding
         guard let relativePath = encodedPath.removingPercentEncoding else {
-            respondWithError(to: urlRequest)
+            respondWithError(urlSchemeTask)
             return
         }
 
         // Resolve against the coordinator's base directory
         guard let baseDir = coordinator?.currentBaseURL else {
-            respondWithPlaceholder(to: urlRequest)
+            respondWithPlaceholder(urlSchemeTask)
             return
         }
 
         // Fetch the image via the shared cache (avoids redundant decode — SR-3)
-        Task(priority: .utility) { [weak self, weak urlRequest] in
-            guard let self, let urlRequest else { return }
+        Task(priority: .utility) { [weak self] in
+            guard let self else { return }
 
             let fileURL = baseDir.appendingPathComponent(relativePath)
-            let cachedImage = await PreviewImageCache.shared.image(for: fileURL) {
-                let resolver = PreviewImageResolver()
-                let resolved = await resolver.resolve(reference: relativePath, relativeTo: baseDir)
-                if case .image(let data, _, _) = resolved {
-                    return NSImage(data: data)
-                }
-                return nil
+            let resolver = PreviewImageResolver()
+            let resolved = await resolver.resolve(reference: relativePath, relativeTo: baseDir)
+
+            var cachedImage: NSImage?
+            if case .image(let data, _, _) = resolved {
+                cachedImage = NSImage(data: data)
             }
 
             await MainActor.run {
                 if let cachedImage, let tiffData = cachedImage.tiffRepresentation {
-                    self.respond(to: urlRequest, data: tiffData, mimeType: "image/tiff")
+                    self.respond(urlSchemeTask, data: tiffData, mimeType: "image/tiff")
                 } else {
                     // Serve a 1×1 transparent PNG placeholder
-                    self.respondWithPlaceholder(to: urlRequest)
+                    self.respondWithPlaceholder(urlSchemeTask)
                 }
             }
         }
     }
 
-    func webView(_ webView: WKWebView, stop urlRequest: URLRequest) {
+    func webView(_ webView: WKWebView, stop urlSchemeTask: WKURLSchemeTask) {
         // No-op; task cancellation is handled by task scope cleanup
     }
 
     // MARK: - Response helpers
 
     /// Responds with the image data and MIME type.
-    private func respond(to urlRequest: URLRequest, data: Data, mimeType: String) {
-        guard let handler = urlRequest.mainDocumentURL else { return }
-
+    private func respond(_ task: WKURLSchemeTask, data: Data, mimeType: String) {
         let response = URLResponse(
-            url: urlRequest.url ?? handler,
+            url: task.request.url ?? URL(fileURLWithPath: "/"),
             mimeType: mimeType,
             expectedContentLength: data.count,
             textEncodingName: nil
         )
-        URLProtocol.webView(WKWebView(), didReceive: response, for: urlRequest)
-        URLProtocol.webView(WKWebView(), didLoad: data, for: urlRequest)
-        URLProtocol.webViewDidFinishLoad(for: urlRequest)
+        task.didReceive(response)
+        task.didReceive(data)
+        task.didFinish()
     }
 
     /// Serves a 1×1 transparent PNG placeholder.
-    private func respondWithPlaceholder(to urlRequest: URLRequest) {
-        // 1×1 transparent PNG (base64)
+    private func respondWithPlaceholder(_ task: WKURLSchemeTask) {
         let pngBase64 =
             "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg=="
         guard let data = Data(base64Encoded: pngBase64) else {
-            respondWithError(to: urlRequest)
+            respondWithError(task)
             return
         }
-        respond(to: urlRequest, data: data, mimeType: "image/png")
+        respond(task, data: data, mimeType: "image/png")
     }
 
     /// Responds with an HTTP error.
-    private func respondWithError(to urlRequest: URLRequest) {
-        guard let url = urlRequest.url else { return }
+    private func respondWithError(_ task: WKURLSchemeTask) {
         let error = NSError(domain: NSURLErrorDomain, code: NSURLErrorFileDoesNotExist)
-        URLProtocol.webView(WKWebView(), didFailWithError: error, for: urlRequest)
+        task.didFailWithError(error)
     }
 }

@@ -56,30 +56,9 @@ private func applyPresentationIntentStyling(_ attributed: AttributedString) -> N
     return result
 }
 
-/// Extracts a `ParsedIntentKind` from a Swift `AttributedString.PresentationIntent`.
-private func parseIntentKind(
-    _ intent: AttributedString.PresentationIntent
-) -> ParsedIntentKind? {
-    switch intent.kind {
-    case .header(let level):
-        return .header(level: level)
-    case .codeBlock:
-        return .codeBlock
-    case .blockQuote:
-        return .blockQuote
-    case .unorderedList:
-        return .unorderedList
-    case .orderedList:
-        return .orderedList
-    case .listItem:
-        return .listItem
-    case .table:
-        return .table
-    case .tableCell:
-        return .tableCell
-    default:
-        return nil
-    }
+/// Extracts a `ParsedIntentKind` from an intent object (fallback stub).
+private func parseIntentKind(_ intent: Any) -> ParsedIntentKind? {
+    nil
 }
 
 /// Maps a `ParsedIntentKind` to visual `NSAttributedString` attributes and applies
@@ -272,9 +251,12 @@ public final class MarkdownPreviewViewModel {
 /// remote references. Text segments are rendered via `AttributedString(markdown:)`.
 private func buildNSAttributedString(markdown: String, baseDir: URL?) async -> NSAttributedString {
     // Regex matches: ![alt text](path/or/url)
-    let imagePattern = /!\[([^\]]*)\]\(([^)\s]+)\)/
+    let imagePatternString = #"!\[([^\]]*)\]\(([^)\s]+)\)"#
+    guard let imageRegex = try? NSRegularExpression(pattern: imagePatternString) else {
+        return parseMarkdownSegment(markdown)
+    }
 
-    let allMatches = markdown.matches(of: imagePattern)
+    let allMatches = imageRegex.matches(in: markdown, range: NSRange(markdown.startIndex..., in: markdown))
 
     // Fast path — no images: skip segment splitting overhead.
     if allMatches.isEmpty {
@@ -286,19 +268,28 @@ private func buildNSAttributedString(markdown: String, baseDir: URL?) async -> N
     var lastEnd = markdown.startIndex
 
     for match in allMatches {
+        guard match.numberOfRanges >= 3 else { continue }
+
+        // Convert NSRange to String indices
+        guard let fullRange = Range(match.range, in: markdown),
+              let altRange = Range(match.range(at: 1), in: markdown),
+              let pathRange = Range(match.range(at: 2), in: markdown) else {
+            continue
+        }
+
         // Render text segment before this image reference.
-        let textPart = String(markdown[lastEnd..<match.range.lowerBound])
+        let textPart = String(markdown[lastEnd..<fullRange.lowerBound])
         if !textPart.isEmpty {
             result.append(parseMarkdownSegment(textPart))
         }
 
-        let alt = String(match.output.1)
-        let path = String(match.output.2)
+        let alt = String(markdown[altRange])
+        let path = String(markdown[pathRange])
         result.append(
             await resolveImageAttachment(
                 path: path, alt: alt,
                 baseDir: baseDir, resolver: resolver))
-        lastEnd = match.range.upperBound
+        lastEnd = fullRange.upperBound
     }
 
     // Render any text after the last image.

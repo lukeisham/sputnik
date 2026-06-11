@@ -1,5 +1,6 @@
 import AppKit
 import SwiftUI
+import FoundationModule
 
 /// AppKit bridge for the Markdown Preview — wraps an `NSTextView` in an
 /// `NSViewRepresentable` for read-only, selectable, link-interactive display.
@@ -74,8 +75,8 @@ public struct MarkdownRenderView: NSViewRepresentable {
         // Comfortable padding.
         textView.textContainerInset = NSSize(width: 16, height: 16)
 
-        // Width tracks the container so text wraps naturally.
-        textView.textContainer?.widthTracksContainer = true
+        // Width tracks the text view so text wraps naturally.
+        textView.textContainer?.widthTracksTextView = true
         textView.textContainer?.heightTracksTextView = false
 
         // Disable the built-in scroll view — SwiftUI handles scrolling.

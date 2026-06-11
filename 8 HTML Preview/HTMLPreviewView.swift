@@ -1,4 +1,6 @@
 import AppKit
+import FoundationModule
+import ResourcesModule
 import SwiftUI
 import WebKit
 

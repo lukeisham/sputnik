@@ -1,5 +1,6 @@
 import FoundationModule
 import SwiftUI
+import ResourcesModule
 
 /// Top-level SwiftUI view for the Markdown Preview panel.
 ///
