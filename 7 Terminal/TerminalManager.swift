@@ -1,5 +1,6 @@
 import Foundation
 import SwiftUI
+import FoundationModule
 
 /// Coordinates the `TerminalSession` and `TerminalEmulator` for the terminal panel.
 ///
@@ -106,9 +107,10 @@ public final class TerminalManager: ObservableObject, TerminalLifecycle {
                 await MainActor.run { self.snapshot = snap }
             }
             // Stream finished — shell exited.
+            let finalSnap = await emu.snapshot()
             await MainActor.run {
                 self.isRunning = false
-                self.snapshot = await emu.snapshot()
+                self.snapshot = finalSnap
             }
         }
     }

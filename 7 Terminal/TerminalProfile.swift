@@ -1,39 +1,8 @@
 import Foundation
 import SwiftUI
+import FoundationModule
 
-/// RGBA color for terminal rendering — used in profiles, ANSI palette, and NSColor conversions.
-public struct TerminalColor: Sendable, Equatable {
-    public let red: Double
-    public let green: Double
-    public let blue: Double
-    public let alpha: Double
-
-    public init(red: Double, green: Double, blue: Double, alpha: Double = 1.0) {
-        self.red = red
-        self.green = green
-        self.blue = blue
-        self.alpha = alpha
-    }
-
-    // Standard ANSI 16-colour palette
-    public static let black = TerminalColor(red: 0.0, green: 0.0, blue: 0.0)
-    public static let red = TerminalColor(red: 0.8, green: 0.0, blue: 0.0)
-    public static let green = TerminalColor(red: 0.0, green: 0.8, blue: 0.0)
-    public static let yellow = TerminalColor(red: 0.8, green: 0.8, blue: 0.0)
-    public static let blue = TerminalColor(red: 0.0, green: 0.0, blue: 0.8)
-    public static let magenta = TerminalColor(red: 0.8, green: 0.0, blue: 0.8)
-    public static let cyan = TerminalColor(red: 0.0, green: 0.8, blue: 0.8)
-    public static let white = TerminalColor(red: 0.8, green: 0.8, blue: 0.8)
-
-    public static let brightBlack = TerminalColor(red: 0.5, green: 0.5, blue: 0.5)
-    public static let brightRed = TerminalColor(red: 1.0, green: 0.5, blue: 0.5)
-    public static let brightGreen = TerminalColor(red: 0.5, green: 1.0, blue: 0.5)
-    public static let brightYellow = TerminalColor(red: 1.0, green: 1.0, blue: 0.5)
-    public static let brightBlue = TerminalColor(red: 0.5, green: 0.5, blue: 1.0)
-    public static let brightMagenta = TerminalColor(red: 1.0, green: 0.5, blue: 1.0)
-    public static let brightCyan = TerminalColor(red: 0.5, green: 1.0, blue: 1.0)
-    public static let brightWhite = TerminalColor(red: 1.0, green: 1.0, blue: 1.0)
-}
+public typealias TerminalColor = FoundationModule.TerminalColor
 
 /// Customisation profile for the terminal panel.
 public struct TerminalProfile: Sendable, Equatable {
@@ -84,6 +53,10 @@ public struct TerminalProfile: Sendable, Equatable {
         .brightBlack, .brightRed, .brightGreen, .brightYellow,
         .brightBlue, .brightMagenta, .brightCyan, .brightWhite,
     ]
+
+    /// Default foreground and background colors using Foundation's TerminalColor.
+    public static let defaultForeground = FoundationModule.TerminalColor(red: 0.88, green: 0.88, blue: 0.88)
+    public static let defaultBackground = FoundationModule.TerminalColor(red: 0.08, green: 0.08, blue: 0.09)
 
     /// A ready-to-use default profile with no dependencies on `SettingsStore`.
     public static let `default` = TerminalProfile()

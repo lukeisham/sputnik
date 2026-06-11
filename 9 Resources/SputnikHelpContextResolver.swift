@@ -1,4 +1,5 @@
 import Foundation
+import FoundationModule
 
 /// The concrete help-context resolver that dispatches to the module-9 coordinators.
 ///

@@ -1,4 +1,5 @@
 import SwiftUI
+import FoundationModule
 
 /// The SwiftUI panel view for the terminal module.
 ///

@@ -8,12 +8,13 @@ let package = Package(
         .library(name: "PDFViewerModule", targets: ["PDFViewerModule"])
     ],
     dependencies: [
-        .package(name: "FoundationModule", path: "../2 Foundation")
+        .package(name: "FoundationModule", path: "../2 Foundation"),
+        .package(name: "ResourcesModule", path: "../9 Resources")
     ],
     targets: [
         .target(
             name: "PDFViewerModule",
-            dependencies: ["FoundationModule"],
+            dependencies: ["FoundationModule", "ResourcesModule"],
             path: "."
         )
     ]

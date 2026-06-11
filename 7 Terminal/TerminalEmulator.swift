@@ -139,7 +139,7 @@ public actor TerminalEmulator {
         switch op {
 
         case .print(let ch):
-            guard cursorCol < cols else {
+            if cursorCol >= cols {
                 // Soft-wrap: move to next line
                 carriageReturn()
                 lineFeed()

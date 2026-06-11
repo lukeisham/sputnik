@@ -1,4 +1,5 @@
 import Foundation
+import FoundationModule
 
 /// Owns a single PTY master `FileHandle` and a Zsh `Foundation.Process`.
 ///

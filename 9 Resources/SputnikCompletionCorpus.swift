@@ -1,4 +1,5 @@
 import Foundation
+import FoundationModule
 
 // MARK: - Bundle-local decodable types
 

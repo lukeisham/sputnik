@@ -1,4 +1,5 @@
 import SwiftUI
+import FoundationModule
 
 /// Protocol all help topic content types conform to.
 ///
