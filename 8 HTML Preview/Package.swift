@@ -15,7 +15,13 @@ let package = Package(
         .target(
             name: "HTMLPreviewModule",
             dependencies: ["FoundationModule", "ResourcesModule"],
-            path: "."
+            path: ".",
+            exclude: ["Tests"]
+        ),
+        .testTarget(
+            name: "HTMLPreviewModuleTests",
+            dependencies: ["HTMLPreviewModule"],
+            path: "Tests"
         )
     ]
 )

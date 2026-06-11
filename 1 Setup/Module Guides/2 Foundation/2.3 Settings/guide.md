@@ -108,10 +108,10 @@ Own all user-configurable preferences — appearance, editor behaviour, and spel
   - `spellingAutoCompleteStep: AutoCompleteDebounceStep` — stepped debounce for spelling ghost-text auto-complete
   - `asciiTriggerKey: String`
   - `spellCheckLocale: String?`
-- **Dependencies:** `PersistenceService` (2.5) for read/write to `UserDefaults`. No other module dependencies.
+- **Dependencies:** `PersistenceService` (2.5) for read/write to `UserDefaults`. On init, `SettingsStore` delegates initial deserialisation to `SettingsLoader` (2.5), which handles the key-by-key decode-and-assign loop. `.environment(settingsStore)` — `SettingsView` reads from it. No other module dependencies.
 - **Failure modes:**
-  - `UserDefaults` returns nil on first launch → `SettingsStore` falls back to hardcoded defaults; no crash.
-  - Corrupt preferences key → caught by `Codable` decode failure → default value used; corrupt key is overwritten on next save.
+  - `UserDefaults` returns nil on first launch → `SettingsLoader.load(into:)` skips every key; `SettingsStore` falls back to hardcoded defaults; no crash.
+  - Corrupt preferences key → caught by `Codable` decode failure → `SettingsLoader` skips that key; default value used; corrupt key is overwritten on next save.
 
 ## Spec Reference
 > Extracted verbatim from `readme.md`:

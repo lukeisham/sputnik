@@ -1,5 +1,5 @@
-import SwiftUI
 import FoundationModule
+import SwiftUI
 
 /// Protocol all help topic content types conform to.
 ///
@@ -91,6 +91,9 @@ public struct SputnikHelpPanel<Topic: HelpTopicProtocol, ContentView: View>: Vie
     @State private var selectedCategory: String? = nil
     @State private var hasRestored: Bool = false
 
+    /// Debounced persistence task — cancels pending writes on rapid tab operations.
+    @State private var persistTask: Task<Void, Never>?
+
     // MARK: - Derived
 
     /// Topics currently open as tabs, resolved from IDs.
@@ -179,8 +182,9 @@ public struct SputnikHelpPanel<Topic: HelpTopicProtocol, ContentView: View>: Vie
     /// (SR-1); each panel reuses its existing `openTopic(_:)` to perform the navigation.
     private func navigate(to target: HelpRequest?) {
         guard let target,
-              target.kind == helpKind,
-              let topicID = target.topicID else { return }
+            target.kind == helpKind,
+            let topicID = target.topicID
+        else { return }
         openTopic(topicID)
     }
 
@@ -404,13 +408,13 @@ public struct SputnikHelpPanel<Topic: HelpTopicProtocol, ContentView: View>: Vie
             openTabIDs.append(id)
             activeTabID = id
         }
-        Task { await persistTabState() }
+        schedulePersist()
     }
 
     /// Activates an already-open tab.
     private func activateTab(_ id: String) {
         activeTabID = id
-        Task { await persistTabState() }
+        schedulePersist()
     }
 
     /// Closes a tab, activating the nearest neighbour.
@@ -425,10 +429,21 @@ public struct SputnikHelpPanel<Topic: HelpTopicProtocol, ContentView: View>: Vie
                 activeTabID = openTabIDs[neighbour]
             }
         }
-        Task { await persistTabState() }
+        schedulePersist()
     }
 
     // MARK: - Persistence
+
+    /// Schedules a debounced persistence write (300 ms). Cancels any pending write
+    /// so rapid tab operations (open/close/activate) coalesce into one save.
+    private func schedulePersist() {
+        persistTask?.cancel()
+        persistTask = Task {
+            try? await Task.sleep(nanoseconds: 300_000_000)  // 300 ms
+            guard !Task.isCancelled else { return }
+            await persistTabState()
+        }
+    }
 
     private func persistTabState() async {
         let state = HelpPanelPersistedState(

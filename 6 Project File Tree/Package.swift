@@ -14,7 +14,13 @@ let package = Package(
         .target(
             name: "FileTreeModule",
             dependencies: ["FoundationModule"],
-            path: "."
+            path: ".",
+            exclude: ["Tests"]
+        ),
+        .testTarget(
+            name: "FileTreeModuleTests",
+            dependencies: ["FileTreeModule", "FoundationModule"],
+            path: "Tests"
         )
     ]
 )

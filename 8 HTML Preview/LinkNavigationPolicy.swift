@@ -8,10 +8,11 @@ import Foundation
 ///
 /// **Classification rules (in priority order):**
 /// 1. `#anchor` (fragment-only, same URL base) → `.allowInPage`
-/// 2. Local file URL with a text/html/markdown/pdf extension → `.openAsTab(url)`
-/// 3. `http` or `https` scheme, or `target="_blank"` link → `.openExternally(url)`
+/// 2. `javascript:`, `data:`, `blob:` schemes → `.block` (unconditional — `target="_blank"` does not override)
+/// 3. `http` or `https` scheme → `.openExternally(url)`
 /// 4. `mailto:` → `.openExternally(url)` (handed to NSWorkspace)
-/// 5. All other schemes (`javascript:`, `data:`, etc.) → `.block`
+/// 5. `file:` scheme with `target="_blank"` → `.openExternally(url)`; otherwise → `.openAsTab(url)`
+/// 6. All other schemes or unresolved URLs → `.block`
 public enum LinkNavigationPolicy {
 
     // MARK: - Decision
@@ -51,12 +52,13 @@ public enum LinkNavigationPolicy {
             return .allowInPage
         }
 
-        // 2. External link or target="_blank".
-        if targetIsBlank {
-            return .openExternally(url)
-        }
+        // 2. Block harmful schemes unconditionally — even target="_blank" must not
+        //    cause NSWorkspace.open() to be called on javascript:/data:/blob: URLs.
         if let scheme = url.scheme?.lowercased() {
             switch scheme {
+            case "javascript", "data", "blob":
+                return .block
+
             case "http", "https":
                 return .openExternally(url)
 
@@ -64,17 +66,19 @@ public enum LinkNavigationPolicy {
                 return .openExternally(url)
 
             case "file":
-                // Local file — open as a new editor tab so the preview stays synced.
+                if targetIsBlank {
+                    return .openExternally(url)
+                }
                 return .openAsTab(url)
 
-            case "javascript", "data", "blob":
-                // Never execute potentially harmful schemes.
-                return .block
-
             default:
-                // Unknown scheme — block and log; do not navigate.
                 return .block
             }
+        }
+
+        // target="_blank" with no recognised scheme — block.
+        if targetIsBlank {
+            return .block
         }
 
         // No scheme — relative path that wasn't resolved to a file URL; block.

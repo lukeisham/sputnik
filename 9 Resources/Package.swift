@@ -15,7 +15,7 @@ let package = Package(
             name: "ResourcesModule",
             dependencies: ["FoundationModule"],
             path: ".",
-            exclude: ["Package.swift", ".build", ".swiftpm"],
+            exclude: ["Package.swift", ".build", ".swiftpm", "Tests"],
             resources: [
                 .process("9.1 ASCII Library"),
                 .process("9.2 ASCII art Help"),
@@ -23,6 +23,11 @@ let package = Package(
                 .process("9.4 Html Help"),
                 .process("9.5 Grammar Help"),
             ]
-        )
+        ),
+        .testTarget(
+            name: "ResourcesModuleTests",
+            dependencies: ["ResourcesModule"],
+            path: "Tests"
+        ),
     ]
 )

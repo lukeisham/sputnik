@@ -20,6 +20,7 @@ let package = Package(
                 ".build",
                 ".swiftpm",
                 "Package.swift",
+                "Tests",
                 // Stale build artifacts from a prior build
                 "ASCIIArtHelpContent-2.d",
                 "ASCIIArtHelpContent-2.dia",
@@ -46,6 +47,11 @@ let package = Package(
                 "MarkdownHelpCoordinator-2.swiftdeps",
                 "MarkdownHelpCoordinator-2.swiftmodule",
             ]
+        ),
+        .testTarget(
+            name: "PDFViewerModuleTests",
+            dependencies: ["PDFViewerModule"],
+            path: "Tests"
         )
     ]
 )

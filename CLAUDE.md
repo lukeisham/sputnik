@@ -28,7 +28,9 @@ App_Sputnik/
 │   │   ├── !GrillMeWithContext
 │   │   ├── !GenerateAPlan
 │   │   ├── !TrackIssues
-│   │   └── !CreateAModuleGuide
+│   │   ├── !CreateAModuleGuide
+│   │   ├── !DiagnoseABug
+│   │   └── !EvaluateFeatureRequest
 │   ├── References/
 │   │   └── Issues.md              ← Known issues log
 │   ├── Plans Completed/
@@ -90,6 +92,9 @@ Invoke these by name at the start of a prompt. Skill prompt files live in `1 Set
 | **!TrackIssues** | Log new bugs, regressions, or design problems to `References/Issues.md` with a short description and the affected module. |
 | **!CreateAModuleGuide** | Scaffold a new Module Guide file using the standard format (see below). |
 | **!CreateTests** | Generate Swift Testing unit tests for a module. Use when bootstrapping test coverage for a new module, or expanding tests for existing logic. Reads the Module Guide to understand architecture, analyzes source code, generates 20–70 tests per module, and prints a coverage summary (what was tested, what was skipped, what needs manual tests). Invoke as `!CreateTests: <module-name>`. |
+| **!DiagnoseABug** | Investigate a reported bug — reproduce it, trace the call path, identify root cause — before any fix is planned. Use when the symptom is known but the cause is not. Routes to `!TrackIssues` then `!GenerateAPlan` once the root cause is confirmed. |
+| **!EvaluateFeatureRequest** | Assess whether a requested feature fits the architecture, which modules it touches, and what scope it requires — before any plan is written. Produces a written evaluation with a Proceed / Proceed with conditions / Do not proceed recommendation. |
+| **!UpdateGuides** | Verify a Module Guide against the actual source code and update it to reflect current reality. Use after a plan completes, after a refactor, or when a guide may have drifted from the code. Invoke as `!UpdateGuides: <module-name>`. |
 
 ---
 
@@ -100,19 +105,37 @@ Every Module Guide must contain:
 ```markdown
 ---
 module: <number and name>
-status: draft | active | complete
+status: active | stable | needs-review | diverged
+last_updated: YYYY-MM-DD
+last_verified: YYYY-MM-DD   ← when someone last read the guide against real source
+open_issues: ISS-XXX, …     ← omit if none
 ---
 
 ## Purpose
 One-sentence statement of what this module does.
 
-## Appearance / Function Diagram
-ASCII diagram showing the visual layout or call flow.
+## Diagram
+ASCII diagram showing the visual layout and/or call flow.
+
+## Source Files
+| File | Responsibility |
+|---|---|
+| `FileName.swift` | One-line description |
 
 ## Technical Summary
-- Bullet-point list of key implementation details
-- Framework used, data flow, threading model, key classes/structs
+- Key types (verified names and locations — no `<!-- assumed -->` comments)
+- Framework used, threading model, data flow, dependencies, failure modes
+
+## Invariants
+- Specific, falsifiable rules that must never be broken in this module
+- E.g. "this module never writes AppState directly" or "all X flows through Y"
 ```
+
+**Status vocabulary:**
+- `stable` — guide matches source; no known open issues
+- `active` — module has open issues or is under active development; guide may lag briefly
+- `needs-review` — guide has not been verified since a significant change
+- `diverged` — known gap between guide and code; logged in Issues
 
 ---
 
