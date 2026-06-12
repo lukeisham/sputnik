@@ -67,6 +67,15 @@ public struct SputnikApp: App {
                 // can close it by identity (ISS-018).
                 NSApp.keyWindow?.identifier = NSUserInterfaceItemIdentifier(
                     windowState.id.uuidString)
+                // Apply the saved window frame if one was restored.
+                if let frame = windowState.restoredWindowFrame {
+                    // Defer so SwiftUI's initial layout completes first.
+                    DispatchQueue.main.async {
+                        NSApp.keyWindow?.setFrame(frame, display: true)
+                        // Clear the stored frame so it doesn't re-apply on subsequent appear.
+                        windowState.restoredWindowFrame = nil
+                    }
+                }
             }
             .focusedSceneValue(\.activeWindowID, windowState.id)
             // Opens additional restored windows (step 9) on first render.

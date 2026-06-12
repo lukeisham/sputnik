@@ -3,6 +3,8 @@ import Foundation
 import FoundationModule
 import Observation
 
+// EditorViewModel — editor state + view state persistence
+
 /// Centralised, thread-safe editor state for module 3.
 ///
 /// All sub-modules in module 3 read or mutate this view model. Keeping the mode,
@@ -300,5 +302,52 @@ public final class EditorViewModel: EditorCommandHandling {
     public func showASCIIStudio() async throws {
         guard let textView else { return }
         ASCIIStudioPanel.shared.open(for: textView)
+    }
+
+    // MARK: - View state persistence
+
+    /// Flushes the current caret position and scroll offset into the given
+    /// `WindowState`'s `documentViewStates`, keyed by the active document's id.
+    ///
+    /// Reads from the live `NSTextView` so the values reflect the last visible
+    /// position before termination, not a stale snapshot.
+    @MainActor
+    public func flushViewState(to windowState: WindowState?) {
+        guard let windowState,
+            let activeDoc = windowState.activeDocument,
+            let textView
+        else { return }
+
+        let selectedRange = textView.selectedRange()
+        let scrollOffset = textView.enclosingScrollView?.contentView.bounds.origin ?? .zero
+
+        let state = DocumentViewState(
+            selectedRange: selectedRange,
+            scrollOffset: scrollOffset
+        )
+        windowState.documentViewStates[activeDoc.id.uuidString] = state
+    }
+
+    /// Applies a previously saved view state (caret + scroll) to the text view.
+    /// Called after a document is opened during window restoration.
+    ///
+    /// The scroll position is applied in a deferred block so layout completes
+    /// before the scroll offset is set.
+    @MainActor
+    public func applyViewState(_ state: DocumentViewState) {
+        guard let textView else { return }
+
+        // Set the caret position.
+        let range = state.selectedRange
+        let clampedLocation = min(range.location, textView.string.count)
+        let clampedLength = min(range.length, textView.string.count - clampedLocation)
+        let clampedRange = NSRange(location: clampedLocation, length: clampedLength)
+        textView.setSelectedRange(clampedRange)
+
+        // Scroll to the saved offset after layout completes.
+        let offset = state.scrollOffset
+        DispatchQueue.main.async {
+            self.textView?.enclosingScrollView?.contentView.scroll(to: offset)
+        }
     }
 }

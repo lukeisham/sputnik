@@ -1,3 +1,4 @@
+import AppKit
 import Foundation
 import Observation
 
@@ -214,6 +215,12 @@ public final class AppState {
                 ws.activeDocumentID = ws.openDocuments.first { $0.url == activeURL }?.id
             }
 
+            // Restore per-document view state (caret + scroll).
+            ws.documentViewStates = desc.documentViewStates
+
+            // Restore window frame so it can be applied on window appear.
+            ws.restoredWindowFrame = desc.windowFrame
+
             windows[ws.id] = ws
             orderedWindowIDs.append(ws.id)
         }
@@ -226,17 +233,44 @@ public final class AppState {
         }
     }
 
+    /// Flushes the active editor's caret/scroll state into the active window's
+    /// `documentViewStates` before the descriptors are collected.
+    ///
+    /// Called from `AppDelegate.applicationWillTerminate` before `collectDescriptors()`.
+    /// Only the active (frontmost) window's editor state is captured here because
+    /// the `editorCommandHandler` reference points to the last-registered editor
+    /// (the one from the most recently created or activated `ContentView`).
+    /// Other windows retain whatever state was last set (default if never flushed).
+    public func flushViewStates() {
+        guard let handler = editorCommandHandler,
+            let active = activeWindow
+        else { return }
+        handler.flushViewState(to: active)
+    }
+
     /// Collects the current state of every open window into an array of
     /// `WindowDescriptor` values, ready for `saveWindows(_:)`.
+    /// The caller should call `flushViewStates()` first to ensure the editor's
+    /// caret/scroll state is captured into `WindowState.documentViewStates`.
     public func collectDescriptors() -> [WindowDescriptor] {
         orderedWindowIDs.compactMap { id in
             guard let ws = windows[id] else { return nil }
+            let frame: CGRect? = {
+                guard
+                    let nsWindow = NSApp.windows.first(where: {
+                        $0.identifier?.rawValue == id.uuidString
+                    })
+                else { return nil }
+                return nsWindow.frame
+            }()
             return WindowDescriptor(
                 id: ws.id,
                 workspaceDirectoryURL: ws.activeWorkspaceDirectory,
                 openTabURLs: ws.openDocuments.compactMap { $0.url },
                 activeDocumentURL: ws.activeDocument?.url,
-                layout: ws.layout
+                layout: ws.layout,
+                windowFrame: frame,
+                documentViewStates: ws.documentViewStates
             )
         }
     }

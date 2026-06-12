@@ -1,4 +1,72 @@
+import CoreGraphics
 import Foundation
+
+// MARK: - DocumentViewState
+
+/// A snapshot of an editor's view state — caret position and scroll offset —
+/// persisted alongside `WindowDescriptor` so the user returns to exactly where
+/// they left off.
+///
+/// **Backward compatibility:** Both fields decode with safe defaults when absent,
+/// so older `windows.json` files never cause a total restore failure.
+/// A snapshot of an editor's view state — caret position and scroll offset —
+/// persisted alongside `WindowDescriptor` so the user returns to exactly where
+/// they left off.
+///
+/// **Backward compatibility:** Both fields decode with safe defaults when absent,
+/// so older `windows.json` files never cause a total restore failure.
+public struct DocumentViewState: Codable, Sendable, Equatable {
+
+    /// The selected character range location in the text view.
+    /// Defaults to 0 when absent (old schema).
+    public var selectedLocation: Int
+
+    /// The selected character range length in the text view.
+    /// Defaults to 0 when absent (old schema).
+    public var selectedLength: Int
+
+    /// The scroll offset x of the enclosing scroll view's content origin.
+    /// Defaults to 0 when absent (old schema).
+    public var scrollOffsetX: Double
+
+    /// The scroll offset y of the enclosing scroll view's content origin.
+    /// Defaults to 0 when absent (old schema).
+    public var scrollOffsetY: Double
+
+    /// Computed NSRange for convenience when applying to NSTextView.
+    public var selectedRange: NSRange {
+        NSRange(location: selectedLocation, length: selectedLength)
+    }
+
+    /// Computed CGPoint for convenience when applying to NSScrollView.
+    public var scrollOffset: CGPoint {
+        CGPoint(x: scrollOffsetX, y: scrollOffsetY)
+    }
+
+    /// The default state used when no persisted state exists for a document.
+    public static let `default` = DocumentViewState()
+
+    public init(
+        selectedLocation: Int = 0,
+        selectedLength: Int = 0,
+        scrollOffsetX: Double = 0,
+        scrollOffsetY: Double = 0
+    ) {
+        self.selectedLocation = selectedLocation
+        self.selectedLength = selectedLength
+        self.scrollOffsetX = scrollOffsetX
+        self.scrollOffsetY = scrollOffsetY
+    }
+
+    public init(selectedRange: NSRange, scrollOffset: CGPoint) {
+        self.selectedLocation = selectedRange.location
+        self.selectedLength = selectedRange.length
+        self.scrollOffsetX = Double(scrollOffset.x)
+        self.scrollOffsetY = Double(scrollOffset.y)
+    }
+}
+
+// MARK: - LayoutState
 
 /// The top-level persisted blob written to `layout.json`.
 ///

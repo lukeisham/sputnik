@@ -101,7 +101,10 @@ public final class AppDelegate: NSObject, NSApplicationDelegate {
             persistenceService?.saveScratchpad(text: state.scratchpadText)
             persistenceService?.saveScratchpadDockedWidth(state.scratchpadDockedWidth)
 
-            // Save per-window state (step 9)
+            // Flush editor view state (caret + scroll) before collecting descriptors.
+            state.flushViewStates()
+
+            // Save per-window state (step 9) — now includes window frame and view states.
             let descriptors = state.collectDescriptors()
             persistenceService?.saveWindows(descriptors)
         }

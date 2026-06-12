@@ -123,6 +123,12 @@ public struct ContentView: View {
             guard appState.activeDocumentID != nil else { return }
             Task {
                 try? await editorViewModel.openDocument(appState.activeDocument?.url)
+                // Apply saved view state (caret + scroll) for the restored document.
+                if let docID = appState.activeDocumentID,
+                    let state = windowState.documentViewStates[docID.uuidString]
+                {
+                    editorViewModel.applyViewState(state)
+                }
                 // Auto-position: move active text editor column adjacent to File Tree
                 if let fileType = appState.activeDocument?.fileType,
                     fileType == .text || fileType == .markdown || fileType == .html

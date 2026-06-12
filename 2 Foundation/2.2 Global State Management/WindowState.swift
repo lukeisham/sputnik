@@ -134,11 +134,24 @@ public final class WindowState {
     /// Clamped to 200…600 pt on read.
     public var scratchpadDockedWidth: CGFloat = 280
 
+    // MARK: - Restoration state
+
+    /// The window frame restored from the last session, to be applied once the
+    /// SwiftUI window has appeared. `nil` when no saved frame exists.
+    public var restoredWindowFrame: CGRect?
+
+    // MARK: - Per-document view state (caret + scroll)
+
+    /// Live buffer for per-document editor view state (caret position, scroll offset).
+    /// Populated by the editor during termination flush and used by `collectDescriptors()`.
+    /// On restore, these values are applied after document text is loaded.
+    /// Keyed by `DocumentSession.id.uuidString` (string keys for JSON compatibility).
+    public var documentViewStates: [String: DocumentViewState] = [:]
+
     // MARK: - Terminal manager reference
 
     /// The terminal manager owned by this window. Stored here so it survives
     /// view redraws and is accessible from `AppDelegate` for clean shutdown.
-    ///
     /// Set by `TerminalView` via `.onAppear`; `weak` is not used because
     /// `WindowState` should outlive the view.
     public var terminalManager: (any TerminalLifecycle)?

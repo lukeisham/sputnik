@@ -1,4 +1,7 @@
+import CoreGraphics
 import Foundation
+
+// WindowDescriptor — persisted per-window state
 
 /// A persisted snapshot of one window's state, written to `windows.json` on quit
 /// and read back on launch.
@@ -11,6 +14,13 @@ import Foundation
 /// **Tab restoration detail:** Only persisted (non-untitled) tab URLs are stored.
 /// Untitled documents are not saved; they are re-surfaced via crash recovery
 /// (module 3.7) if they have unsaved content.
+///
+/// **Window frame restoration:** `windowFrame` records the window's origin and size
+/// so the window opens at the same position and dimensions on relaunch.
+///
+/// **Per-document view state:** `documentViewStates` records each open document's
+/// caret position (`selectedRange`) and scroll offset (`scrollOffset`), keyed by
+/// `DocumentSession.id` (as a string representation).
 ///
 /// **Backward compatibility:** New fields added after the original schema decode
 /// with a safe default when absent, so older `windows.json` files never cause
@@ -36,6 +46,16 @@ public struct WindowDescriptor: Codable, Sendable {
     /// and recent-files list.
     public var layout: LayoutState
 
+    /// The window's frame (origin + size) on screen, in screen coordinates.
+    /// `nil` when no frame has been saved yet (old schema or first launch).
+    public var windowFrame: CGRect?
+
+    /// Per-document view state keyed by `DocumentSession.id.uuidString`.
+    /// Contains caret position and scroll offset for each saved tab.
+    /// Uses string keys because JSON requires string-keyed dictionaries.
+    /// Empty when no view state has been saved (old schema or first launch).
+    public var documentViewStates: [String: DocumentViewState]
+
     // MARK: - Init
 
     public init(
@@ -43,13 +63,17 @@ public struct WindowDescriptor: Codable, Sendable {
         workspaceDirectoryURL: URL?,
         openTabURLs: [URL],
         activeDocumentURL: URL?,
-        layout: LayoutState
+        layout: LayoutState,
+        windowFrame: CGRect? = nil,
+        documentViewStates: [String: DocumentViewState] = [:]
     ) {
         self.id = id
         self.workspaceDirectoryURL = workspaceDirectoryURL
         self.openTabURLs = openTabURLs
         self.activeDocumentURL = activeDocumentURL
         self.layout = layout
+        self.windowFrame = windowFrame
+        self.documentViewStates = documentViewStates
     }
 
     // MARK: - Codable (backward-compatible decode)
@@ -60,6 +84,8 @@ public struct WindowDescriptor: Codable, Sendable {
         case openTabURLs
         case activeDocumentURL
         case layout
+        case windowFrame
+        case documentViewStates
     }
 
     public init(from decoder: any Decoder) throws {
@@ -69,5 +95,10 @@ public struct WindowDescriptor: Codable, Sendable {
         openTabURLs = (try? container.decode([URL].self, forKey: .openTabURLs)) ?? []
         activeDocumentURL = try? container.decode(URL.self, forKey: .activeDocumentURL)
         layout = try container.decode(LayoutState.self, forKey: .layout)
+        // Backward-compatible: windowFrame and documentViewStates fall back to defaults.
+        windowFrame = try? container.decode(CGRect.self, forKey: .windowFrame)
+        documentViewStates =
+            (try? container.decode([String: DocumentViewState].self, forKey: .documentViewStates))
+            ?? [:]
     }
 }

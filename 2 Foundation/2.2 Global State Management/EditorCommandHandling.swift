@@ -17,4 +17,15 @@ public protocol EditorCommandHandling: AnyObject {
 
     /// Presents the ASCII Studio for the active editor.
     func showASCIIStudio() async throws
+
+    /// Flushes the editor's current caret position and scroll offset into the
+    /// given `WindowState`'s `documentViewStates` dictionary, keyed by the active
+    /// document's `id`.
+    ///
+    /// Called during `AppDelegate.applicationWillTerminate` before descriptors
+    /// are collected, so per-document view state is persisted across relaunch.
+    /// Implementations read from `NSTextView.selectedRange` and
+    /// `enclosingScrollView?.contentView.bounds.origin`.
+    @MainActor
+    func flushViewState(to windowState: WindowState?)
 }
