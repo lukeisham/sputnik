@@ -3,6 +3,7 @@ import FoundationModule
 import Observation
 import PDFKit
 import ResourcesModule
+import SputnikShared
 
 /// Observable view model that owns the loaded `PDFDocument` and all UI state for the
 /// PDF Viewer panel. All mutations are `@MainActor`-isolated; heavy file I/O runs on

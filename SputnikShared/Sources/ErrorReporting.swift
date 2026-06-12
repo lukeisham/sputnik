@@ -11,7 +11,8 @@ import os.log
 /// await ErrorReporting.shared.log("Some warning", category: "TextEditor")
 /// await ErrorReporting.shared.report(error, category: "HTMLPreview")
 /// ```
-public actor ErrorReporting: @unchecked Sendable {
+// Actor isolation provides Sendable safety automatically; @unchecked is not needed.
+public actor ErrorReporting {
 
     /// Shared singleton instance.
     public static let shared = ErrorReporting()

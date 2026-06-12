@@ -14,7 +14,9 @@ import Foundation
 ///     NSImage(contentsOf: url)
 /// }
 /// ```
-public actor PreviewImageCache: @unchecked Sendable {
+// Actor isolation provides Sendable safety automatically; @unchecked is not needed.
+// NSImage is not Sendable, but it is actor-isolated here so the conformance is automatic.
+public actor PreviewImageCache {
 
     /// Shared singleton cache.
     public static let shared = PreviewImageCache()

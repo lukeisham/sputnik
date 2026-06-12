@@ -1,5 +1,6 @@
 import AppKit
 import FoundationModule
+import SputnikShared
 
 /// Provides inline ghost-text spelling completions from the macOS dictionary.
 ///

@@ -14,7 +14,9 @@ import Foundation
 ///     await viewModel.render(text)
 /// }
 /// ```
-public final class RenderThrottle: @unchecked Sendable {
+// @MainActor matches all call sites (view models and AppKit view subclasses on main thread).
+@MainActor
+public final class RenderThrottle {
 
     /// Debounce delay in seconds. Default 0.1s.
     public var delay: TimeInterval {
@@ -48,8 +50,9 @@ public final class RenderThrottle: @unchecked Sendable {
         let targetGeneration = generation
 
         timer.schedule(delay: delay) { [weak self] in
-            Task {
-                guard let self = self, self.generation == targetGeneration else {
+            // Explicitly @MainActor so self.generation (a @MainActor property) is accessible.
+            Task { @MainActor [weak self] in
+                guard let self, self.generation == targetGeneration else {
                     // A newer render arrived; skip this one
                     return
                 }
@@ -63,7 +66,6 @@ public final class RenderThrottle: @unchecked Sendable {
         timer.cancel()
     }
 
-    deinit {
-        timer.cancel()
-    }
+    // No deinit needed: when RenderThrottle is deallocated, `timer` (a let property) loses
+    // its last reference and DebounceTimer.deinit cancels any pending task automatically.
 }

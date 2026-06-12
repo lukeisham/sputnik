@@ -1,5 +1,6 @@
 import AppKit
 import FoundationModule
+import SputnikShared
 import WebKit
 
 /// The `NSViewRepresentable.Coordinator` for `HTMLPreviewView`.

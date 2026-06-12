@@ -29,9 +29,11 @@ extension FocusedValues {
 /// scene value.
 ///
 /// **Threading:** `@MainActor` — all reads and writes happen on the main thread.
+// @MainActor isolation makes Sendable conformance redundant — the actor enforces
+// single-threaded access on the main actor.
 @Observable
 @MainActor
-public final class WindowState: @unchecked Sendable {
+public final class WindowState {
 
     // MARK: - Identity
 

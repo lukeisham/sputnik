@@ -1,5 +1,6 @@
 import AppKit
 import FoundationModule
+import SputnikShared
 
 /// Detects box-drawing sequences at the cursor and dispatches ghost-text or block completion.
 ///

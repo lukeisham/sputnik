@@ -15,9 +15,11 @@ import Observation
 ///
 /// **Lifecycle:** Created at app launch in `SputnikApp`, injected via
 /// `.environment(supportingAIMonitor)`. Reset on app launch only (never mid-session).
+// @MainActor isolation makes Sendable conformance redundant — the actor enforces
+// single-threaded access on the main actor.
 @Observable
 @MainActor
-public final class SupportingAIMonitor: @unchecked Sendable {
+public final class SupportingAIMonitor {
 
     // MARK: - Dependencies
 

@@ -1,6 +1,7 @@
 import AppKit
 import Foundation
 import FoundationModule
+import SputnikShared
 import ResourcesModule
 
 // MARK: - PresentationIntent styling

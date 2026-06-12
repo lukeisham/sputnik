@@ -1,11 +1,11 @@
 ---
 module: 2.7 Foundation – Utilities
 status: active
-last_updated: 2026-06-11
+last_updated: 2026-06-12
 ---
 
 ## Purpose
-Provide small, general-purpose utilities that have no module-specific logic and could be used by any module in Sputnik — keeping shared infrastructure out of module internals and avoiding duplication.
+Provide Foundation-specific utilities: AI monitors, menu helpers, slash-command registry, keychain, and test support. General-purpose utilities (`DebounceTimer`, `RenderThrottle`, `PreviewImageCache`, `ErrorReporting`) were extracted to the `SputnikShared` package (2026-06-12) — see `1 Setup/Module Guides/10 SputnikShared/guide.md`.
 
 ## Diagram
 ```
@@ -15,15 +15,9 @@ Provide small, general-purpose utilities that have no module-specific logic and 
       ▼
 ┌──────────────────────────────────────────┐
 │  Foundation 2.7 Utilities                │
-│                                          │
-│  DebounceTimer                           │
-│  ┌──────────────────────────────────┐    │
-│  │  schedule(delay:work:)           │    │
-│  │  cancel()                        │    │
-│  │                                  │    │
-│  │  async Task.sleep(delay)         │    │
-│  │  → if not cancelled → run work()│    │
-│  └──────────────────────────────────┘    │
+│  (DebounceTimer / RenderThrottle /       │
+│   PreviewImageCache / ErrorReporting     │
+│   → moved to SputnikShared package)      │
 │                                          │
 │  ClosureMenuItem                         │
 │  ┌──────────────────────────────────┐    │
@@ -143,43 +137,10 @@ Provide small, general-purpose utilities that have no module-specific logic and 
 │  │  Terminal depends only on this.  │    │
 │  └──────────────────────────────────┘    │
 │                                          │
-│  ─── Foundation Polish (2026-06-11) ───  │
-│                                          │
-│  ErrorReporting (actor)                  │
-│  ┌──────────────────────────────────┐    │
-│  │  shared (singleton)              │    │
-│  │  log(message:category:)          │    │
-│  │  report(error:category:)         │    │
-│  │  recentEntries(limit:) -> [Str]  │    │
-│  │                                  │    │
-│  │  os_log + ring buffer (1000 max) │    │
-│  │  Thread-safe via actor isolation │    │
-│  └──────────────────────────────────┘    │
-│                                          │
-│  PreviewImageCache (actor)               │
-│  ┌──────────────────────────────────┐    │
-│  │  shared (singleton)              │    │
-│  │  image(for:loader:) -> NSImage?  │    │
-│  │  set(_:for:) (nonisolated)       │    │
-│  │  invalidate()                    │    │
-│  │  invalidate(for:)                │    │
-│  │  maxDimension: CGFloat (2048)    │    │
-│  │                                  │    │
-│  │  NSCache<NSURL, NSImage> +       │    │
-│  │  generation-based invalidation   │    │
-│  │  auto-downsample on cache fill   │    │
-│  └──────────────────────────────────┘    │
-│                                          │
-│  RenderThrottle (final class)            │
-│  ┌──────────────────────────────────┐    │
-│  │  init(delay:)                    │    │
-│  │  throttle(render:)               │    │
-│  │  cancel()                        │    │
-│  │  delay: TimeInterval (0.1 def)   │    │
-│  │                                  │    │
-│  │  wraps DebounceTimer + generation │
-│  │  coalescing; skips stale renders │
-│  └──────────────────────────────────┘    │
+│  ─── Moved to SputnikShared (2026-06-12) ───
+│  DebounceTimer / RenderThrottle /        │
+│  PreviewImageCache / ErrorReporting      │
+│  See: 1 Setup/Module Guides/10 SputnikShared/guide.md
 │                                          │
 │  TestingSupport                          │
 │  ┌──────────────────────────────────┐    │
@@ -204,8 +165,9 @@ Provide small, general-purpose utilities that have no module-specific logic and 
 
 ## Technical Summary
 - **Framework(s):** Foundation (Swift Concurrency), AppKit
-- **Key types:**
-  - `DebounceTimer` — wraps a cancellable `Task` that sleeps for a configurable interval then executes a closure; calling `schedule` again before the sleep expires cancels the previous task and starts a fresh one; calling `cancel()` discards the pending work without running it
+- **Moved to SputnikShared:** `DebounceTimer`, `RenderThrottle`, `PreviewImageCache`, `ErrorReporting` — see `SputnikShared/Sources/` and `1 Setup/Module Guides/10 SputnikShared/guide.md`.
+- **Key types remaining in Foundation:**
+  - *(DebounceTimer moved → SputnikShared)*
   - `ClosureMenuItem` — `@MainActor NSMenuItem` subclass that runs a stored `() -> Void` on activation via its own `target`/`action`; avoids each host wiring `@objc` selectors
   - `HelpContextQuery` — `Sendable` value type describing a user's current selection and context: the target `HelpTopic` kind, selected text, full document text, and cursor offset; content-agnostic — Foundation owns the query type, not the orchestration (SR-1)
   - `HelpContextResolving` — `Sendable` protocol with `func resolve(_ query: HelpContextQuery) async -> HelpRequest?`; content-agnostic seam for resolving a text selection to a help topic; Foundation owns the protocol, module 9 provides the concrete resolver (SR-1)
@@ -219,9 +181,9 @@ Provide small, general-purpose utilities that have no module-specific logic and 
   - `TerminalAIOutputObserving` (protocol, `2 Foundation/2.7 Utilities/MainAIMonitor.swift`) — Foundation-owned protocol with `func observe(line: String)`; Terminal module calls this when a new output line arrives so Foundation can detect Main AI sessions without Terminal importing the monitor implementation directly (SR-1); `MainAIMonitor` conforms to this protocol
   - `MainAIMonitor` (`@Observable @MainActor`, `2 Foundation/2.7 Utilities/MainAIMonitor.swift`) — monitors terminal output to detect and track the Main AI (user-loaded AI in the terminal, e.g. Claude Code CLI, Ollama); receives output lines via `TerminalAIOutputObserving.observe(line:)`; detects Claude sessions via `"✻ Welcome to Claude Code"`, Ollama via `"ollama run "` and `"loaded model: "`; resolves exact Claude model name from `~/.claude/settings.json`; polls `~/.claude/stats.json` for usage metrics (migrated from `ClaudeStatusLineReader`); exposes `setManual(modelName:)` for unknown AIs, `updateUsage(usedTokens:contextWindow:)` for usage updates, and `clear()` to reset detection; writes `MainAIState` to `AppState.mainAIState` exclusively (SR-1); created in `SputnikApp`, injected via `.environment(mainAIMonitor)`, and registered as `aiOutputObserver` on `TerminalManager` via `TerminalView.onAppear`
   - `SupportingAIMonitor` (`@Observable @MainActor`, `2 Foundation/2.7 Utilities/SupportingAIMonitor.swift`) — single accountant for all Supporting AI resource-feature API calls (help lookups, completions, More Context); accumulates `totalTokensSinceLaunch` across the app session; `recordUsage(inputTokens:outputTokens:contextWindow:)` is called by any resource feature after a Supporting AI API response; writes `SupportingAIUsage` to `AppState.supportingAIUsage` exclusively (SR-1); `modelName` computed from `SettingsStore.supportingAIConfig.modelName`; `reset()` zeroes the accumulator (called at app launch); created in `SputnikApp`, injected via `.environment(supportingAIMonitor)`
-  - `ErrorReporting` (`actor`, `2 Foundation/2.7 Utilities/ErrorReporting.swift`) — centralized non-fatal error logger; `ErrorReporting.shared.log(message:category:)` writes a warning to `os_log` and an in-memory ring buffer; `ErrorReporting.shared.report(error:category:)` does the same at error level; `recentEntries(limit:) -> [String]` returns formatted log entries for debugging/telemetry; ring buffer is capped at 1,000 entries (FIFO eviction); actor-isolated so safe to call from any concurrency context — use `await ErrorReporting.shared.log(...)` or `report(...)`; resolves SR-6 (no fatal unwraps in non-test code)
-  - `PreviewImageCache` (`actor`, `2 Foundation/2.7 Utilities/PreviewImageCache.swift`) — thread-safe image cache for preview panels; `PreviewImageCache.shared.image(for:loader:)` returns a cached `NSImage` on hit, or calls `loader()` on a `.utility` background task, downsamples the result to `maxDimension` (default 2048 px), caches it, and returns the downsampled image; `set(_:for:)` allows synchronous injection (nonisolated — uses `NSCache` directly); `invalidate()` purges the entire cache and bumps the generation counter; `invalidate(for:)` removes a single entry; `maxDimension` can be changed at runtime (triggers full invalidate); `NSCache` auto-evicts under memory pressure; resolves SR-3 (low RAM)
-  - `RenderThrottle` (`final class`, `2 Foundation/2.7 Utilities/RenderThrottle.swift`) — generation-based render coalescer wrapping `DebounceTimer`; `throttle(render:)` increments a generation counter, then schedules `render` via `timer.schedule(delay:)`; when the debounce fires, only the most recent generation's render is executed — stale renders are silently skipped; `cancel()` cancels any pending render; `delay` defaults to 0.1 s, clamped to `[0.01, 2.0]`; `deinit` cancels pending work automatically; resolves SR-4 (reduce CPU on fast typing)
+  - *(ErrorReporting moved → SputnikShared)*
+  - *(PreviewImageCache moved → SputnikShared)*
+  - *(RenderThrottle moved → SputnikShared)*
   - `TestingSupport` (`2 Foundation/2.7 Utilities/TestingSupport.swift`) — three mock implementations for unit testing module logic without real panels or state:
     - `MockInterPanelRouter`: conforms to `InterPanelRouter`; records calls to `open(_:)`, `close(_:)`, `syncDirectory(_:)`, `moveActiveTabToNewWindow()` in tracked arrays/counters; `shouldSucceed` controls whether `moveActiveTabToNewWindow()` returns a `UUID` or `nil`; `events` returns a no-op `AsyncStream`
     - `MockAppState`: tracks `isProcessing` via `beginProcessing()`/`endProcessing()`; holds `activeDocument`, `activeWindowID`, `requestedHelpTarget`, and `contextUsageForTesting` for assertions
@@ -232,7 +194,7 @@ Provide small, general-purpose utilities that have no module-specific logic and 
   - `HelpContextQuery` is `Sendable` — safe to pass across actor boundaries
 - **Data flow:** Host captures selection → calls `MoreContextMenu.items(...)` → builds one `ClosureMenuItem` per candidate kind → user clicks item → `Task` resolves query via `resolver.resolve(query)` → on completion, `onRequest(request)` writes to `AppState.requestedHelpTarget`
 - **State owned:** None — these are stateless utilities. `ClosureMenuItem` holds its closure; `MoreContextMenu` is an uninstantiable enum. `ErrorReporting` owns its ring buffer (actor-isolated). `PreviewImageCache` owns the `NSCache` (actor-isolated). `RenderThrottle` owns the `DebounceTimer` and generation counter.
-- **Dependencies:** None on other Sputnik modules beyond Foundation types `HelpTopic` and `HelpRequest` (2.4 UI/UX). No dependency on module 9 (SR-1). `PreviewImageCache` depends on AppKit (`NSImage`, `NSCache`).
+- **Dependencies:** None on other Sputnik modules beyond Foundation types `HelpTopic` and `HelpRequest` (2.4 UI/UX). No dependency on module 9 (SR-1). Foundation 2.7 now depends on `SputnikShared` (for `ErrorReporting` used in `MainAIMonitor`).
 
 ## Known consumers
 | Module | Use |

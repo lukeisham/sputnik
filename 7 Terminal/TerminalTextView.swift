@@ -1,6 +1,7 @@
 import AppKit
 import Foundation
 import FoundationModule
+import SputnikShared
 
 /// An `NSView` that draws the terminal cell grid directly with Core Text.
 ///

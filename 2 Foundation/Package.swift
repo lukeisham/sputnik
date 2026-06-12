@@ -8,11 +8,13 @@ let package = Package(
         .library(name: "FoundationModule", targets: ["FoundationModule"]),
         .library(name: "TestingSupport", targets: ["TestingSupport"]),
     ],
-    dependencies: [],
+    dependencies: [
+        .package(name: "SputnikShared", path: "../SputnikShared"),
+    ],
     targets: [
         .target(
             name: "FoundationModule",
-            dependencies: [],
+            dependencies: ["SputnikShared"],
             path: ".",
             exclude: ["Tests", "2.7 Utilities/TestingSupport.swift"],
             sources: [
@@ -33,15 +35,11 @@ let package = Package(
             exclude: [
                 "ClosureMenuItem.swift",
                 "CompletionProviding.swift",
-                "DebounceTimer.swift",
-                "ErrorReporting.swift",
                 "HelpContextResolving.swift",
                 "KeychainService.swift",
                 "MainAIMonitor.swift",
                 "MoreContextMenu.swift",
-                "PreviewImageCache.swift",
                 "ProcessMonitor.swift",
-                "RenderThrottle.swift",
                 "SlashCommand.swift",
                 "SlashCommandRegistry.swift",
                 "SupportingAIMonitor.swift",

@@ -7,9 +7,11 @@ import SwiftUI
 /// Created once in `SputnikApp` alongside `AppState` and injected into the view
 /// hierarchy via `.environment(settingsStore)`. All modules read from it; they do
 /// not access `UserDefaults` or `PersistenceService` directly.
+// @MainActor isolation makes Sendable conformance redundant — the actor enforces
+// single-threaded access on the main actor.
 @Observable
 @MainActor
-public final class SettingsStore: @unchecked Sendable {
+public final class SettingsStore {
 
     // MARK: - Stored properties (trigger @Observable change notifications)
 

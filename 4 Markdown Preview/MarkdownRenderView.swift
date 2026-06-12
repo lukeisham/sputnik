@@ -29,6 +29,11 @@ public struct MarkdownRenderView: NSViewRepresentable {
     /// The settings store, read for per-panel font and background (F-4).
     let settings: SettingsStore
 
+    /// Binding into the panel's per-document scroll-offset dictionary.
+    /// The render view reads this to restore position after re-render and writes
+    /// it whenever the user scrolls.
+    let scrollOffset: Binding<CGFloat>
+
     // MARK: - Init
 
     /// Creates the render view.
@@ -42,12 +47,14 @@ public struct MarkdownRenderView: NSViewRepresentable {
         renderedString: NSAttributedString,
         fontScale: CGFloat,
         coordinator: MarkdownPreviewCoordinator,
-        settings: SettingsStore
+        settings: SettingsStore,
+        scrollOffset: Binding<CGFloat> = .constant(0)
     ) {
         self.renderedString = renderedString
         self.fontScale = fontScale
         self.coordinator = coordinator
         self.settings = settings
+        self.scrollOffset = scrollOffset
     }
 
     // MARK: - NSViewRepresentable
@@ -93,11 +100,41 @@ public struct MarkdownRenderView: NSViewRepresentable {
         // Reapply background from settings (F-4) — may have changed since last update.
         textView.backgroundColor = NSColor(settings.markdownPreviewBackground)
 
+        // Keep the coordinator's binding pointing at the current document's slot so
+        // the scroll observer always writes to the right entry in the panel's dict.
+        context.coordinator.scrollOffsetBinding = scrollOffset
+
+        // Set up (or re-set up) the scroll observer against the current clip view.
+        // Re-registration is needed when fitWidth toggles rebuild the view tree and
+        // the hosting NSScrollView changes.
+        if let clipView = textView.enclosingScrollView?.contentView as? NSClipView,
+           clipView !== context.coordinator.observedClipView {
+            if let token = context.coordinator.scrollObserverToken {
+                NotificationCenter.default.removeObserver(token)
+            }
+            clipView.postsBoundsChangedNotifications = true
+            context.coordinator.observedClipView = clipView
+            let weakCoordinator = context.coordinator
+            context.coordinator.scrollObserverToken = NotificationCenter.default.addObserver(
+                forName: NSView.boundsDidChangeNotification,
+                object: clipView,
+                queue: .main
+            ) { [weak weakCoordinator, weak textView] _ in
+                guard let y = textView?.enclosingScrollView?.documentVisibleRect.origin.y else {
+                    return
+                }
+                weakCoordinator?.scrollOffsetBinding?.wrappedValue = y
+            }
+        }
+
         // Only update the text storage when the content has actually changed,
         // to avoid unnecessary layout invalidation.
         guard textView.textStorage?.string != renderedString.string else {
             return
         }
+
+        // Capture the desired scroll offset before rewriting the text storage.
+        let targetOffset = scrollOffset.wrappedValue
 
         // Use the resolved preview font as the base font, scaled by fontScale (F-4).
         let previewFont = settings.resolvedMarkdownPreviewFont
@@ -112,6 +149,21 @@ public struct MarkdownRenderView: NSViewRepresentable {
             textStorage.beginEditing()
             textStorage.setAttributedString(renderedString)
             textStorage.endEditing()
+        }
+
+        // Restore scroll position after the layout pass completes.
+        // A short defer (50ms) gives NSLayoutManager time to finish relayout so the
+        // document height is accurate before we scroll.
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) { [weak textView] in
+            guard let scrollView = textView?.enclosingScrollView else { return }
+            let maxY = max(
+                0,
+                (scrollView.documentView?.frame.height ?? 0)
+                    - scrollView.contentView.bounds.height
+            )
+            let clampedY = max(0, min(targetOffset, maxY))
+            scrollView.contentView.scroll(to: NSPoint(x: 0, y: clampedY))
+            scrollView.reflectScrolledClipView(scrollView.contentView)
         }
     }
 }

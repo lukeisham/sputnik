@@ -28,6 +28,9 @@ public struct MarkdownPreviewPanel: View {
     @State private var viewModel = MarkdownPreviewViewModel()
     @State private var fitWidth: Bool = true
     @State private var linksEnabled: Bool = true
+    /// Per-document scroll positions, keyed by `DocumentSession.id`.
+    /// Written by `MarkdownRenderView`'s scroll observer; read back on document switch.
+    @State private var scrollOffsets: [UUID: CGFloat] = [:]
 
     /// The coordinator for this panel, created once on init and wired into `MarkdownRenderView`.
     private let coordinator: MarkdownPreviewCoordinator
@@ -201,7 +204,8 @@ public struct MarkdownPreviewPanel: View {
                             renderedString: viewModel.renderedString,
                             fontScale: viewModel.fontScale,
                             coordinator: coordinator,
-                            settings: settings
+                            settings: settings,
+                            scrollOffset: scrollBinding(for: appState.activeDocumentID)
                         )
                         .frame(maxWidth: 720)
                         .frame(maxWidth: .infinity)
@@ -212,7 +216,8 @@ public struct MarkdownPreviewPanel: View {
                             renderedString: viewModel.renderedString,
                             fontScale: viewModel.fontScale,
                             coordinator: coordinator,
-                            settings: settings
+                            settings: settings,
+                            scrollOffset: scrollBinding(for: appState.activeDocumentID)
                         )
                     }
                 }
@@ -278,6 +283,18 @@ public struct MarkdownPreviewPanel: View {
         .background(Color.yellow.opacity(0.10))
     }
 
+    // MARK: - Scroll binding
+
+    /// Returns a `Binding<CGFloat>` that reads and writes `scrollOffsets[id]`.
+    /// Used to give `MarkdownRenderView` a stable per-document scroll slot.
+    private func scrollBinding(for id: UUID?) -> Binding<CGFloat> {
+        guard let id else { return .constant(0) }
+        return Binding(
+            get: { scrollOffsets[id, default: 0] },
+            set: { scrollOffsets[id] = $0 }
+        )
+    }
+
     // MARK: - Render trigger
 
     /// Initiates a Markdown render when the active session's text changes.
@@ -291,6 +308,10 @@ public struct MarkdownPreviewPanel: View {
     /// Handles a change in the active document — clears stale state and triggers
     /// a render if the new session is Markdown.
     private func handleActiveDocumentChange() {
+        // Restore the saved scroll offset for the incoming document so that
+        // MarkdownRenderView can use it when the render lands.
+        viewModel.scrollOffset = scrollOffsets[appState.activeDocumentID ?? UUID(), default: 0]
+
         guard let session = appState.activeDocument else {
             viewModel.renderedString = NSAttributedString()
             viewModel.renderError = nil

@@ -1,6 +1,7 @@
 import AppKit
 import FoundationModule
 import ResourcesModule
+import SwiftUI
 
 /// The `NSViewRepresentable.Coordinator` for `MarkdownRenderView`.
 ///
@@ -33,6 +34,21 @@ public final class MarkdownPreviewCoordinator: NSObject, NSTextViewDelegate {
     /// When `false`, link-click handling is disabled entirely and all clicks
     /// become selection-only gestures. Toggled from the panel toolbar.
     public var linksEnabled: Bool = true
+
+    // MARK: - Scroll tracking (wired by MarkdownRenderView)
+
+    /// Retained token from `NotificationCenter.addObserver` for scroll-position tracking.
+    /// Managed by `MarkdownRenderView.updateNSView`; removed and replaced whenever the
+    /// hosting scroll view changes (e.g. when `fitWidth` toggles the view tree).
+    var scrollObserverToken: Any?
+
+    /// The clip view currently being observed. Used to detect when the hosting scroll view
+    /// changes so the observer is re-registered against the new clip view.
+    weak var observedClipView: NSClipView?
+
+    /// Binding into `MarkdownPreviewPanel.scrollOffsets` for the active document.
+    /// Updated on every `updateNSView` call so the observer always writes to the right slot.
+    var scrollOffsetBinding: Binding<CGFloat>?
 
     // MARK: - Init
 

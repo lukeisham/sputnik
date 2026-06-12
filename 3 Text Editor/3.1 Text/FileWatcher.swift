@@ -10,6 +10,9 @@ import FoundationModule
 ///
 /// SW-2: `FileWatcher` is a long-lived observer — all closures and presenter callbacks
 /// capture `[weak self]` to prevent retain cycles.
+// @unchecked Sendable is required: NSFilePresenter requires NSObject, and Sendable
+// conformance cannot be compiler-verified for ObjC-bridged types. All mutable state
+// (onReload, suppressNextChange) is accessed from @MainActor callbacks, making this safe.
 public final class FileWatcher: NSObject, NSFilePresenter, @unchecked Sendable {
 
     // MARK: - NSFilePresenter

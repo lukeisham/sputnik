@@ -4,8 +4,9 @@ import Foundation
 /// previously scheduled work when called again before the delay expires.
 ///
 /// Uses `Task.sleep` (Swift Concurrency) — no `DispatchQueue` involved. The work closure
-/// runs on whichever actor `schedule` is called from.
-public final class DebounceTimer: @unchecked Sendable {
+/// runs on `@MainActor` since all call sites are `@MainActor`-isolated.
+@MainActor
+public final class DebounceTimer {
 
     private var pendingTask: Task<Void, Never>?
 

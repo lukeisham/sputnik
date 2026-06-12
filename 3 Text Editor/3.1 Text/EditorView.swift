@@ -1,6 +1,7 @@
 import AppKit
 import FoundationModule
 import ResourcesModule
+import SputnikShared
 import SwiftUI
 
 /// SwiftUI wrapper for the Sputnik text-editing surface.
@@ -198,12 +199,16 @@ public struct EditorView: NSViewRepresentable {
         public func textDidChange(_ notification: Notification) {
             viewModel.isDirty = true
 
-            // Debounced syntax highlighting (skip for plainText mode).
+            // Debounced syntax highlighting with range-based re-highlight (ISS-057).
+            // Extract the edited character range from the notification so the highlighter
+            // only re-colours the affected region (plus a look-behind margin) instead of
+            // the full document. Falls back to nil (full re-highlight) if the range is absent.
+            let editedRange: NSRange? = (notification.userInfo?["NSRange"] as? NSValue)?.rangeValue
             let currentMode = viewModel.mode
             if currentMode != .plainText {
                 highlightDebounceTimer?.cancel()
                 highlightDebounceTimer?.schedule(delay: 0.3) { [weak self] in
-                    self?.syntaxHighlighter?.highlight(mode: currentMode)
+                    self?.syntaxHighlighter?.highlight(mode: currentMode, editedRange: editedRange)
                 }
             }
 

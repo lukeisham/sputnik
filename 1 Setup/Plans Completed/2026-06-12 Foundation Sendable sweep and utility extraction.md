@@ -1,6 +1,6 @@
 ---
 plan: Foundation Sendable sweep and utility extraction
-status: new
+status: completed
 created: 2026-06-12
 author: Zed (code analysis)
 issues: ISS-060 (foundation sendable), ISS-060 (utility extraction)

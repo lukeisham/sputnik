@@ -7,6 +7,10 @@ import Foundation
 /// they are forwarded into the `AsyncStream` where the consumer decides how to
 /// hop actors. The ViewModel subscribes and debounces before calling `refreshTree()`
 /// (MR-2, SW-1).
+// @unchecked Sendable is required: NSFilePresenter requires NSObject, and Sendable
+// conformance cannot be compiler-verified for ObjC-bridged types. Mutable state
+// (continuation, presentedItemURL) is accessed only from the serial presenter queue
+// or from NSFileCoordinator callbacks, making this safe.
 public final class FileSystemWatcher: NSObject, NSFilePresenter, @unchecked Sendable {
 
     // MARK: - NSFilePresenter
