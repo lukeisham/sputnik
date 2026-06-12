@@ -165,6 +165,11 @@ public struct EditorView: NSViewRepresentable {
         textView.isAutomaticSpellingCorrectionEnabled = false
         textView.isAutomaticQuoteSubstitutionEnabled = false
         textView.isAutomaticDashSubstitutionEnabled = false
+
+        // Opt into full Apple Intelligence Writing Tools on macOS 15+.
+        if #available(macOS 15.0, *) {
+            textView.writingToolsBehavior = .complete
+        }
     }
 
     /// Sets the font and background on the text view from the resolved settings (F-4).

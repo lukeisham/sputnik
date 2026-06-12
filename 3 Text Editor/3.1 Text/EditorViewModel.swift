@@ -71,6 +71,10 @@ public final class EditorViewModel: EditorCommandHandling {
     /// Task for debouncing recovery writes (cancelled when a new write is scheduled).
     private var recoveryDebounceTask: Task<Void, Never>?
 
+    /// The current user activity for the open document (Spotlight, Siri, Apple Intelligence context).
+    /// Created when a file is opened; resigned when the document closes.
+    private var userActivity: NSUserActivity?
+
     // MARK: - Init
 
     public init(appState: AppState, persistenceService: PersistenceService) {
@@ -87,6 +91,7 @@ public final class EditorViewModel: EditorCommandHandling {
         MainActor.assumeIsolated {
             stopWatchingFile()
             stopRecoveryWrite()
+            resignUserActivity()
         }
     }
 
@@ -133,17 +138,44 @@ public final class EditorViewModel: EditorCommandHandling {
         loadedText = text
         loadToken = UUID()
 
+        // Register NSUserActivity for Spotlight, Siri Suggestions, and Apple Intelligence context.
+        setUpUserActivity(for: url, mode: mode)
+
         // Start watching the file for external changes (ISS-033).
         startWatchingFile(url: url)
     }
 
     // MARK: - Helpers
 
+    /// Resigns the current user activity and clears it.
+    private func resignUserActivity() {
+        userActivity?.resignCurrent()
+        userActivity = nil
+    }
+
+    /// Creates and registers an NSUserActivity for the open document.
+    /// Enables Spotlight indexing, Siri Suggestions, and Apple Intelligence context.
+    private func setUpUserActivity(for url: URL, mode: EditorMode) {
+        // Resign any previous activity first.
+        resignUserActivity()
+
+        let activity = NSUserActivity(activityType: "com.lukeisham.sputnik.editing")
+        activity.title = url.lastPathComponent
+        activity.userInfo = [
+            "fileURL": url.absoluteString,
+            "mode": mode.rawValue,
+        ]
+        activity.isEligibleForSearch = true
+        activity.becomeCurrent()
+        userActivity = activity
+    }
+
     /// Resets all per-file state when a new file is opened.
     ///
     /// Mode is inferred by the caller from the file extension; reset to `.plainText`
     /// as a safe default so no sub-module is left active from the previous session.
     private func resetForNewFile(url: URL?) {
+        resignUserActivity()
         fileURL = url
         isDirty = false
         htmlModeActive = false

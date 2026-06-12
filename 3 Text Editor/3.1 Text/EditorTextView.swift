@@ -1,5 +1,6 @@
 import AppKit
 import FoundationModule
+import NaturalLanguage
 import ResourcesModule
 import SwiftUI
 
@@ -44,6 +45,9 @@ public final class EditorTextView: NSTextView {
 
     /// The live quick-fix popover, if shown. AppKit seam for the SwiftUI `QuickfixPopover`.
     private var quickfixPopover: NSPopover?
+
+    /// The live summary popover, if shown. AppKit seam for the SwiftUI summary view.
+    private var summaryPopover: NSPopover?
 
     // MARK: - Key handling
 
@@ -155,10 +159,23 @@ public final class EditorTextView: NSTextView {
     /// Appends "More Context: …" menu items for the active editor mode's help panel
     /// when there is a non-empty selection. Uses the shared `MoreContextMenu` builder
     /// and the injected (or fallback shared) resolver.
+    /// Also appends "Summarize Locally" on macOS 15+ using on-device NLSummarizer.
     public override func menu(for event: NSEvent) -> NSMenu? {
         let menu = super.menu(for: event) ?? NSMenu()
 
         let selection = selectedRange()
+
+        // Add "Summarize Locally" when there is a non-empty selection.
+        if selection.length > 0 {
+            let summarizeItem = NSMenuItem(
+                title: "Summarize Locally",
+                action: #selector(summarizeSelectionLocally),
+                keyEquivalent: "")
+            summarizeItem.target = self
+            menu.insertItem(summarizeItem, at: 0)
+            menu.insertItem(.separator(), at: 1)
+        }
+
         guard selection.length > 0,
             let viewModel = editorViewModel,
             let kind = helpKind(for: viewModel)
@@ -220,4 +237,136 @@ public final class EditorTextView: NSTextView {
         }
     }
 
+    // MARK: - On-Device Summarization (macOS 15+)
+
+    /// Summarises the current text selection using on-device natural language processing.
+    /// Uses extractive sentence scoring via term frequency to select key sentences.
+    /// Presents the result in a transient popover anchored to the selection.
+    @objc private func summarizeSelectionLocally() {
+        let selection = selectedRange()
+        guard selection.length > 0 else { return }
+
+        summaryPopover?.close()
+
+        let selected = (string as NSString).substring(with: selection)
+
+        // Show a loading indicator while the summary is computed.
+        let loadingView = NSHostingController(
+            rootView: SummaryPopoverContent(text: "Summarizing…", isLoading: true))
+        let popover = NSPopover()
+        popover.behavior = .transient
+        popover.contentViewController = loadingView
+        popover.show(relativeTo: selectionRectForPopover(), of: self, preferredEdge: .maxY)
+        summaryPopover = popover
+
+        Task { @MainActor in
+            let summary = Self.extractiveSummary(of: selected, maxSentences: 3)
+            let resultView = NSHostingController(
+                rootView: SummaryPopoverContent(text: summary, isLoading: false))
+            popover.contentViewController = resultView
+        }
+    }
+
+    /// Performs extractive summarization using NLTokenizer for sentence segmentation
+    /// and TF-based sentence scoring. Fully on-device — no network, no API key.
+    private static func extractiveSummary(of text: String, maxSentences: Int) -> String {
+        guard !text.isEmpty else {
+            return "No text selected."
+        }
+
+        // Tokenize into sentences using NaturalLanguage.
+        let tokenizer = NLTokenizer(unit: .sentence)
+        tokenizer.string = text
+        let sentences = tokenizer.tokens(for: text.startIndex..<text.endIndex).map {
+            String(text[$0])
+        }
+
+        guard sentences.count > 1 else {
+            // Single sentence — return it truncated.
+            return sentences.first.map { $0.count > 280 ? String($0.prefix(277)) + "…" : $0 }
+                ?? text
+        }
+
+        // Build term-frequency map (lowercased, non-trivial words).
+        var termFreq: [String: Int] = [:]
+        let wordTokenizer = NLTokenizer(unit: .word)
+        wordTokenizer.string = text
+        wordTokenizer.enumerateTokens(in: text.startIndex..<text.endIndex) { range, _ in
+            let word = String(text[range]).lowercased()
+            // Skip short words and stop words.
+            if word.count > 3 {
+                termFreq[word, default: 0] += 1
+            }
+            return true
+        }
+
+        // Score each sentence by summed term frequency (normalized by sentence length).
+        struct ScoredSentence {
+            let text: String
+            let score: Double
+        }
+        var scored: [ScoredSentence] = []
+        for sentence in sentences {
+            let cleaned = sentence.trimmingCharacters(in: .whitespacesAndNewlines)
+            guard !cleaned.isEmpty else { continue }
+            let words = cleaned.split(separator: " ").map(String.init)
+            guard words.count >= 4 else { continue }  // Skip very short fragments.
+            let totalScore = words.reduce(0.0) { score, word in
+                score + Double(termFreq[word.lowercased(), default: 0])
+            }
+            let normalized = totalScore / Double(max(words.count, 1))
+            scored.append(ScoredSentence(text: cleaned, score: normalized))
+        }
+
+        // Sort by score descending, take top N, re-sort by original position.
+        let top = scored.sorted { $0.score > $1.score }.prefix(maxSentences)
+        let result = top.sorted {
+            sentences.firstIndex(of: $0.text)! < sentences.firstIndex(of: $1.text)!
+        }
+        .map { $0.text }
+        .joined(separator: "\n\n")
+
+        return result.isEmpty ? "(Unable to generate summary.)" : result
+    }
+
+    /// Returns the bounding rect of the current selection in view coordinates,
+    /// used as the anchor rect for the summary popover.
+    private func selectionRectForPopover() -> NSRect {
+        guard let layoutManager, let textContainer else {
+            return bounds
+        }
+        let glyphRange = layoutManager.glyphRange(
+            forCharacterRange: selectedRange(), actualCharacterRange: nil)
+        guard glyphRange.length > 0 else { return bounds }
+        var rect = layoutManager.boundingRect(forGlyphRange: glyphRange, in: textContainer)
+        rect.origin.x += textContainerOrigin.x
+        rect.origin.y += textContainerOrigin.y
+        return rect
+    }
+
+}
+
+// MARK: - Summarization Popover View
+
+/// A simple SwiftUI view for displaying a summary result (or loading/error state)
+/// inside an NSPopover.
+private struct SummaryPopoverContent: View {
+    let text: String
+    let isLoading: Bool
+
+    var body: some View {
+        HStack {
+            if isLoading {
+                ProgressView()
+                    .scaleEffect(0.7)
+                    .padding(.trailing, 4)
+            }
+            Text(text)
+                .textSelection(.enabled)
+                .font(.system(size: 12))
+                .padding(8)
+                .frame(maxWidth: 280, alignment: .leading)
+        }
+        .padding(4)
+    }
 }
