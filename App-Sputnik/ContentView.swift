@@ -118,6 +118,57 @@ public struct ContentView: View {
             StatusBarView()
         }
         .frame(minWidth: 900, minHeight: 600)
+        .toolbar {
+            ToolbarItem(id: "file-tree", placement: .automatic) {
+                toolbarPanelToggle(
+                    icon: "sidebar.left",
+                    label: "File Tree",
+                    isActive: windowState.hasColumn(renderMode: .fileTree)
+                ) {
+                    appState.toggleColumn(renderMode: .fileTree)
+                }
+            }
+
+            ToolbarItem(id: "preview", placement: .automatic) {
+                toolbarPanelToggle(
+                    icon: "doc.text.magnifyingglass",
+                    label: "Preview",
+                    isActive: windowState.hasColumn(renderMode: .markdownPreview)
+                ) {
+                    appState.toggleColumn(renderMode: .markdownPreview)
+                }
+            }
+
+            ToolbarItem(id: "html", placement: .automatic) {
+                toolbarPanelToggle(
+                    icon: "globe",
+                    label: "HTML",
+                    isActive: windowState.hasColumn(renderMode: .htmlPreview)
+                ) {
+                    appState.toggleColumn(renderMode: .htmlPreview)
+                }
+            }
+
+            ToolbarItem(id: "terminal", placement: .automatic) {
+                toolbarPanelToggle(
+                    icon: "terminal",
+                    label: "Terminal",
+                    isActive: windowState.layout.terminalVisible
+                ) {
+                    appState.toggleTerminal()
+                }
+            }
+
+            ToolbarItem(id: "settings", placement: .automatic) {
+                Button {
+                    NSApp.sendAction(Selector(("showSettingsWindow:")), to: nil, from: nil)
+                } label: {
+                    Label("Settings", systemImage: "gear")
+                }
+                .help("Open Sputnik Settings")
+                .accessibilityLabel("Settings")
+            }
+        }
         .background {
             WindowProxyView(
                 title: windowState.title,
@@ -187,6 +238,30 @@ public struct ContentView: View {
             // Help panels are rendered via helpPanelOverlay, not as columns.
             EmptyView()
         }
+    }
+
+    // MARK: - Toolbar helpers
+
+    /// Builds a unified toolbar toggle button that reflects its active state.
+    /// - Parameters:
+    ///   - icon: SF Symbol name for the button.
+    ///   - label: Human-readable label for accessibility and tooltip.
+    ///   - isActive: Whether the associated panel is currently visible.
+    ///   - action: Closure to call on tap.
+    private func toolbarPanelToggle(
+        icon: String,
+        label: String,
+        isActive: Bool,
+        action: @escaping () -> Void
+    ) -> some View {
+        Button(action: action) {
+            Label(label, systemImage: icon)
+                .foregroundStyle(isActive ? Color.accentColor : .secondary)
+                .symbolVariant(isActive ? .fill : .none)
+        }
+        .help(label)
+        .accessibilityLabel(label)
+        .accessibilityAddTraits(isActive ? .isSelected : [])
     }
 
     // MARK: - Help panel overlay
