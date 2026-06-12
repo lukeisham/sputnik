@@ -88,11 +88,13 @@ struct PanelColumnView<Content: View>: View {
 
             Spacer()
 
-            // Centre: drag handle
+            // Centre: drag handle — purely decorative; the drag gesture lives on the
+            // whole column, so hide the glyph from VoiceOver to avoid a redundant element.
             Image(systemName: "line.3.horizontal")
                 .font(.system(size: 12, weight: .regular))
                 .foregroundStyle(SputnikColor.secondaryText)
                 .help("Drag to reorder")
+                .accessibilityHidden(true)
 
             Spacer()
 
@@ -104,6 +106,8 @@ struct PanelColumnView<Content: View>: View {
             .buttonStyle(.plain)
             .foregroundStyle(SputnikColor.secondaryText)
             .help("Close column")
+            .accessibilityLabel("Close column")
+            .accessibilityHint("Removes this \(columnAccessibilityName) column")
         }
         .padding(.horizontal, SputnikSpacing.sm)
         .padding(.vertical, 4)
@@ -122,6 +126,7 @@ struct PanelColumnView<Content: View>: View {
                     .padding(.vertical, 1)
                     .background(SputnikColor.accentPrimary.opacity(0.15))
                     .clipShape(Capsule())
+                    .accessibilityLabel("Panel type: \(badge)")
             }
         }
     }
@@ -137,6 +142,11 @@ struct PanelColumnView<Content: View>: View {
             }
         }
         return column.renderMode.displayBadge
+    }
+
+    /// A human-readable name for this column's panel type, for VoiceOver hints.
+    private var columnAccessibilityName: String {
+        resolvedBadge ?? column.renderMode.displayBadge ?? column.renderMode.rawValue
     }
 
     /// Whether this column is text-sourced (currently or originally a .textEditor).
@@ -183,6 +193,8 @@ struct PanelColumnView<Content: View>: View {
                         }
                         .buttonStyle(.plain)
                         .help(mode.rawValue)
+                        .accessibilityLabel("Show as \(mode.rawValue)")
+                        .accessibilityAddTraits(isCurrent ? .isSelected : [])
                     }
                 }
             }
@@ -239,6 +251,9 @@ struct PanelColumnView<Content: View>: View {
                         .clipShape(Capsule())
                     }
                     .buttonStyle(.plain)
+                    .accessibilityLabel(label)
+                    .accessibilityHint("Switch to this document tab")
+                    .accessibilityAddTraits(isActive ? .isSelected : [])
                 }
             }
             .padding(.horizontal, SputnikSpacing.sm)
@@ -261,12 +276,15 @@ struct PanelColumnView<Content: View>: View {
     /// Animated border overlay based on column role.
     @ViewBuilder
     private var roleBorder: some View {
+        // Differentiate Without Color note: the two active states are distinguished by
+        // *shape* (solid vs dashed) and by presence/absence, not by colour alone, so they
+        // remain legible with the "Differentiate Without Color" setting on.
         if column.renderMode == .textEditor, columnRole == .active, column.activeDocumentID != nil {
             // Active text editor: 2 pt solid accent
             SputnikColor.accentPrimary
                 .frame(height: 2)
                 .frame(maxWidth: .infinity)
-                .animation(.easeInOut(duration: 0.15), value: columnRole)
+                .accessibleAnimation(.easeInOut(duration: 0.15), value: columnRole)
         } else if columnRole == .activePair {
             // Active pair preview: 1 pt dashed accent at 40% opacity
             DashedLine()
@@ -276,7 +294,7 @@ struct PanelColumnView<Content: View>: View {
                 )
                 .frame(height: 1)
                 .frame(maxWidth: .infinity)
-                .animation(.easeInOut(duration: 0.15), value: columnRole)
+                .accessibleAnimation(.easeInOut(duration: 0.15), value: columnRole)
         }
     }
 

@@ -64,6 +64,7 @@ public struct AboutWindowView: View {
                         .foregroundStyle(SputnikColor.accent)
                 }
             }
+            .accessibilityLabel("Sputnik logo")
 
             // App name
             Text("Sputnik")

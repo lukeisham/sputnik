@@ -146,6 +146,11 @@ public final class SettingsStore {
     /// BCP-47 language tag passed to `NSSpellChecker`. `nil` → system default locale.
     public var spellCheckLocale: String? = nil
 
+    // MARK: - Editor appearance
+
+    /// Whether the current line is subtly highlighted in the text editor. Default: `true`.
+    public var currentLineHighlightEnabled: Bool = true
+
     // MARK: - Persistence keys
 
     private enum DefaultsKey {
@@ -181,6 +186,8 @@ public final class SettingsStore {
         static let spellingAutoCompleteStep = "sputnik.settings.spellingAutoCompleteStep"
         static let asciiTriggerKey = "sputnik.settings.asciiTriggerKey"
         static let spellCheckLocale = "sputnik.settings.spellCheckLocale"
+        // Editor appearance
+        static let currentLineHighlight = "sputnik.settings.currentLineHighlight"
         // AI
         static let supportingAIConfig = "sputnik.settings.supportingAIConfig"
     }
@@ -245,6 +252,14 @@ public final class SettingsStore {
     /// Convenience wrapper retained for existing consumers — updates `grammar × instantCorrect`.
     public func setGrammarCheckEnabled(_ value: Bool) {
         setWritingAssist(.instantCorrect, for: .grammar, to: value)
+    }
+
+    // MARK: - Editor appearance mutators
+
+    /// Enables or disables the current-line highlight and persists the setting.
+    public func setCurrentLineHighlightEnabled(_ value: Bool) {
+        currentLineHighlightEnabled = value
+        persistence.saveSetting(value, forKey: DefaultsKey.currentLineHighlight)
     }
 
     // MARK: - Terminal mutators

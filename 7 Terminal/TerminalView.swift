@@ -16,6 +16,9 @@ public struct TerminalView: View {
     @Environment(SettingsStore.self) private var settings
     @Environment(MainAIMonitor.self) private var mainAIMonitor
 
+    /// Drops the chrome's translucency for an opaque surface under *Reduce Transparency*.
+    @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
+
     // MARK: - State
 
     @StateObject private var manager = TerminalManager()
@@ -91,7 +94,13 @@ public struct TerminalView: View {
         }
         .padding(.horizontal, 8)
         .padding(.vertical, 4)
-        .background(.ultraThinMaterial)
+        .background {
+            if reduceTransparency {
+                SputnikColor.secondaryBackground
+            } else {
+                Rectangle().fill(.ultraThinMaterial)
+            }
+        }
     }
 
     /// Inline "shell exited" notice shown when the session is not running.

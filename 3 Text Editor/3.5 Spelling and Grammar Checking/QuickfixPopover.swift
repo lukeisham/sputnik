@@ -38,6 +38,7 @@ struct QuickfixPopover: View {
                         HStack(spacing: 6) {
                             Image(systemName: "wand.and.stars")
                                 .font(.system(size: 11))
+                                .accessibilityHidden(true)
                             Text(suggestion)
                                 .font(.system(size: 12, weight: .medium))
                             Spacer(minLength: 0)
@@ -45,6 +46,7 @@ struct QuickfixPopover: View {
                         .contentShape(Rectangle())
                     }
                     .buttonStyle(.plain)
+                    .accessibilityLabel("Replace with \(suggestion)")
                 }
             }
 
@@ -56,6 +58,7 @@ struct QuickfixPopover: View {
                 HStack(spacing: 6) {
                     Image(systemName: "xmark.circle")
                         .font(.system(size: 11))
+                        .accessibilityHidden(true)
                     Text("Dismiss")
                         .font(.system(size: 12))
                     Spacer(minLength: 0)

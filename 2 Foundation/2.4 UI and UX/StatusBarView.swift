@@ -20,6 +20,11 @@ public struct StatusBarView<Content: View>: View {
     @Environment(ProcessMonitor.self) private var monitor
     @Environment(MainAIMonitor.self) private var mainAIMonitor
 
+    /// Suppresses the satellite spin when *Reduce Motion* is on.
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    /// Adds a non-colour busy cue when *Differentiate Without Color* is on.
+    @Environment(\.accessibilityDifferentiateWithoutColor) private var differentiateWithoutColor
+
     private let trailingContent: Content?
 
     /// Creates a status bar with optional trailing content (for F-8 terminal model).
@@ -38,6 +43,7 @@ public struct StatusBarView<Content: View>: View {
                     .font(.system(size: SputnikFont.caption, design: .monospaced))
                     .foregroundStyle(SputnikColor.secondaryText)
                     .lineLimit(1)
+                    .accessibilityLabel("Supporting AI model: \(model)")
             }
 
             // Main AI segment — shown only when a Main AI is active
@@ -46,17 +52,21 @@ public struct StatusBarView<Content: View>: View {
                     .font(.system(size: SputnikFont.caption, design: .monospaced))
                     .foregroundStyle(SputnikColor.secondaryText)
                     .lineLimit(1)
+                    .accessibilityLabel("Main AI model: \(mainState.modelName)")
 
                 if let usage = mainState.usage {
                     Text(String(format: "%.0f%%", usage.percent))
                         .font(.system(size: SputnikFont.caption, design: .monospaced))
                         .foregroundStyle(SputnikColor.secondaryText)
                         .lineLimit(1)
+                        .accessibilityLabel(
+                            "Context used: \(String(format: "%.0f", usage.percent)) percent")
                 } else if mainState.contextWindow != nil {
                     Text("CTX —")
                         .font(.system(size: SputnikFont.caption, design: .monospaced))
                         .foregroundStyle(SputnikColor.secondaryText)
                         .lineLimit(1)
+                        .accessibilityLabel("Context usage unavailable")
                 }
             } else {
                 Text("—")
@@ -64,6 +74,7 @@ public struct StatusBarView<Content: View>: View {
                     .foregroundStyle(SputnikColor.secondaryText)
                     .lineLimit(1)
                     .help("No Main AI detected in terminal")
+                    .accessibilityLabel("No Main AI detected in terminal")
             }
 
             Spacer()
@@ -73,12 +84,15 @@ public struct StatusBarView<Content: View>: View {
                 .font(.system(size: SputnikFont.caption, design: .monospaced))
                 .foregroundStyle(SputnikColor.secondaryText)
                 .lineLimit(1)
+                .accessibilityLabel("Memory: \(monitor.ramMB) megabytes")
 
             // CPU
             Text(String(format: "%.1f%%", monitor.cpuPercent))
                 .font(.system(size: SputnikFont.caption, design: .monospaced))
                 .foregroundStyle(SputnikColor.secondaryText)
                 .lineLimit(1)
+                .accessibilityLabel(
+                    "CPU usage: \(String(format: "%.1f", monitor.cpuPercent)) percent")
 
             // Trailing content (F-8 terminal model segment)
             if let trailing = trailingContent {
@@ -105,17 +119,32 @@ public struct StatusBarView<Content: View>: View {
     @ViewBuilder
     private var satelliteIcon: some View {
         let isProcessing = appState.isProcessing
+        // Spin only when processing AND Reduce Motion is off.
+        let shouldSpin = isProcessing && !reduceMotion
 
         Image(systemName: "antenna.radiowaves.left.and.right")
             .font(.system(size: SputnikFont.body))
             .foregroundStyle(isProcessing ? SputnikColor.accent : SputnikColor.secondaryText)
-            .rotationEffect(.degrees(isProcessing ? 360 : 0))
+            .rotationEffect(.degrees(shouldSpin ? 360 : 0))
             .animation(
-                isProcessing
+                shouldSpin
                     ? Animation.linear(duration: 2).repeatForever(autoreverses: false)
                     : .default,
-                value: isProcessing
+                value: shouldSpin
             )
+            .overlay(alignment: .topTrailing) {
+                // Differentiate Without Color: a small badge marks the busy state
+                // when colour alone (accent vs. secondary) cannot be relied upon.
+                if isProcessing && differentiateWithoutColor {
+                    Circle()
+                        .fill(SputnikColor.primaryText)
+                        .frame(width: 4, height: 4)
+                        .offset(x: 2, y: -2)
+                        .accessibilityHidden(true)
+                }
+            }
+            .accessibilityLabel("Sputnik status")
+            .accessibilityValue(isProcessing ? "Busy" : "Idle")
     }
 
     /// The configured Supporting AI model name, or `nil` when no model is set.

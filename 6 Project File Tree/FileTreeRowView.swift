@@ -95,6 +95,18 @@ public struct FileTreeRowView: View {
         .onTapGesture(count: 1) {
             handleSingleTap()
         }
+        // Collapse the row into a single VoiceOver element with an open action —
+        // except while renaming, where the inline TextField must stay reachable.
+        .modifier(
+            FileRowAccessibility(
+                isRenaming: isRenaming,
+                label: node.name,
+                value: rowAccessibilityValue,
+                hint: node.isDirectory ? "Opens or collapses the folder" : "Opens the file",
+                isSelected: isSelected,
+                onActivate: { Task { await viewModel.openNode(node.id) } }
+            )
+        )
         .contextMenu {
             FileContextMenu(node: node, viewModel: viewModel)
         }
@@ -115,6 +127,22 @@ public struct FileTreeRowView: View {
     }
 
     // MARK: - Private
+
+    /// Spoken description of the row's kind and state for VoiceOver.
+    private var rowAccessibilityValue: String {
+        var parts: [String] = []
+        if node.isDirectory {
+            parts.append("Folder")
+            parts.append(isExpanded ? "expanded" : "collapsed")
+        } else {
+            parts.append("File")
+        }
+        if !node.isReadable { parts.append("not readable") }
+        if let date = node.modificationDate {
+            parts.append("modified \(date.formatted(date: .abbreviated, time: .shortened))")
+        }
+        return parts.joined(separator: ", ")
+    }
 
     private var iconColor: Color {
         guard node.isReadable else { return SputnikColor.tertiaryText }
@@ -160,6 +188,34 @@ public struct FileTreeRowView: View {
         let id = node.id
         viewModel.renamingNodeID = nil
         Task { await viewModel.rename(nodeID: id, to: trimmed) }
+    }
+}
+
+// MARK: - Row accessibility
+
+/// Applies a combined VoiceOver element + open action to a file-tree row, but only
+/// when the row is **not** in inline-rename mode — during rename the child `TextField`
+/// must remain individually accessible so it can be edited.
+private struct FileRowAccessibility: ViewModifier {
+    let isRenaming: Bool
+    let label: String
+    let value: String
+    let hint: String
+    let isSelected: Bool
+    let onActivate: () -> Void
+
+    func body(content: Content) -> some View {
+        if isRenaming {
+            content
+        } else {
+            content
+                .accessibilityElement(children: .ignore)
+                .accessibilityLabel(label)
+                .accessibilityValue(value)
+                .accessibilityHint(hint)
+                .accessibilityAddTraits(isSelected ? .isSelected : [])
+                .accessibilityAction(.default, onActivate)
+        }
     }
 }
 

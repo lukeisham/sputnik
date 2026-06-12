@@ -70,6 +70,9 @@ public final class SputnikMenuBarController {
         }
 
         button.toolTip = "Sputnik"
+        // VoiceOver: name the status item and seed its current state (SR-1 polish).
+        button.setAccessibilityLabel("Sputnik status")
+        button.setAccessibilityValue(appState?.isProcessing == true ? "Busy" : "Idle")
         statusItem = item
     }
 
@@ -111,9 +114,16 @@ public final class SputnikMenuBarController {
     ///
     /// Called on `@MainActor` so `CALayer` access is safe (SR-4).
     private func applyAnimation(spinning: Bool) {
+        // Keep VoiceOver's reported state in sync whether or not we animate.
+        statusItem?.button?.setAccessibilityValue(spinning ? "Busy" : "Idle")
+
         guard let layer = statusItem?.button?.layer else { return }
 
-        if spinning {
+        // Honour the system Reduce Motion setting (SR-5 — native AppKit API): when on,
+        // never start the spin; just reflect the busy state via colour/accessibility.
+        let reduceMotion = NSWorkspace.shared.accessibilityDisplayShouldReduceMotion
+
+        if spinning && !reduceMotion {
             guard layer.animation(forKey: "sputnikSpin") == nil else { return }
             let spin = CABasicAnimation(keyPath: "transform.rotation.z")
             spin.fromValue = 0

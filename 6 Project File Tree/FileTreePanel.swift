@@ -48,6 +48,7 @@ public struct FileTreePanel: View {
             Image(systemName: "folder")
                 .font(.system(size: 12))
                 .foregroundStyle(SputnikColor.secondaryText)
+                .accessibilityHidden(true)
 
             Text(viewModel.activeDirectory?.lastPathComponent ?? "No Folder")
                 .font(.system(size: SputnikFont.body, weight: .medium))
@@ -70,6 +71,8 @@ public struct FileTreePanel: View {
             }
             .buttonStyle(.plain)
             .help("Toggle Search")
+            .accessibilityLabel("Search files")
+            .accessibilityAddTraits(showSearch ? .isSelected : [])
 
             // Open-folder button
             Button {
@@ -81,6 +84,7 @@ public struct FileTreePanel: View {
             }
             .buttonStyle(.plain)
             .help("Open Folder…")
+            .accessibilityLabel("Open folder")
         }
         .padding(.horizontal, SputnikSpacing.sm)
         .padding(.vertical, SputnikSpacing.sm)
@@ -93,6 +97,7 @@ public struct FileTreePanel: View {
             Image(systemName: "magnifyingglass")
                 .font(.system(size: 11))
                 .foregroundStyle(SputnikColor.tertiaryText)
+                .accessibilityHidden(true)
 
             @Bindable var vm = viewModel
             TextField("Filter files…", text: $vm.searchText)
@@ -108,6 +113,7 @@ public struct FileTreePanel: View {
                         .foregroundStyle(SputnikColor.tertiaryText)
                 }
                 .buttonStyle(.plain)
+                .accessibilityLabel("Clear search")
             }
         }
         .padding(.horizontal, SputnikSpacing.sm)
@@ -190,6 +196,8 @@ public struct FileTreePanel: View {
             .keyboardShortcut("c", modifiers: .command)
             .frame(width: 0, height: 0)
         }
+        // These are invisible keyboard-shortcut sinks — keep them out of VoiceOver.
+        .accessibilityHidden(true)
     }
 
     // MARK: - Clipboard operations

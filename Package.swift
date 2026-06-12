@@ -15,6 +15,8 @@ let package = Package(
         .package(path: "8 HTML Preview"),
         .package(path: "9 Resources"),
         .package(path: "SputnikIntents"),
+        // DocC documentation generation plugin
+        .package(url: "https://github.com/apple/swift-docc-plugin", from: "1.4.0"),
     ],
     targets: [
         .executableTarget(

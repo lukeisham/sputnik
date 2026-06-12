@@ -115,6 +115,7 @@ public struct HTMLPreviewPanel: View {
             }
             .menuStyle(.borderlessButton)
             .frame(width: 24, height: 24)
+            .accessibilityLabel("More actions")
         }
         .padding(.horizontal, SputnikSpacing.md)
         .padding(.vertical, SputnikSpacing.sm)
@@ -134,6 +135,8 @@ public struct HTMLPreviewPanel: View {
             .help("Fit Width")
             .buttonStyle(.borderless)
             .foregroundStyle(isFitWidth ? SputnikColor.accent : SputnikColor.secondaryText)
+            .accessibilityLabel("Fit width")
+            .accessibilityAddTraits(isFitWidth ? .isSelected : [])
 
             // Link Navigation toggle.
             Button {
@@ -143,6 +146,8 @@ public struct HTMLPreviewPanel: View {
                     .font(.system(size: SputnikFont.caption))
             }
             .help(isLinkNavigationEnabled ? "Links Enabled" : "Links Disabled")
+            .accessibilityLabel("Links")
+            .accessibilityValue(isLinkNavigationEnabled ? "Enabled" : "Disabled")
             .buttonStyle(.borderless)
             .foregroundStyle(
                 isLinkNavigationEnabled ? SputnikColor.accent : SputnikColor.tertiaryText)

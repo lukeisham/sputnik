@@ -100,6 +100,11 @@ private struct ThumbnailCell: View {
         .onAppear {
             viewModel.generateThumbnail(for: index)
         }
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel("Page \(index + 1)")
+        .accessibilityAddTraits(isCurrentPage ? [.isButton, .isSelected] : .isButton)
+        .accessibilityHint("Go to this page")
+        .accessibilityAction { viewModel.navigateTo(page: index) }
     }
 
     @ViewBuilder

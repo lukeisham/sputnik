@@ -12,8 +12,13 @@ public final class LineNumberRulerView: NSRulerView {
 
     private let gutterFont: NSFont = .monospacedSystemFont(ofSize: 11, weight: .regular)
     private let gutterColor: NSColor = .tertiaryLabelColor
+    private let highlightedGutterColor: NSColor = .labelColor
     private let gutterBg: NSColor = .windowBackgroundColor
     private static let padding: CGFloat = 8
+
+    /// Whether the current line's gutter number should be highlighted.
+    /// Set by `EditorView.updateNSView` (step 7).
+    var highlightCurrentLine: Bool = true
 
     // MARK: - Init
 
@@ -53,10 +58,16 @@ public final class LineNumberRulerView: NSRulerView {
             lineNumber += 1
         }
 
-        let attrs: [NSAttributedString.Key: Any] = [
-            .font: gutterFont,
-            .foregroundColor: gutterColor,
-        ]
+        // Determine the character range of the current line so we can highlight
+        // its gutter number. The insertion point is the selected range location.
+        let insertionIndex = textView.selectedRange().location
+        let isOnCurrentLine: (NSRange) -> Bool = { [weak self] lineRange in
+            guard let self else { return false }
+            return self.highlightCurrentLine
+                && insertionIndex != NSNotFound
+                && lineRange.location <= insertionIndex
+                && insertionIndex < lineRange.location + lineRange.length
+        }
 
         nsText.enumerateSubstrings(
             in: charRange,
@@ -71,11 +82,17 @@ public final class LineNumberRulerView: NSRulerView {
             var fragRect = layoutMgr.lineFragmentRect(forGlyphAt: glyphIdx, effectiveRange: nil)
             fragRect = fragRect.offsetBy(dx: 0, dy: -visibleRect.minY)
 
+            let isCurrent = isOnCurrentLine(enclosingRange)
+            let labelAttrs: [NSAttributedString.Key: Any] = [
+                .font: gutterFont,
+                .foregroundColor: isCurrent ? highlightedGutterColor : gutterColor,
+            ]
+
             let label = "\(lineNumber)" as NSString
-            let labelSize = label.size(withAttributes: attrs)
+            let labelSize = label.size(withAttributes: labelAttrs)
             let x = bounds.width - labelSize.width - Self.padding
             let y = fragRect.minY + (fragRect.height - labelSize.height) / 2
-            label.draw(at: NSPoint(x: x, y: y), withAttributes: attrs)
+            label.draw(at: NSPoint(x: x, y: y), withAttributes: labelAttrs)
 
             lineNumber += 1
         }

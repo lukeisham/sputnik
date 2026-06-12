@@ -116,6 +116,10 @@ struct SettingsLoader {
         if let saved: String? = persistence.loadSetting(forKey: DefaultsKey.spellCheckLocale) {
             store.spellCheckLocale = saved
         }
+        // Editor appearance
+        if let saved: Bool = persistence.loadSetting(forKey: DefaultsKey.currentLineHighlight) {
+            store.currentLineHighlightEnabled = saved
+        }
         // Per-panel fonts
         if let saved: EditorFont = persistence.loadSetting(forKey: DefaultsKey.textEditorFont) {
             store.textEditorFont = saved
@@ -173,5 +177,6 @@ private enum DefaultsKey {
     static let spellingAutoCompleteStep = "sputnik.settings.spellingAutoCompleteStep"
     static let asciiTriggerKey = "sputnik.settings.asciiTriggerKey"
     static let spellCheckLocale = "sputnik.settings.spellCheckLocale"
+    static let currentLineHighlight = "sputnik.settings.currentLineHighlight"
     static let supportingAIConfig = "sputnik.settings.supportingAIConfig"
 }

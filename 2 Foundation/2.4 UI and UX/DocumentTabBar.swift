@@ -21,6 +21,10 @@ public struct DocumentTabBar: View {
 
     @Environment(AppState.self) private var appState
 
+    /// When the user enables *Reduce Transparency*, the tab-bar strip drops its
+    /// translucency for an opaque background.
+    @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
+
     /// Called when the user taps the close button on a tab.
     /// The concrete `InterPanelRouter` should be wired in here to run the
     /// `isDirty` guard before removing the session from `AppState.openDocuments`.
@@ -93,7 +97,7 @@ public struct DocumentTabBar: View {
             }
         }
         .frame(height: SputnikSpacing.tabBarHeight)
-        .background(SputnikColor.tabBarBackground)
+        .background(reduceTransparency ? SputnikColor.background : SputnikColor.tabBarBackground)
     }
 }
 
@@ -124,20 +128,28 @@ private struct TabItem: View {
 
     var body: some View {
         HStack(spacing: SputnikSpacing.tabItemSpacing) {
-            // Dirty-state indicator dot
+            // Dirty-state indicator dot — colour-only cue, so the dirty state is also
+            // surfaced through the tab's accessibility value below (and the dot is hidden
+            // from VoiceOver to avoid an unlabelled element).
             if session.isDirty {
                 Circle()
                     .fill(SputnikColor.accent)
                     .frame(width: 6, height: 6)
+                    .accessibilityHidden(true)
             }
 
-            // Filename label
+            // Filename label — carries the tab's accessible identity, selection state,
+            // dirty state, and a default activate action so VoiceOver can switch tabs.
             Text(tabLabel)
                 .font(.system(size: SputnikFont.caption, weight: isActive ? .semibold : .regular))
                 .foregroundStyle(
                     isActive ? SputnikColor.primaryText : SputnikColor.secondaryText
                 )
                 .lineLimit(1)
+                .accessibilityLabel(tabLabel)
+                .accessibilityValue(session.isDirty ? "Unsaved changes" : "")
+                .accessibilityAddTraits(isActive ? [.isButton, .isSelected] : .isButton)
+                .accessibilityAction { onSelect() }
 
             // Close button
             Button {
@@ -151,6 +163,7 @@ private struct TabItem: View {
             .buttonStyle(.plain)
             .contentShape(Rectangle())
             .help("Close tab")
+            .accessibilityLabel("Close \(tabLabel)")
         }
         .padding(.horizontal, SputnikSpacing.tabItemPadding)
         .frame(height: SputnikSpacing.tabBarHeight)

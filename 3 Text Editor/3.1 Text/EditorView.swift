@@ -149,6 +149,20 @@ public struct EditorView: NSViewRepresentable {
         // Update isEditable in case the column role changed.
         textView.isEditable = isEditable
 
+        // Propagate current-line highlight toggle (step 5).
+        if let edTextView = textView as? EditorTextView {
+            if edTextView.currentLineHighlightEnabled != settings.currentLineHighlightEnabled {
+                edTextView.currentLineHighlightEnabled = settings.currentLineHighlightEnabled
+                edTextView.needsDisplay = true
+            }
+        }
+
+        // Wire the current-line highlight toggle into the line-number ruler (step 7).
+        if let ruler = nsView.verticalRulerView as? LineNumberRulerView {
+            ruler.highlightCurrentLine = settings.currentLineHighlightEnabled
+            ruler.needsDisplay = true
+        }
+
         // Trigger ruler redraw when the view model changes (e.g. on content reload).
         nsView.verticalRulerView?.needsDisplay = true
     }
@@ -210,6 +224,17 @@ public struct EditorView: NSViewRepresentable {
 
         init(viewModel: EditorViewModel) {
             self.viewModel = viewModel
+        }
+
+        public func textViewDidChangeSelection(_ notification: Notification) {
+            guard let tv = textView else { return }
+            // Only invalidate the affected rects to avoid a full redraw on every cursor
+            // movement. Cache the old line rect and invalidate both old and new.
+            let oldRect = tv.lastHighlightedLineRect
+            tv.needsDisplay = true
+            if let old = oldRect {
+                tv.setNeedsDisplay(old, avoidAdditionalLayout: true)
+            }
         }
 
         public func textDidChange(_ notification: Notification) {

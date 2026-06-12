@@ -47,6 +47,7 @@ public struct PDFToolbarView: View {
             .foregroundStyle(SputnikColor.secondaryText)
             .disabled(viewModel.currentPageIndex <= 0 || viewModel.document == nil)
             .help("Previous Page")
+            .accessibilityLabel("Previous page")
 
             Text(pageLabel)
                 .font(.system(size: SputnikFont.caption, weight: .medium, design: .monospaced))
@@ -63,6 +64,7 @@ public struct PDFToolbarView: View {
             .foregroundStyle(SputnikColor.secondaryText)
             .disabled(viewModel.currentPageIndex >= viewModel.totalPageCount - 1 || viewModel.document == nil)
             .help("Next Page")
+            .accessibilityLabel("Next page")
         }
     }
 
@@ -85,6 +87,7 @@ public struct PDFToolbarView: View {
             .foregroundStyle(SputnikColor.secondaryText)
             .disabled(viewModel.scaleFactor <= 0.25 && !viewModel.isFitToWidth || viewModel.document == nil)
             .help("Zoom Out")
+            .accessibilityLabel("Zoom out")
 
             Button {
                 viewModel.toggleFitToWidth()
@@ -95,6 +98,9 @@ public struct PDFToolbarView: View {
             }
             .buttonStyle(.borderless)
             .help(viewModel.isFitToWidth ? "Fit to Width (click to unlock)" : "Click to Fit Width")
+            .accessibilityLabel("Zoom level")
+            .accessibilityValue(scaleLabel)
+            .accessibilityHint("Toggles fit to width")
             .frame(minWidth: 44, alignment: .center)
 
             Button {
@@ -107,6 +113,7 @@ public struct PDFToolbarView: View {
             .foregroundStyle(SputnikColor.secondaryText)
             .disabled(viewModel.scaleFactor >= 4.0 || viewModel.document == nil)
             .help("Zoom In")
+            .accessibilityLabel("Zoom in")
         }
     }
 
@@ -128,6 +135,7 @@ public struct PDFToolbarView: View {
         .foregroundStyle(SputnikColor.secondaryText)
         .disabled(viewModel.document == nil)
         .help("Rotate 90° Clockwise")
+        .accessibilityLabel("Rotate 90 degrees clockwise")
     }
 
     // MARK: - Sidebar toggles
@@ -144,6 +152,8 @@ public struct PDFToolbarView: View {
             .foregroundStyle(viewModel.isTOCVisible ? SputnikColor.accent : SputnikColor.secondaryText)
             .disabled(viewModel.document == nil)
             .help("Table of Contents")
+            .accessibilityLabel("Table of contents")
+            .accessibilityAddTraits(viewModel.isTOCVisible ? .isSelected : [])
 
             Button {
                 viewModel.isThumbnailsVisible.toggle()
@@ -155,6 +165,8 @@ public struct PDFToolbarView: View {
             .foregroundStyle(viewModel.isThumbnailsVisible ? SputnikColor.accent : SputnikColor.secondaryText)
             .disabled(viewModel.document == nil)
             .help("Thumbnails")
+            .accessibilityLabel("Thumbnails")
+            .accessibilityAddTraits(viewModel.isThumbnailsVisible ? .isSelected : [])
         }
     }
 
@@ -179,6 +191,8 @@ public struct PDFToolbarView: View {
         }
         .menuStyle(.borderlessButton)
         .frame(width: 24, height: 24)
+        .accessibilityLabel("More actions")
+        .accessibilityHint("Print, Save As, or Reveal in Finder")
     }
 
     // MARK: - Actions

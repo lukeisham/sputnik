@@ -131,6 +131,7 @@ public struct MarkdownPreviewPanel: View {
             .menuStyle(.borderlessButton)
             .frame(width: 24, height: 24)
             .disabled(appState.activeDocument?.url == nil)
+            .accessibilityLabel("More actions")
         }
         .padding(.horizontal, SputnikSpacing.md)
         .padding(.vertical, SputnikSpacing.sm)
@@ -150,6 +151,8 @@ public struct MarkdownPreviewPanel: View {
             .help("Fit Width")
             .buttonStyle(.borderless)
             .foregroundStyle(fitWidth ? SputnikColor.accent : SputnikColor.secondaryText)
+            .accessibilityLabel("Fit width")
+            .accessibilityAddTraits(fitWidth ? .isSelected : [])
 
             // Font Size cycle button.
             Menu {
@@ -173,6 +176,8 @@ public struct MarkdownPreviewPanel: View {
             .buttonStyle(.borderless)
             .foregroundStyle(SputnikColor.secondaryText)
             .menuIndicator(.hidden)
+            .accessibilityLabel("Font size")
+            .accessibilityValue("\(Int(viewModel.fontScale * 100)) percent")
 
             // Link toggle.
             Button {
@@ -185,6 +190,8 @@ public struct MarkdownPreviewPanel: View {
             .help(linksEnabled ? "Links Enabled" : "Links Disabled")
             .buttonStyle(.borderless)
             .foregroundStyle(linksEnabled ? SputnikColor.accent : SputnikColor.tertiaryText)
+            .accessibilityLabel("Links")
+            .accessibilityValue(linksEnabled ? "Enabled" : "Disabled")
 
             Spacer()
         }

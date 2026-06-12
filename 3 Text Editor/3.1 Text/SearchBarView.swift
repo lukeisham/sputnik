@@ -22,6 +22,7 @@ public struct SearchBarView: View {
                     HStack(spacing: 6) {
                         Image(systemName: "magnifyingglass")
                             .foregroundStyle(.secondary)
+                            .accessibilityHidden(true)
                         TextField("Find", text: $controller.searchTerm)
                             .textFieldStyle(.roundedBorder)
                             .onSubmit { controller.search() }
@@ -37,19 +38,23 @@ public struct SearchBarView: View {
                             Image(systemName: "chevron.left")
                         }
                         .help("Previous Match")
+                        .accessibilityLabel("Previous match")
                         Button(action: controller.nextMatch) {
                             Image(systemName: "chevron.right")
                         }
                         .help("Next Match")
+                        .accessibilityLabel("Next match")
                         Button(action: controller.toggleVisible) {
                             Image(systemName: "xmark")
                         }
                         .help("Close")
+                        .accessibilityLabel("Close find bar")
                     }
                     // Replace row
                     HStack(spacing: 6) {
                         Image(systemName: "arrow.left.arrow.right")
                             .foregroundStyle(.secondary)
+                            .accessibilityHidden(true)
                         TextField("Replace", text: $controller.replaceTerm)
                             .textFieldStyle(.roundedBorder)
                         Button("Replace", action: controller.replaceCurrent)

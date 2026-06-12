@@ -35,6 +35,9 @@ public final class EditorTextView: NSTextView {
     /// Wired by `EditorView`.
     weak var settings: SettingsStore?
 
+    /// Whether the current-line highlight is enabled. Set by `EditorView.updateNSView`.
+    var currentLineHighlightEnabled: Bool = true
+
     /// Sets the Foundation help target to reveal + navigate a help panel. Wired by
     /// `EditorView` so the AppKit text view never reaches into `AppState` directly.
     var onRequestHelp: ((HelpRequest) -> Void)?
@@ -152,6 +155,47 @@ public final class EditorTextView: NSTextView {
         // Ignore + re-check: clears this underline and surfaces any grammar issue the
         // dismissed spelling word was suppressing.
         spellingChecker?.dismiss(annotation)
+    }
+
+    // MARK: - Current-line highlight
+
+    /// The line fragment rect of the last drawn current-line highlight, in view coordinates.
+    /// Cached so we can invalidate only the old rect on cursor movement (step 4).
+    /// `internal` (not private) so `EditorView.Coordinator` can read it for invalidation.
+    var lastHighlightedLineRect: NSRect?
+
+    /// Draws a subtle highlight behind the line containing the insertion point.
+    ///
+    /// Called by AppKit during the display pass. When `currentLineHighlightEnabled` is true,
+    /// we use `NSLayoutManager` to find the line fragment rect for the current glyph index
+    /// and fill it with a semi-transparent accent colour. The colour is derived from
+    /// `selectedTextBackgroundColor` which adapts to light/dark mode automatically.
+    public override func drawBackground(in rect: NSRect) {
+        super.drawBackground(in: rect)
+
+        guard currentLineHighlightEnabled,
+            let layoutMgr = layoutManager
+        else {
+            lastHighlightedLineRect = nil
+            return
+        }
+
+        let insertionIndex = selectedRange().location
+        guard insertionIndex != NSNotFound else { return }
+
+        let glyphIndex = layoutMgr.glyphIndexForCharacter(at: insertionIndex)
+        var fragRect = layoutMgr.lineFragmentRect(forGlyphAt: glyphIndex, effectiveRange: nil)
+            .offsetBy(dx: textContainerOrigin.x, dy: textContainerOrigin.y)
+
+        // Clamp to the visible rect to avoid drawing off-screen areas.
+        fragRect = rect.intersection(fragRect)
+        guard !fragRect.isNull, !fragRect.isInfinite else { return }
+
+        let highlightColour = NSColor.selectedTextBackgroundColor.withAlphaComponent(0.12)
+        highlightColour.setFill()
+        fragRect.fill()
+
+        lastHighlightedLineRect = fragRect
     }
 
     // MARK: - Right-click More Context (3.5 / module 9 / shared utility)

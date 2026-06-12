@@ -115,6 +115,7 @@ public struct SlashCommandPopup: View {
             Image(systemName: "magnifyingglass")
                 .font(.system(size: SputnikFont.body))
                 .foregroundStyle(SputnikColor.secondaryText)
+                .accessibilityHidden(true)
 
             TextField("Filter commands…", text: $searchText)
                 .textFieldStyle(.plain)
@@ -170,6 +171,8 @@ public struct SlashCommandPopup: View {
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
+        .accessibilityLabel(command.label)
+        .accessibilityHint(command.detail)
     }
 
     // MARK: - Escape Key Handling
