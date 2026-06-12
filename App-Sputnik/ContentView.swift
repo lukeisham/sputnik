@@ -26,8 +26,18 @@ public struct ContentView: View {
     /// Synced bidirectionally via `.onChange` below.
     @FocusState private var focusedPanel: PanelFocusTarget?
 
+    /// The UUID of the column currently being dragged (for visual feedback).
+    /// Set by `.onDrag`, cleared by drop delegates on successful completion.
+    @State private var draggingColumnID: UUID?
+
     private let appState: AppState
     private let router: any InterPanelRouter
+
+    /// Minimum pixel width for any single column. Matches
+    /// `DynamicPanelLayout.minColumnWidthProportion` at a typical window width (~96 pt).
+    private let minColumnWidth: CGFloat = 120
+    /// Width in points of each divider gap between columns.
+    private let dividerGapWidth: CGFloat = 8
 
     public init(
         windowState: WindowState, router: any InterPanelRouter,
@@ -48,54 +58,88 @@ public struct ContentView: View {
 
     public var body: some View {
         VStack(spacing: 0) {
-            // Dynamic column layout
-            HStack(spacing: 1) {
-                ForEach(
-                    Array(windowState.layout.dynamicLayout.columns.enumerated()),
-                    id: \.offset
-                ) { index, _ in
-                    let col = windowState.layout.dynamicLayout.columns[index]
-                    let role = windowState.layout.dynamicLayout.role(
-                        of: col.id,
-                        activeColumnID: windowState.activeColumnID
-                    )
-                    // Manual bindings because $windowState is not available for @Environment
-                    let columnBinding = Binding<PanelColumn>(
-                        get: { windowState.layout.dynamicLayout.columns[index] },
-                        set: { windowState.layout.dynamicLayout.columns[index] = $0 }
-                    )
-                    let layoutBinding = Binding<DynamicPanelLayout>(
-                        get: { windowState.layout.dynamicLayout },
-                        set: { windowState.layout.dynamicLayout = $0 }
-                    )
-                    PanelColumnView(
-                        column: columnBinding,
-                        columnIndex: index,
-                        layout: layoutBinding,
-                        columnRole: role,
-                        isFocused: focusedPanel == .column(col.id)
-                    ) { panelID, documentID, columnRole in
-                        panelContentView(
-                            renderMode: panelID,
-                            documentID: documentID,
-                            columnRole: columnRole
-                        )
-                    }
-                    .focused($focusedPanel, equals: .column(col.id))
+            // Dynamic column layout — GeometryReader makes col.width authoritative
+            GeometryReader { geometry in
+                let columns = windowState.layout.dynamicLayout.columns
+                let columnCount = columns.count
+                let totalDividerWidth = CGFloat(max(0, columnCount - 1)) * dividerGapWidth
+                let availableForColumns = max(geometry.size.width - totalDividerWidth - 1, 1)
 
-                    if index < windowState.layout.dynamicLayout.columns.count - 1 {
-                        ZStack(alignment: .leading) {
-                            ResizeDivider()
-                            DropZoneView(
-                                insertionIndex: index + 1,
-                                layout: layoutBinding
+                // Compute widths: apply col.width proportion, floor at minColumnWidth,
+                // then rescale if the clamped sum overflows the available space.
+                let rawWidths: [CGFloat] = columns.map {
+                    max($0.width * availableForColumns, minColumnWidth)
+                }
+                let rawSum = rawWidths.reduce(0, +)
+                let columnWidths: [CGFloat] = {
+                    if rawSum <= availableForColumns { return rawWidths }
+                    // Rescale so the clamped widths fit exactly.
+                    let scale = availableForColumns / rawSum
+                    return rawWidths.map { $0 * scale }
+                }()
+
+                HStack(spacing: 1) {
+                    ForEach(
+                        Array(columns.enumerated()),
+                        id: \.offset
+                    ) { index, _ in
+                        let col = columns[index]
+                        let role = windowState.layout.dynamicLayout.role(
+                            of: col.id,
+                            activeColumnID: windowState.activeColumnID
+                        )
+                        // Manual bindings because $windowState is not available for @Environment
+                        let columnBinding = Binding<PanelColumn>(
+                            get: { windowState.layout.dynamicLayout.columns[index] },
+                            set: { windowState.layout.dynamicLayout.columns[index] = $0 }
+                        )
+                        let layoutBinding = Binding<DynamicPanelLayout>(
+                            get: { windowState.layout.dynamicLayout },
+                            set: { windowState.layout.dynamicLayout = $0 }
+                        )
+                        PanelColumnView(
+                            column: columnBinding,
+                            columnIndex: index,
+                            layout: layoutBinding,
+                            columnRole: role,
+                            isFocused: focusedPanel == .column(col.id),
+                            isDragSource: draggingColumnID == col.id,
+                            draggingColumnID: $draggingColumnID
+                        ) { panelID, documentID, columnRole in
+                            panelContentView(
+                                renderMode: panelID,
+                                documentID: documentID,
+                                columnRole: columnRole
                             )
                         }
-                        .frame(width: 8)
+                        .focused($focusedPanel, equals: .column(col.id))
+                        .frame(width: columnWidths[index])
+                        .onDrag {
+                            draggingColumnID = col.id
+                            let provider = NSItemProvider(object: col.id.uuidString as NSString)
+                            provider.suggestedName = col.renderMode.displayBadge ?? "panel"
+                            return provider
+                        }
+
+                        if index < columnCount - 1 {
+                            ZStack(alignment: .leading) {
+                                ResizeDivider(
+                                    leftColumnIndex: index,
+                                    layout: layoutBinding,
+                                    totalAvailableWidth: availableForColumns
+                                )
+                                DropZoneView(
+                                    insertionIndex: index + 1,
+                                    layout: layoutBinding,
+                                    draggingColumnID: $draggingColumnID
+                                )
+                            }
+                            .frame(width: dividerGapWidth)
+                        }
                     }
                 }
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
             }
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
             .overlay { helpPanelOverlay }
 
             Divider()

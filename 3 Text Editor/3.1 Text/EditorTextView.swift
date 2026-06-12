@@ -27,6 +27,10 @@ public final class EditorTextView: NSTextView {
     /// Wired by `EditorView`; used to map a click to an issue and its suggestions.
     weak var spellingChecker: SpellingGrammarChecker?
 
+    /// The HTML structural checker (3.4). Wired by `EditorView`; queried as a fallback when
+    /// the spelling checker has no annotation at the clicked location.
+    weak var htmlSyntaxChecker: HTMLSyntaxChecker?
+
     /// The editor view model — read for the active mode when routing "Look Up Help".
     /// Wired by `EditorView`.
     weak var editorViewModel: EditorViewModel?
@@ -86,7 +90,6 @@ public final class EditorTextView: NSTextView {
 
         guard event.clickCount == 1,
             selectedRange().length == 0,
-            let checker = spellingChecker,
             let layoutManager,
             let textContainer
         else { return }
@@ -98,7 +101,10 @@ public final class EditorTextView: NSTextView {
         let glyphIndex = layoutManager.glyphIndex(for: containerPoint, in: textContainer)
         let charIndex = layoutManager.characterIndexForGlyph(at: glyphIndex)
 
-        guard let annotation = checker.annotation(at: charIndex) else {
+        // Spelling/grammar takes priority; fall back to an HTML structural underline.
+        guard let annotation = spellingChecker?.annotation(at: charIndex)
+            ?? htmlSyntaxChecker?.annotation(at: charIndex)
+        else {
             quickfixPopover?.close()
             return
         }
@@ -121,10 +127,24 @@ public final class EditorTextView: NSTextView {
         rect.origin.x += textContainerOrigin.x
         rect.origin.y += textContainerOrigin.y
 
-        let label = annotation.kind == .spelling ? "Spelling" : "Grammar"
+        let label: String
+        let suggestions: [String]
+        switch annotation.kind {
+        case .spelling:
+            label = "Spelling"
+            suggestions = annotation.suggestions
+        case .grammar:
+            label = "Grammar"
+            suggestions = annotation.suggestions
+        case .htmlSyntax:
+            // The HTML checker carries a descriptive message, not a replacement string, so
+            // surface it in the header and offer only Dismiss (no auto-fix for structure).
+            label = "HTML — \(annotation.suggestions.first ?? "Structural issue")"
+            suggestions = []
+        }
         let view = QuickfixPopover(
             kindLabel: label,
-            suggestions: annotation.suggestions,
+            suggestions: suggestions,
             onFix: { [weak self] suggestion in self?.applyFix(annotation, suggestion: suggestion) },
             onDismiss: { [weak self] in self?.dismissAnnotation(annotation) }
         )
@@ -153,8 +173,13 @@ public final class EditorTextView: NSTextView {
     private func dismissAnnotation(_ annotation: GrammarAnnotation) {
         quickfixPopover?.close()
         // Ignore + re-check: clears this underline and surfaces any grammar issue the
-        // dismissed spelling word was suppressing.
-        spellingChecker?.dismiss(annotation)
+        // dismissed spelling word was suppressing. Route HTML issues to their own checker.
+        switch annotation.kind {
+        case .spelling, .grammar:
+            spellingChecker?.dismiss(annotation)
+        case .htmlSyntax:
+            htmlSyntaxChecker?.dismiss(annotation)
+        }
     }
 
     // MARK: - Current-line highlight

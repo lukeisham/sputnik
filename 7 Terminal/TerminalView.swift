@@ -108,8 +108,19 @@ public struct TerminalView: View {
     // MARK: - Sub-views
 
     /// Profile label chrome displayed above the tab strip.
+    /// Includes a badge pill ("TERM") consistent with column badge styling.
     private var profileChrome: some View {
         HStack {
+            // Badge pill consistent with column badges
+            Text("TERM")
+                .font(.system(size: 9, weight: .semibold))
+                .foregroundStyle(SputnikColor.accentPrimary)
+                .padding(.horizontal, 4)
+                .padding(.vertical, 1)
+                .background(SputnikColor.accentPrimary.opacity(0.15))
+                .clipShape(Capsule())
+                .accessibilityLabel("Panel type: Terminal")
+
             Text("Terminal")
                 .font(.system(size: 11, weight: .medium))
                 .foregroundStyle(.secondary)

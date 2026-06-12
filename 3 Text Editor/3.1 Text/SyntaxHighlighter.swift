@@ -12,6 +12,18 @@ public final class SyntaxHighlighter {
 
     private weak var textStorage: NSTextStorage?
 
+    // MARK: - Settings
+
+    /// When `false`, fenced code blocks render as plain monospace with no token colours.
+    /// Toggled from Settings ▸ Editor ▸ "Code block highlighting".
+    public var codeBlockHighlightEnabled: Bool = true
+
+    // MARK: - Cache
+
+    /// Cached HTML attributes keyed by the opening fence's character location.
+    /// Cleared on mode change; entries invalidated when `editedRange` overlaps the block.
+    private var codeBlockCache: [Int: [(NSRange, NSColor)]] = [:]
+
     public init(textStorage: NSTextStorage) {
         self.textStorage = textStorage
     }
@@ -86,43 +98,168 @@ public final class SyntaxHighlighter {
         }
     }
 
+    // MARK: - Markdown highlighting
+
     private func markdownAttributes(in text: String) -> [(NSRange, NSColor)] {
         var result: [(NSRange, NSColor)] = []
         let ns = text as NSString
 
-        let patterns: [(String, NSColor)] = [
-            (#"^#{1,6} .+"#, .systemBlue),  // Headings
-            (#"\*\*[^*]+\*\*"#, .systemPurple),  // Bold
-            (#"\*[^*]+\*"#, .systemPink),  // Italic
-            (#"`[^`]+`"#, .systemGreen),  // Inline code
-            (#"```[\s\S]*?```"#, .systemGreen),  // Fenced code
-            (#"\[[^\]]+\]\([^)]+\)"#, .systemOrange),  // Links
+        // Step 1: Find all fenced code blocks and collect their ranges for exclusion.
+        let codeBlocks = fencedCodeBlocks(in: text)
+        let codeBlockRanges = codeBlocks.map { $0.range }
+
+        // Step 2: Apply HTML highlighting inside ```html blocks.
+        if codeBlockHighlightEnabled {
+            for (blockRange, language) in codeBlocks where language == "html" {
+                let codeBody = ns.substring(with: blockRange)
+
+                // Check cache first.
+                let htmlAttrs: [(NSRange, NSColor)]
+                if let cached = codeBlockCache[blockRange.location] {
+                    htmlAttrs = cached
+                } else {
+                    htmlAttrs = htmlAttributes(in: codeBody)
+                    codeBlockCache[blockRange.location] = htmlAttrs
+                }
+
+                // Offset HTML attribute ranges from code-body-relative to document-relative.
+                for (range, color) in htmlAttrs {
+                    let docRange = NSRange(
+                        location: blockRange.location + range.location,
+                        length: range.length)
+                    result.append((docRange, color))
+                }
+            }
+        }
+
+        // Step 3: Apply outer-Markdown patterns only to ranges outside code blocks.
+        let outerPatterns: [(String, NSColor)] = [
+            ("^#{1,6} .+", .systemBlue),  // Headings
+            ("\\*\\*[^*]+\\*\\*", .systemPurple),  // Bold
+            ("\\*[^*]+\\*", .systemPink),  // Italic
+            ("`[^`]+`", .systemGreen),  // Inline code
+            ("\\[[^\\]]+\\]\\([^)]+\\)", .systemOrange),  // Links
         ]
 
-        for (pattern, color) in patterns {
+        for (pattern, color) in outerPatterns {
             guard
                 let regex = try? NSRegularExpression(
                     pattern: pattern,
                     options: .anchorsMatchLines
                 )
             else { continue }
-            let range = NSRange(location: 0, length: ns.length)
-            for match in regex.matches(in: text, range: range) {
+            let fullRange = NSRange(location: 0, length: ns.length)
+            for match in regex.matches(in: text, range: fullRange) {
+                // Skip matches that fall inside a code block.
+                let overlapsCode = codeBlockRanges.contains { cbRange in
+                    NSIntersectionRange(match.range, cbRange).length > 0
+                }
+                guard !overlapsCode else { continue }
                 result.append((match.range, color))
             }
         }
         return result
     }
 
+    // MARK: - Fenced code block parser
+
+    /// Scans Markdown text for fenced code blocks (``` or ~~~ delimiters).
+    /// Returns each block's content range (between the fences) and its optional language tag.
+    ///
+    /// Language tag is the word immediately following the opening fence, lowercased and trimmed.
+    /// `nil` when no tag is present. Tilde fences (`~~~`) are treated identically to backtick
+    /// fences. Unclosed fences (no matching closing delimiter) are silently skipped.
+    private func fencedCodeBlocks(in text: String) -> [(range: NSRange, language: String?)] {
+        var blocks: [(NSRange, String?)] = []
+        let lines = text.components(separatedBy: "\n")
+        var lineOffset = 0  // running UTF-16 start of the current line
+
+        // Regex to match an opening fence: ^(```|~~~)(\S*)\s*$
+        guard
+            let openRegex = try? NSRegularExpression(
+                pattern: "^(```|~~~)(\\S*)\\s*$", options: []
+            )
+        else { return blocks }
+
+        var i = 0
+        while i < lines.count {
+            let line = lines[i]
+            let lineNS = line as NSString
+
+            guard
+                let match = openRegex.firstMatch(
+                    in: line, range: NSRange(location: 0, length: lineNS.length))
+            else {
+                lineOffset += lineNS.length + 1  // +1 for newline
+                i += 1
+                continue
+            }
+
+            let fenceChar = lineNS.substring(with: match.range(at: 1))  // ``` or ~~~
+            let langRaw = lineNS.substring(with: match.range(at: 2))
+            let language: String? =
+                langRaw.isEmpty ? nil : langRaw.lowercased().trimmingCharacters(in: .whitespaces)
+
+            // Content starts on the next line (after the opening fence + newline).
+            let contentStart = lineOffset + lineNS.length + 1
+            i += 1
+            lineOffset += lineNS.length + 1
+
+            // Search for the matching closing fence.
+            let closingPattern: String
+            if fenceChar.hasPrefix("`") {
+                closingPattern = "^```\\s*$"
+            } else {
+                closingPattern = "^~~~\\s*$"
+            }
+
+            guard let closeRegex = try? NSRegularExpression(pattern: closingPattern, options: [])
+            else { continue }
+
+            var foundClose = false
+            while i < lines.count {
+                let closeLine = lines[i]
+                let closeNS = closeLine as NSString
+                if closeRegex.firstMatch(
+                    in: closeLine, range: NSRange(location: 0, length: closeNS.length)) != nil
+                {
+                    let contentEnd = lineOffset  // start of closing line
+                    let contentLength = contentEnd - contentStart
+                    if contentLength > 0 {
+                        let contentRange = NSRange(location: contentStart, length: contentLength)
+                        blocks.append((contentRange, language))
+                    } else {
+                        let contentRange = NSRange(location: contentStart, length: 0)
+                        blocks.append((contentRange, language))
+                    }
+                    lineOffset += closeNS.length + 1
+                    i += 1
+                    foundClose = true
+                    break
+                }
+                lineOffset += closeNS.length + 1
+                i += 1
+            }
+
+            if !foundClose {
+                break
+            }
+        }
+
+        return blocks
+    }
+
+    // MARK: - HTML highlighting
+
     private func htmlAttributes(in text: String) -> [(NSRange, NSColor)] {
         var result: [(NSRange, NSColor)] = []
         let ns = text as NSString
 
         let patterns: [(String, NSColor, NSRegularExpression.Options)] = [
-            (#"<!DOCTYPE[^>]*>"#, .systemPurple, [.caseInsensitive]),
-            (#"<!--[\s\S]*?-->"#, .systemGray, [.dotMatchesLineSeparators]),
-            (#"</?[a-zA-Z][^>]*>"#, .systemBlue, []),
-            (#"[a-zA-Z-]+=\"[^\"]*\""#, .systemOrange, []),
+            ("<!DOCTYPE[^>]*>", .systemPurple, [.caseInsensitive]),
+            ("<!--[\\s\\S]*?-->", .systemGray, [.dotMatchesLineSeparators]),
+            ("</?[a-zA-Z][^>]*>", .systemBlue, []),
+            ("[a-zA-Z-]+=\"[^\"]*\"", .systemOrange, []),
         ]
 
         for (pattern, color, opts) in patterns {

@@ -13,6 +13,12 @@
 
 CODE_SIGN_ENTITLEMENTS = App-Sputnik/Sputnik.entitlements
 CODE_SIGN_STYLE = Automatic
+
+// Hardened Runtime is required for notarization (Developer ID distribution).
+// It is NOT the App Sandbox — it does not restrict filesystem access, so the
+// embedded terminal keeps full system reach. No cs.* exception entitlements
+// are needed: Sputnik only spawns Apple-signed /bin/zsh and uses no JIT.
+ENABLE_HARDENED_RUNTIME = YES
 MACOSX_DEPLOYMENT_TARGET = 14.0
 PRODUCT_BUNDLE_IDENTIFIER = com.lukeisham.sputnik
 INFOPLIST_FILE = App-Sputnik/Info.plist

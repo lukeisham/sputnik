@@ -2,8 +2,19 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN"
   "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
+<!--
+  Sputnik is intentionally NOT sandboxed: the embedded Zsh terminal needs
+  full filesystem reach (any folder the user navigates to), bounded only by
+  normal Unix permissions and macOS TCC prompts. Adding
+  com.apple.security.app-sandbox would jail every child process and break that.
+
+  Because there is no sandbox, the sandbox-only file-access entitlement
+  (com.apple.security.files.user-selected.read-write) was inert and misleading,
+  so it has been removed. com.apple.security.network.client is likewise a
+  sandbox-only key; it is kept only as a declaration of intent and has no
+  effect while unsandboxed.
+-->
 <dict>
-    <key>com.apple.security.files.user-selected.read-write</key><true/>
     <key>com.apple.security.network.client</key><true/>
 </dict>
 </plist>

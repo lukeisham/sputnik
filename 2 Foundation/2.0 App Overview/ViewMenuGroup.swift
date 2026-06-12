@@ -20,12 +20,12 @@ struct ViewMenuGroup: Commands {
             }
             .keyboardShortcut("1", modifiers: [.option, .command])
 
-            Button("Toggle Preview") {
+            Button("Toggle Markdown Preview") {
                 appState.toggleColumn(renderMode: .markdownPreview)
             }
             .keyboardShortcut("2", modifiers: [.option, .command])
 
-            Button("Toggle Right Panel") {
+            Button("Toggle HTML Preview") {
                 appState.toggleColumn(renderMode: .htmlPreview)
             }
             .keyboardShortcut("3", modifiers: [.option, .command])

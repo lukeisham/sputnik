@@ -8,6 +8,9 @@ import SwiftUI
 ///
 /// **State:** `scratchpadDockedWidth` is persisted via `UserDefaults` (set in
 /// `WindowState`); `scratchpadText` is already persisted.
+///
+/// **Identity:** Shows a badge pill ("SCRATCH") consistent with the column badge style,
+/// plus the full "Scratchpad" label.
 struct DockedScratchpadPanel: View {
 
     @Binding var text: String
@@ -46,6 +49,16 @@ struct DockedScratchpadPanel: View {
 
     private var titleBar: some View {
         HStack {
+            // Badge pill consistent with column badges
+            Text("SCRATCH")
+                .font(.system(size: 9, weight: .semibold))
+                .foregroundStyle(SputnikColor.accentPrimary)
+                .padding(.horizontal, 4)
+                .padding(.vertical, 1)
+                .background(SputnikColor.accentPrimary.opacity(0.15))
+                .clipShape(Capsule())
+                .accessibilityLabel("Panel type: Scratchpad")
+
             Text("Scratchpad")
                 .font(.system(size: SputnikFont.caption, weight: .semibold))
                 .foregroundStyle(SputnikColor.primaryText)

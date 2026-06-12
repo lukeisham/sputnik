@@ -23,9 +23,17 @@ public struct HTMLPreviewPanel: View {
 
     @State private var isFitWidth: Bool = true
     @State private var isLinkNavigationEnabled: Bool = true
+    @State private var syncScrollEnabled: Bool = false
     @State private var loadError: String? = nil
     @State private var printAction: (() -> Void)? = nil
+    @State private var saveAsHTMLAction: (() -> Void)? = nil
     @State private var saveAsPDFAction: (() -> Void)? = nil
+
+    /// `true` when the active HTML document exceeds the large-file threshold (Step 10).
+    /// Disables scroll sync to prevent layout thrash on very large files.
+    private var isLargeFile: Bool {
+        (appState.activeDocument?.text.utf16.count ?? 0) >= 80_000
+    }
 
     // MARK: - Dependencies
 
@@ -100,8 +108,11 @@ public struct HTMLPreviewPanel: View {
 
             Spacer()
 
-            // Overflow menu: Save as PDF…, Print…, Reveal in Finder, Reload Preview.
+            // Overflow menu: Save as HTML…, Save as PDF…, Print…, Reveal in Finder, Reload Preview.
             Menu {
+                Button("Save as HTML…") { saveAsHTMLAction?() }
+                    .disabled(saveAsHTMLAction == nil)
+
                 Button("Save as PDF…") { saveAsPDFAction?() }
                     .disabled(saveAsPDFAction == nil)
 
@@ -162,6 +173,30 @@ public struct HTMLPreviewPanel: View {
             .foregroundStyle(
                 isLinkNavigationEnabled ? SputnikColor.accent : SputnikColor.tertiaryText)
 
+            // Scroll sync toggle (ISS-063, Steps 3 & 5).
+            Button {
+                syncScrollEnabled.toggle()
+            } label: {
+                Image(systemName: "arrow.up.and.down.text.horizontal")
+                    .font(.system(size: SputnikFont.caption))
+            }
+            .help(syncScrollEnabled ? "Scroll Sync On" : "Scroll Sync Off")
+            .buttonStyle(.borderless)
+            .foregroundStyle(
+                syncScrollEnabled && !isLargeFile
+                    ? SputnikColor.accent : SputnikColor.secondaryText
+            )
+            .disabled(isLargeFile)
+            .accessibilityLabel("Scroll sync")
+            .accessibilityValue(syncScrollEnabled ? "On" : "Off")
+
+            // Large-file degraded-mode indicator (Step 10).
+            if isLargeFile {
+                Text("Large file — sync limited")
+                    .font(.system(size: SputnikFont.caption))
+                    .foregroundStyle(SputnikColor.tertiaryText)
+            }
+
             Spacer()
         }
         .padding(.horizontal, SputnikSpacing.md)
@@ -184,11 +219,13 @@ public struct HTMLPreviewPanel: View {
                 HTMLPreviewView(
                     router: router,
                     isLinkNavigationEnabled: isLinkNavigationEnabled,
+                    syncScrollEnabled: syncScrollEnabled && !isLargeFile,
                     onLoadError: { message in loadError = message },
                     helpContextResolver: helpContextResolver,
                     settings: settings,
                     printAction: $printAction,
-                    saveAsPDFAction: $saveAsPDFAction
+                    saveAsPDFAction: $saveAsPDFAction,
+                    saveAsHTMLAction: $saveAsHTMLAction
                 )
                 // Fit Width: centre the preview with a max width of 960 pt.
                 // When disabled, the web view fills the entire panel width.

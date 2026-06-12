@@ -7,10 +7,14 @@ import UniformTypeIdentifiers
 /// Decodes the source column UUID from the item provider, validates the File Tree
 /// edge constraint, and calls `layout.moveColumn(id:to:)` to reposition the dragged
 /// column so it becomes a tab in the target column.
+///
+/// Clears `draggingColumnID` on successful drop so the drag-source column stops dimming.
 struct ColumnDropDelegate: DropDelegate {
 
     @Binding var layout: DynamicPanelLayout
     let columnIndex: Int
+    /// Cleared on successful drop to end the drag-source dim effect.
+    @Binding var draggingColumnID: UUID?
 
     func validateDrop(info: DropInfo) -> Bool {
         guard !info.itemProviders(for: [UTType.plainText]).isEmpty else { return false }
@@ -32,6 +36,8 @@ struct ColumnDropDelegate: DropDelegate {
             Task { @MainActor in
                 // Move the dragged column to the target position
                 layout.moveColumn(id: sourceUUID, to: columnIndex)
+                // Clear drag feedback state
+                draggingColumnID = nil
                 // Subtle haptic feedback to confirm the snap
                 NSHapticFeedbackManager.defaultPerformer.perform(
                     .alignment, performanceTime: .default)

@@ -120,6 +120,12 @@ struct SettingsLoader {
         if let saved: Bool = persistence.loadSetting(forKey: DefaultsKey.currentLineHighlight) {
             store.currentLineHighlightEnabled = saved
         }
+        if let saved: Bool = persistence.loadSetting(forKey: DefaultsKey.codeBlockHighlight) {
+            store.codeBlockHighlightEnabled = saved
+        }
+        if let saved: Bool = persistence.loadSetting(forKey: DefaultsKey.htmlSyntaxCheck) {
+            store.htmlSyntaxCheckEnabled = saved
+        }
         // Per-panel fonts
         if let saved: EditorFont = persistence.loadSetting(forKey: DefaultsKey.textEditorFont) {
             store.textEditorFont = saved
@@ -178,5 +184,7 @@ private enum DefaultsKey {
     static let asciiTriggerKey = "sputnik.settings.asciiTriggerKey"
     static let spellCheckLocale = "sputnik.settings.spellCheckLocale"
     static let currentLineHighlight = "sputnik.settings.currentLineHighlight"
+    static let codeBlockHighlight = "sputnik.settings.codeBlockHighlight"
+    static let htmlSyntaxCheck = "sputnik.settings.htmlSyntaxCheck"
     static let supportingAIConfig = "sputnik.settings.supportingAIConfig"
 }

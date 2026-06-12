@@ -117,7 +117,11 @@ public final class ASCIIImageEditor: ObservableObject {
     ///   - replacements: Array of (index, character) pairs.
     public func batchReplace(_ replacements: [(Int, Character)]) {
         guard !replacements.isEmpty else { return }
-        let snapshot = replacements.map { ($0.0, grid[$0.0]) }
+        let snapshot: [(Int, Character)] = replacements.compactMap { (index, _) in
+            guard index >= 0, index < grid.count else { return nil }
+            return (index, grid[index])
+        }
+        guard !snapshot.isEmpty else { return }
 
         // Register undo.
         undoManager.registerUndo(withTarget: self) { editor in

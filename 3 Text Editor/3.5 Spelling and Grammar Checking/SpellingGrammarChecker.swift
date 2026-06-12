@@ -93,6 +93,7 @@ public final class SpellingGrammarChecker {
         switch annotation.kind {
         case .spelling:
             NSSpellChecker.shared.ignoreWord(phrase, inSpellDocumentWithTag: spellDocumentTag)
+        case .htmlSyntax: break
         case .grammar:
             ignoredGrammarPhrases.insert(phrase)
         }

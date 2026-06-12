@@ -58,6 +58,10 @@ public final class MockInterPanelRouter: InterPanelRouter {
     public func focusTerminal() {
         focusTerminalCalls += 1
     }
+
+    public func revealSourceLine(_ line: Int) {
+        // No-op stub for testing
+    }
 }
 
 // MARK: - Mock AppState

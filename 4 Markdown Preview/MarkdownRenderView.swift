@@ -42,6 +42,16 @@ public struct MarkdownRenderView: NSViewRepresentable {
     /// parent panel can trigger a PDF export of the Markdown content via `NSPrintOperation`.
     @Binding var saveAsPDFAction: (() -> Void)?
 
+    /// Binding to a save-as-Markdown closure. The view sets this in `updateNSView` so the
+    /// parent panel can export the active document's raw Markdown source to a `.md` file.
+    @Binding var saveAsMarkdownAction: (() -> Void)?
+
+    /// The fractional scroll position to apply for editor→preview sync (ISS-063, Step 5).
+    /// `nil` when sync is disabled or the document exceeds the large-file threshold (Step 10).
+    /// Range 0.0 (top) … 1.0 (bottom). Applied in `updateNSView` only when the fraction
+    /// changes by more than 0.005 from the last applied value, to suppress feedback loops.
+    let syncScrollFraction: Double?
+
     // MARK: - Init
 
     /// Creates the render view.
@@ -52,23 +62,29 @@ public struct MarkdownRenderView: NSViewRepresentable {
     ///   - coordinator:    The link-click coordinator.
     ///   - settings:       The app settings store (for per-panel font/background).
     ///   - scrollOffset:   Binding for per-document scroll offset.
-    ///   - printAction:    Binding set by the view with the print closure.
+    ///   - printAction:          Binding set by the view with the print closure.
+    ///   - saveAsPDFAction:       Binding set by the view with the save-as-PDF closure.
+    ///   - saveAsMarkdownAction:  Binding set by the view with the save-as-Markdown closure.
     public init(
         renderedString: NSAttributedString,
         fontScale: CGFloat,
         coordinator: MarkdownPreviewCoordinator,
         settings: SettingsStore,
         scrollOffset: Binding<CGFloat> = .constant(0),
+        syncScrollFraction: Double? = nil,
         printAction: Binding<(() -> Void)?> = .constant(nil),
-        saveAsPDFAction: Binding<(() -> Void)?> = .constant(nil)
+        saveAsPDFAction: Binding<(() -> Void)?> = .constant(nil),
+        saveAsMarkdownAction: Binding<(() -> Void)?> = .constant(nil)
     ) {
         self.renderedString = renderedString
         self.fontScale = fontScale
         self.coordinator = coordinator
         self.settings = settings
         self.scrollOffset = scrollOffset
+        self.syncScrollFraction = syncScrollFraction
         _printAction = printAction
         _saveAsPDFAction = saveAsPDFAction
+        _saveAsMarkdownAction = saveAsMarkdownAction
     }
 
     // MARK: - NSViewRepresentable
@@ -107,6 +123,16 @@ public struct MarkdownRenderView: NSViewRepresentable {
         // Wire the delegate for link-click handling.
         textView.delegate = context.coordinator
 
+        // ⌘-click gesture recognizer for bidirectional source navigation (ISS-065, Step 9).
+        // The recognizer fires for all clicks; the handler checks for the ⌘ modifier key
+        // and yields to the NSTextViewDelegate when the click lands on a link.
+        let clickRecognizer = NSClickGestureRecognizer(
+            target: context.coordinator,
+            action: #selector(MarkdownPreviewCoordinator.handleCommandClick(_:))
+        )
+        clickRecognizer.numberOfClicksRequired = 1
+        textView.addGestureRecognizer(clickRecognizer)
+
         return textView
     }
 
@@ -117,6 +143,25 @@ public struct MarkdownRenderView: NSViewRepresentable {
         // Keep the coordinator's binding pointing at the current document's slot so
         // the scroll observer always writes to the right entry in the panel's dict.
         context.coordinator.scrollOffsetBinding = scrollOffset
+
+        // Apply editor→preview scroll sync (ISS-063, Step 5).
+        // Only fires when sync is enabled (fraction is non-nil) and has moved enough
+        // to be worth applying. Runs at +0.02 s, before the render's scroll-restore
+        // at +0.05 s, so a re-render always wins (restores the user's saved position).
+        if let fraction = syncScrollFraction,
+            abs(fraction - context.coordinator.lastSyncScrollFraction) > 0.005
+        {
+            context.coordinator.lastSyncScrollFraction = fraction
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.02) { [weak textView] in
+                guard let scrollView = textView?.enclosingScrollView else { return }
+                let docH = scrollView.documentView?.frame.height ?? 0
+                let viewH = scrollView.contentView.bounds.height
+                guard docH > viewH else { return }
+                let targetY = CGFloat(fraction) * (docH - viewH)
+                scrollView.contentView.scroll(to: NSPoint(x: 0, y: targetY))
+                scrollView.reflectScrolledClipView(scrollView.contentView)
+            }
+        }
 
         // Set up (or re-set up) the scroll observer against the current clip view.
         // Re-registration is needed when fitWidth toggles rebuild the view tree and
@@ -135,10 +180,12 @@ public struct MarkdownRenderView: NSViewRepresentable {
                 object: clipView,
                 queue: .main
             ) { [weak weakCoordinator, weak textView] _ in
-                guard let y = textView?.enclosingScrollView?.documentVisibleRect.origin.y else {
-                    return
+                MainActor.assumeIsolated {
+                    guard let y = textView?.enclosingScrollView?.documentVisibleRect.origin.y else {
+                        return
+                    }
+                    weakCoordinator?.scrollOffsetBinding?.wrappedValue = y
                 }
-                weakCoordinator?.scrollOffsetBinding?.wrappedValue = y
             }
         }
 
@@ -147,6 +194,36 @@ public struct MarkdownRenderView: NSViewRepresentable {
             guard let textView, let window = textView.window else { return }
             let printOp = NSPrintOperation(view: textView, printInfo: .shared)
             printOp.runModal(for: window, delegate: nil, didRun: nil, contextInfo: nil)
+        }
+
+        // Wire the save-as-Markdown action. Capture source text and document name
+        // from the coordinator (set by the panel before each render) so the closure
+        // is safe to call later without racing on the active document.
+        let capturedSource = coordinator.currentSourceText
+        let capturedName = coordinator.currentDocumentName
+        saveAsMarkdownAction = { [weak textView] in
+            guard let textView, let window = textView.window else { return }
+            let panel = NSSavePanel()
+            panel.allowedContentTypes = [.text]  // .md has no UTType constant; .text opens the name field freely
+            let baseName = (capturedName as NSString).deletingPathExtension
+            panel.nameFieldStringValue = baseName.isEmpty ? "document.md" : baseName + ".md"
+            panel.beginSheetModal(for: window) { response in
+                guard response == .OK, let url = panel.url else { return }
+                Task(priority: .userInitiated) {
+                    do {
+                        try capturedSource.write(
+                            to: url, atomically: true, encoding: .utf8)
+                    } catch {
+                        await MainActor.run {
+                            let alert = NSAlert()
+                            alert.messageText = "Save as Markdown Failed"
+                            alert.informativeText = error.localizedDescription
+                            alert.alertStyle = .warning
+                            alert.runModal()
+                        }
+                    }
+                }
+            }
         }
 
         // Wire the save-as-PDF action.

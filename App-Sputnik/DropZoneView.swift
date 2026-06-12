@@ -4,18 +4,21 @@ import UniformTypeIdentifiers
 
 /// An 8 pt wide invisible drop zone between two panel columns.
 ///
-/// On hover it highlights with a blue tint. On drop it creates a new column
-/// with the dragged column's render mode at the insertion index.
+/// On hover (drag-enter) it highlights with an accent tint. On drop it creates a new
+/// column with the dragged column's render mode at the insertion index, then clears
+/// the drag-source dim via `draggingColumnID`.
 struct DropZoneView: View {
 
     let insertionIndex: Int
     @Binding var layout: DynamicPanelLayout
+    /// Cleared on successful drop to end the drag-source dim effect.
+    @Binding var draggingColumnID: UUID?
 
     @State private var isHovering = false
 
     var body: some View {
         Rectangle()
-            .fill(isHovering ? SputnikColor.accentPrimary.opacity(0.25) : Color.clear)
+            .fill(isHovering ? SputnikColor.accentPrimary.opacity(0.30) : Color.clear)
             .frame(width: 8)
             .frame(maxHeight: .infinity)
             .contentShape(Rectangle())
@@ -24,7 +27,8 @@ struct DropZoneView: View {
                 delegate: DropZoneDropDelegate(
                     insertionIndex: insertionIndex,
                     layout: $layout,
-                    isHovering: $isHovering
+                    isHovering: $isHovering,
+                    draggingColumnID: $draggingColumnID
                 )
             )
     }
@@ -38,6 +42,8 @@ private struct DropZoneDropDelegate: DropDelegate {
     let insertionIndex: Int
     @Binding var layout: DynamicPanelLayout
     @Binding var isHovering: Bool
+    /// Cleared on successful drop to end the drag-source dim effect.
+    @Binding var draggingColumnID: UUID?
 
     func dropEntered(info: DropInfo) {
         isHovering = true
@@ -79,6 +85,8 @@ private struct DropZoneDropDelegate: DropDelegate {
                     if sourceIndex < insertionIndex { adjustedIndex -= 1 }
                     layout.moveColumn(id: sourceUUID, to: adjustedIndex)
                 }
+                // Clear drag feedback state
+                draggingColumnID = nil
             }
         }
         return true

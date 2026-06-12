@@ -151,6 +151,14 @@ public final class SettingsStore {
     /// Whether the current line is subtly highlighted in the text editor. Default: `true`.
     public var currentLineHighlightEnabled: Bool = true
 
+    /// Whether fenced code blocks in Markdown receive language-specific token colours.
+    /// When `false`, all code blocks render as plain monospace. Default: `true`.
+    public var codeBlockHighlightEnabled: Bool = true
+
+    /// Whether lightweight HTML structural checking underlines unclosed/mismatched tags,
+    /// unquoted attribute values, and duplicate ids in `.html` documents. Default: `true`.
+    public var htmlSyntaxCheckEnabled: Bool = true
+
     // MARK: - Persistence keys
 
     private enum DefaultsKey {
@@ -188,6 +196,8 @@ public final class SettingsStore {
         static let spellCheckLocale = "sputnik.settings.spellCheckLocale"
         // Editor appearance
         static let currentLineHighlight = "sputnik.settings.currentLineHighlight"
+        static let codeBlockHighlight = "sputnik.settings.codeBlockHighlight"
+        static let htmlSyntaxCheck = "sputnik.settings.htmlSyntaxCheck"
         // AI
         static let supportingAIConfig = "sputnik.settings.supportingAIConfig"
     }
@@ -260,6 +270,18 @@ public final class SettingsStore {
     public func setCurrentLineHighlightEnabled(_ value: Bool) {
         currentLineHighlightEnabled = value
         persistence.saveSetting(value, forKey: DefaultsKey.currentLineHighlight)
+    }
+
+    /// Enables or disables code-block syntax highlighting and persists the setting.
+    public func setCodeBlockHighlightEnabled(_ value: Bool) {
+        codeBlockHighlightEnabled = value
+        persistence.saveSetting(value, forKey: DefaultsKey.codeBlockHighlight)
+    }
+
+    /// Enables or disables lightweight HTML structural checking and persists the setting.
+    public func setHtmlSyntaxCheckEnabled(_ value: Bool) {
+        htmlSyntaxCheckEnabled = value
+        persistence.saveSetting(value, forKey: DefaultsKey.htmlSyntaxCheck)
     }
 
     // MARK: - Terminal mutators

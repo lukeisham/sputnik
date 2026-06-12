@@ -12,6 +12,10 @@ import UniformTypeIdentifiers
 ///
 /// **Focus:** The `isFocused` flag drives a visible focus ring overlay. It is set
 /// by `ContentView` based on `@FocusState`, which is synced to `PanelFocusCoordinator`.
+///
+/// **Drag feedback:** When `isDragSource` is `true`, the column dims to ~0.4 opacity,
+/// matching the pattern used for tab reordering (ISS-019). The `draggingColumnID`
+/// binding is passed through to `ColumnDropDelegate` so it can clear drag state on drop.
 struct PanelColumnView<Content: View>: View {
 
     @Binding var column: PanelColumn
@@ -19,7 +23,12 @@ struct PanelColumnView<Content: View>: View {
     @Binding var layout: DynamicPanelLayout
     let columnRole: DynamicPanelLayout.ColumnRole
     let isFocused: Bool
+    /// When `true`, this column is the source of an active drag — dims to ~0.4 opacity.
+    let isDragSource: Bool
     let content: (PanelID, UUID?, DynamicPanelLayout.ColumnRole) -> Content
+
+    /// Cleared on successful drop to end the drag-source dim effect.
+    @Binding var draggingColumnID: UUID?
 
     @Environment(WindowState.self) private var windowState
     @Environment(AppState.self) private var appState
@@ -30,6 +39,8 @@ struct PanelColumnView<Content: View>: View {
         layout: Binding<DynamicPanelLayout>,
         columnRole: DynamicPanelLayout.ColumnRole,
         isFocused: Bool = false,
+        isDragSource: Bool = false,
+        draggingColumnID: Binding<UUID?>,
         @ViewBuilder content: @escaping (PanelID, UUID?, DynamicPanelLayout.ColumnRole) -> Content
     ) {
         self._column = column
@@ -37,6 +48,8 @@ struct PanelColumnView<Content: View>: View {
         self._layout = layout
         self.columnRole = columnRole
         self.isFocused = isFocused
+        self.isDragSource = isDragSource
+        self._draggingColumnID = draggingColumnID
         self.content = content
     }
 
@@ -62,6 +75,8 @@ struct PanelColumnView<Content: View>: View {
         .background(SputnikColor.background)
         .overlay(alignment: .top) { roleBorder }
         .overlay { focusIndicator }
+        // Dim when this column is the drag source (mirrors tab-reorder pattern).
+        .opacity(isDragSource ? 0.4 : 1.0)
         .contentShape(Rectangle())
         .onTapGesture {
             layout.revertToggleIfNeeded(forColumnID: column.id)
@@ -69,13 +84,11 @@ struct PanelColumnView<Content: View>: View {
         }
         .onDrop(
             of: [UTType.plainText],
-            delegate: ColumnDropDelegate(layout: $layout, columnIndex: columnIndex)
+            delegate: ColumnDropDelegate(
+                layout: $layout, columnIndex: columnIndex,
+                draggingColumnID: $draggingColumnID
+            )
         )
-        .onDrag {
-            let provider = NSItemProvider(object: column.id.uuidString as NSString)
-            provider.suggestedName = column.renderMode.displayBadge ?? "panel"
-            return provider
-        }
     }
 
     // MARK: - Title bar
@@ -83,10 +96,8 @@ struct PanelColumnView<Content: View>: View {
     @ViewBuilder
     private var titleBar: some View {
         HStack(spacing: 4) {
-            // Left: badge pill (omit for .textEditor)
-            if column.renderMode != .textEditor {
-                badgePill
-            }
+            // Left: badge pill — shown for all panel types including Editor.
+            badgePill
 
             // Render-mode toggle pills (view-only text-sourced columns only)
             if columnRole == .viewOnly, isTextSourced {
@@ -112,8 +123,8 @@ struct PanelColumnView<Content: View>: View {
             }
             .buttonStyle(.plain)
             .foregroundStyle(SputnikColor.secondaryText)
-            .help("Close column")
-            .accessibilityLabel("Close column")
+            .help("Close \(columnAccessibilityName) column")
+            .accessibilityLabel("Close \(columnAccessibilityName) column")
             .accessibilityHint("Removes this \(columnAccessibilityName) column")
         }
         .padding(.horizontal, SputnikSpacing.sm)
@@ -133,12 +144,13 @@ struct PanelColumnView<Content: View>: View {
                     .padding(.vertical, 1)
                     .background(SputnikColor.accentPrimary.opacity(0.15))
                     .clipShape(Capsule())
-                    .accessibilityLabel("Panel type: \(badge)")
+                    .accessibilityLabel("Panel type: \(column.renderMode.displayName)")
             }
         }
     }
 
-    /// The badge label, overriding `.pdfViewer` with `"PNG"` when the active document is an image.
+    /// The badge label, overriding `.pdfViewer` with `"PNG"` when the active document
+    /// is an image, and using `displayBadge` for all other modes.
     private var resolvedBadge: String? {
         if column.renderMode == .pdfViewer {
             if let docID = column.activeDocumentID,
@@ -152,8 +164,9 @@ struct PanelColumnView<Content: View>: View {
     }
 
     /// A human-readable name for this column's panel type, for VoiceOver hints.
+    /// Uses `PanelID.displayName` as the single source of truth.
     private var columnAccessibilityName: String {
-        resolvedBadge ?? column.renderMode.displayBadge ?? column.renderMode.rawValue
+        column.renderMode.displayName
     }
 
     /// Whether this column is text-sourced (currently or originally a .textEditor).
@@ -277,8 +290,6 @@ struct PanelColumnView<Content: View>: View {
         }
         return "?"
     }
-
-    // MARK: - Column role border
 
     // MARK: - Focus indicator
 

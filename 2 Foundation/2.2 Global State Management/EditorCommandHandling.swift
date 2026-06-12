@@ -5,6 +5,7 @@ import Foundation
 /// SR-1: Foundation calls methods on this protocol (registered in AppState) without
 /// importing module 3. The editor registers itself at launch, keeping Foundation
 /// an interface layer that does not know about TextEditorModule.
+@MainActor
 public protocol EditorCommandHandling: AnyObject {
     /// Saves the current buffer to the open file.
     func save() async throws
@@ -39,7 +40,6 @@ public protocol EditorCommandHandling: AnyObject {
     /// Scrolls the editor to make the given source line (0-based) visible and places
     /// the caret at that line. No-op when the text view is unavailable or `line` is
     /// out of range. Used by preview panels for ⌘-click-to-source navigation (ISS-065).
-    @MainActor
     func revealLine(_ line: Int)
 
     /// Flushes the editor's current caret position and scroll offset into the
@@ -50,6 +50,5 @@ public protocol EditorCommandHandling: AnyObject {
     /// are collected, so per-document view state is persisted across relaunch.
     /// Implementations read from `NSTextView.selectedRange` and
     /// `enclosingScrollView?.contentView.bounds.origin`.
-    @MainActor
     func flushViewState(to windowState: WindowState?)
 }

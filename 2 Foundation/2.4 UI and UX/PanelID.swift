@@ -21,16 +21,33 @@ public enum PanelID: String, Codable, Sendable, CaseIterable, Hashable {
     case grammarHelp
 
     /// Short label for badge display in column tabs.
-    /// Returns `nil` for panels that should not show a badge (file tree, help panels).
+    /// Returns `nil` for panels that should not show a badge (help panels only).
     public var displayBadge: String? {
         switch self {
-        case .textEditor: return "TXT"
+        case .textEditor: return "EDITOR"
         case .markdownPreview: return "MD"
         case .htmlPreview: return "HTML"
         case .pdfViewer: return "PDF"
         case .asciiStudio: return "ASCII"
-        case .fileTree: return nil
+        case .fileTree: return "FILES"
         case .asciiArtHelp, .markdownHelp, .htmlHelp, .grammarHelp: return nil
+        }
+    }
+
+    /// Human-readable display name used in menus, accessibility labels, and tooltips.
+    /// This is the single source of truth for panel identity across the app.
+    public var displayName: String {
+        switch self {
+        case .fileTree: return "File Tree"
+        case .textEditor: return "Editor"
+        case .markdownPreview: return "Markdown Preview"
+        case .htmlPreview: return "HTML Preview"
+        case .pdfViewer: return "Viewer"
+        case .asciiStudio: return "ASCII Studio"
+        case .asciiArtHelp: return "ASCII Art Help"
+        case .markdownHelp: return "Markdown Help"
+        case .htmlHelp: return "HTML Help"
+        case .grammarHelp: return "Grammar Help"
         }
     }
 }

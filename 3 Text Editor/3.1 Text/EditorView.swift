@@ -74,6 +74,16 @@ public struct EditorView: NSViewRepresentable {
         textView.editorViewModel = viewModel
         textView.settings = settings
 
+        // HTML structural checker: same lifetime/ownership model as the spelling checker
+        // (coordinator holds it strongly, the text view weakly). Reads the spelling checker's
+        // annotations so HTML underlines defer to overlapping spelling underlines.
+        let htmlSyntaxChecker = HTMLSyntaxChecker(
+            textView: textView,
+            viewModel: viewModel,
+            settings: settings,
+            spellingChecker: checker)
+        textView.htmlSyntaxChecker = htmlSyntaxChecker
+
         // Route "Look Up Help" through the Foundation help target (SR-1). Capture weakly
         // so the long-lived text view never retains AppState (SW-2).
         textView.onRequestHelp = { [weak appState] request in
@@ -106,6 +116,7 @@ public struct EditorView: NSViewRepresentable {
         context.coordinator.ghostOverlay = overlay
         context.coordinator.search = search
         context.coordinator.checker = checker
+        context.coordinator.htmlSyntaxChecker = htmlSyntaxChecker
         context.coordinator.markdownProvider = markdownProvider
         context.coordinator.htmlProvider = htmlProvider
         context.coordinator.asciiProvider = asciiProvider
@@ -117,7 +128,9 @@ public struct EditorView: NSViewRepresentable {
 
         // Set up syntax highlighting and debounce timer.
         if let storage = textView.textStorage {
-            context.coordinator.syntaxHighlighter = SyntaxHighlighter(textStorage: storage)
+            let highlighter = SyntaxHighlighter(textStorage: storage)
+            highlighter.codeBlockHighlightEnabled = settings.codeBlockHighlightEnabled
+            context.coordinator.syntaxHighlighter = highlighter
             context.coordinator.highlightDebounceTimer = DebounceTimer()
         }
 
@@ -137,8 +150,8 @@ public struct EditorView: NSViewRepresentable {
             queue: .main
         ) { [weak weakCoordinator, weak scrollView, weak weakAppState] _ in
             guard let scrollView,
-                  let docView = scrollView.documentView,
-                  let coord = weakCoordinator
+                let docView = scrollView.documentView,
+                let coord = weakCoordinator
             else { return }
             let docH = docView.frame.height
             let viewH = scrollView.contentView.bounds.height
@@ -165,6 +178,7 @@ public struct EditorView: NSViewRepresentable {
             // Run initial syntax highlight pass.
             if let storage = textView.textStorage {
                 let highlighter = SyntaxHighlighter(textStorage: storage)
+                highlighter.codeBlockHighlightEnabled = settings.codeBlockHighlightEnabled
                 highlighter.highlight(mode: viewModel.mode)
             }
         }
@@ -181,6 +195,15 @@ public struct EditorView: NSViewRepresentable {
             if edTextView.currentLineHighlightEnabled != settings.currentLineHighlightEnabled {
                 edTextView.currentLineHighlightEnabled = settings.currentLineHighlightEnabled
                 edTextView.needsDisplay = true
+            }
+        }
+
+        // Propagate code-block highlighting toggle.
+        if let highlighter = context.coordinator.syntaxHighlighter {
+            if highlighter.codeBlockHighlightEnabled != settings.codeBlockHighlightEnabled {
+                highlighter.codeBlockHighlightEnabled = settings.codeBlockHighlightEnabled
+                // Trigger a re-highlight pass so the toggle takes effect immediately.
+                highlighter.highlight(mode: viewModel.mode)
             }
         }
 
@@ -235,6 +258,8 @@ public struct EditorView: NSViewRepresentable {
         /// Strong reference keeps the checker alive for the view's lifetime (SW-2: the
         /// text view's reference is weak).
         var checker: SpellingGrammarChecker?
+        /// Strong reference to the HTML structural checker (same ownership model as `checker`).
+        var htmlSyntaxChecker: HTMLSyntaxChecker?
 
         // Track the last applied load token to prevent re-applying stale content.
         fileprivate var lastAppliedLoadToken: UUID?
@@ -286,6 +311,8 @@ public struct EditorView: NSViewRepresentable {
 
             // Debounced spelling/grammar re-check (no-op when spellCheckActive is false).
             checker?.onTextChange()
+            // Debounced HTML structural re-check (no-op unless htmlModeActive + enabled).
+            htmlSyntaxChecker?.onTextChange()
             // Dispatch to the active language provider for ghost-text completions.
             dispatchCompletionProvider()
             // Invalidate ruler on every edit so line numbers stay current.

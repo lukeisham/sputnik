@@ -51,7 +51,6 @@ final class SputnikImageSchemeHandler: NSObject, WKURLSchemeHandler {
         Task(priority: .utility) { [weak self] in
             guard let self else { return }
 
-            let fileURL = baseDir.appendingPathComponent(relativePath)
             let resolver = PreviewImageResolver()
             let resolved = await resolver.resolve(reference: relativePath, relativeTo: baseDir)
 

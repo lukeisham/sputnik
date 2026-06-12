@@ -97,6 +97,14 @@ public struct HTMLPreviewView: NSViewRepresentable {
     /// parent panel can trigger a PDF export of the `WKWebView` content.
     @Binding private var saveAsPDFAction: (() -> Void)?
 
+    /// Binding to a save-as-HTML closure. The view sets this in `updateNSView` so the
+    /// parent panel can export the active document's raw HTML source to a `.html` file.
+    @Binding private var saveAsHTMLAction: (() -> Void)?
+
+    /// When `true`, the preview follows the editor's fractional scroll position (ISS-063).
+    /// `false` for large files (>80k chars) or when the user has disabled sync (Step 10).
+    private let syncScrollEnabled: Bool
+
     // MARK: - Init
 
     /// Creates the HTML preview view.
@@ -108,23 +116,29 @@ public struct HTMLPreviewView: NSViewRepresentable {
     ///                              `SputnikHelpContextResolver.shared`.
     ///   - settings:                The app settings store (for per-panel font/background).
     ///   - printAction:             Binding set by the view with the print closure.
+    ///   - saveAsPDFAction:          Binding set by the view with the save-as-PDF closure.
+    ///   - saveAsHTMLAction:         Binding set by the view with the save-as-HTML closure.
     @MainActor
     public init(
         router: (any InterPanelRouter)? = nil,
         isLinkNavigationEnabled: Bool = true,
+        syncScrollEnabled: Bool = false,
         onLoadError: ((String) -> Void)? = nil,
         helpContextResolver: HelpContextResolving? = nil,
         settings: SettingsStore,
         printAction: Binding<(() -> Void)?> = .constant(nil),
-        saveAsPDFAction: Binding<(() -> Void)?> = .constant(nil)
+        saveAsPDFAction: Binding<(() -> Void)?> = .constant(nil),
+        saveAsHTMLAction: Binding<(() -> Void)?> = .constant(nil)
     ) {
         self.router = router
         self.isLinkNavigationEnabled = isLinkNavigationEnabled
+        self.syncScrollEnabled = syncScrollEnabled
         self.onLoadError = onLoadError
         self.helpContextResolver = helpContextResolver ?? SputnikHelpContextResolver.shared
         self.settings = settings
         _printAction = printAction
         _saveAsPDFAction = saveAsPDFAction
+        _saveAsHTMLAction = saveAsHTMLAction
     }
 
     // MARK: - NSViewRepresentable
@@ -238,9 +252,45 @@ public struct HTMLPreviewView: NSViewRepresentable {
         }
         saveAsPDFAction = context.coordinator.saveAsPDFAction
 
+        // Wire the save-as-HTML action.
+        context.coordinator.saveAsHTMLAction = { [weak webView] in
+            guard let webView, let window = webView.window else { return }
+            let sourceText = session.text  // raw source, no F-4 CSS injected
+            let panel = NSSavePanel()
+            panel.allowedContentTypes = [.html]
+            let baseName =
+                (context.coordinator.currentBaseURL?.deletingPathExtension().lastPathComponent)
+                ?? "document"
+            panel.nameFieldStringValue = baseName + ".html"
+            panel.beginSheetModal(for: window) { response in
+                guard response == .OK, let url = panel.url else { return }
+                Task(priority: .userInitiated) {
+                    do {
+                        try sourceText.write(to: url, atomically: true, encoding: .utf8)
+                    } catch {
+                        await MainActor.run {
+                            let alert = NSAlert()
+                            alert.messageText = "Save as HTML Failed"
+                            alert.informativeText = error.localizedDescription
+                            alert.alertStyle = .warning
+                            alert.runModal()
+                        }
+                    }
+                }
+            }
+        }
+        saveAsHTMLAction = context.coordinator.saveAsHTMLAction
+
         // Inject per-panel font and background CSS (F-4), then load (throttled — SR-4).
         let styled = htmlByInjectingOverrides(session.text, settings: settings)
         context.coordinator.throttledLoad(html: styled, baseURL: baseURL)
+
+        // Apply editor→preview scroll sync (ISS-063, Steps 3 & 5).
+        // Accessing editorScrollFraction when syncScrollEnabled is true causes SwiftUI to
+        // observe it via @Observable, so updateNSView is re-invoked on each scroll event.
+        if syncScrollEnabled, let fraction = appState.editorScrollFraction {
+            context.coordinator.syncScrollToFraction(fraction)
+        }
     }
 
     // MARK: - F-4 CSS injection and image rewriting

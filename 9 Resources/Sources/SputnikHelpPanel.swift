@@ -402,12 +402,10 @@ public struct SputnikHelpPanel<Topic: HelpTopicProtocol, ContentView: View>: Vie
 
     /// Opens a topic — activates existing tab or creates a new one.
     public func openTopic(_ id: String) {
-        if let existingIndex = openTabIDs.firstIndex(of: id) {
-            activeTabID = id
-        } else {
+        if !openTabIDs.contains(id) {
             openTabIDs.append(id)
-            activeTabID = id
         }
+        activeTabID = id
         schedulePersist()
     }
 

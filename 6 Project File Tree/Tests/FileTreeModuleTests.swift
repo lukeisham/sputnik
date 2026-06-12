@@ -15,6 +15,7 @@ private final class MockRouter: InterPanelRouter {
     var events: AsyncStream<PanelEvent> { AsyncStream { _ in } }
     var openedURLs: [URL] = []
     var syncedURLs: [URL] = []
+    var revealedLines: [Int] = []
 
     func open(_ file: URL) async { openedURLs.append(file) }
     func close(_ id: UUID) async {}
@@ -24,6 +25,7 @@ private final class MockRouter: InterPanelRouter {
     func terminalCurrentSelection() -> String? { nil }
     func terminalLastCommandOutput() -> String? { nil }
     func focusTerminal() {}
+    func revealSourceLine(_ line: Int) { revealedLines.append(line) }
 }
 
 private func makeTempDir() throws -> URL {

@@ -28,12 +28,21 @@ public struct MarkdownPreviewPanel: View {
     @State private var viewModel = MarkdownPreviewViewModel()
     @State private var fitWidth: Bool = true
     @State private var linksEnabled: Bool = true
+    /// `true` while the preview follows the editor's fractional scroll position (ISS-063).
+    /// Automatically disabled when `viewModel.isLargeFile` (Step 10).
+    @State private var syncScrollEnabled: Bool = false
+    /// `true` while ⌘-click on the preview reveals the corresponding source line (ISS-065).
+    /// Automatically disabled when `viewModel.isLargeFile` (Step 10).
+    @State private var bidirectionalEnabled: Bool = false
     /// Per-document scroll positions, keyed by `DocumentSession.id`.
     /// Written by `MarkdownRenderView`'s scroll observer; read back on document switch.
     @State private var scrollOffsets: [UUID: CGFloat] = [:]
 
     /// Print-action closure, set by `MarkdownRenderView` when the text view is available.
     @State private var printAction: (() -> Void)? = nil
+
+    /// Save-as-Markdown-action closure, set by `MarkdownRenderView` when the text view is available.
+    @State private var saveAsMarkdownAction: (() -> Void)? = nil
 
     /// Save-as-PDF-action closure, set by `MarkdownRenderView` when the text view is available.
     @State private var saveAsPDFAction: (() -> Void)? = nil
@@ -86,6 +95,10 @@ public struct MarkdownPreviewPanel: View {
             coordinator.onRequestHelp = { [weak appState] request in
                 appState?.requestedHelpTarget = request
             }
+            coordinator.viewModel = viewModel
+        }
+        .onChange(of: bidirectionalEnabled) { _, newValue in
+            coordinator.bidirectionalEnabled = newValue && !viewModel.isLargeFile
         }
         .onChange(of: appState.activeDocument?.text ?? "") { _, newValue in
             triggerRender(markdown: newValue)
@@ -119,8 +132,11 @@ public struct MarkdownPreviewPanel: View {
 
             Spacer()
 
-            // Overflow menu: Save as PDF…, Print…, Reveal in Finder.
+            // Overflow menu: Save as Markdown…, Save as PDF…, Print…, Reveal in Finder.
             Menu {
+                Button("Save as Markdown…") { saveAsMarkdownAction?() }
+                    .disabled(saveAsMarkdownAction == nil)
+
                 Button("Save as PDF…") { saveAsPDFAction?() }
                     .disabled(saveAsPDFAction == nil)
 
@@ -207,6 +223,50 @@ public struct MarkdownPreviewPanel: View {
             .accessibilityLabel("Links")
             .accessibilityValue(linksEnabled ? "Enabled" : "Disabled")
 
+            // Scroll sync toggle (ISS-063, Step 5).
+            Button {
+                syncScrollEnabled.toggle()
+            } label: {
+                Image(systemName: "arrow.up.and.down.text.horizontal")
+                    .font(.system(size: SputnikFont.caption))
+            }
+            .help(syncScrollEnabled ? "Scroll Sync On" : "Scroll Sync Off")
+            .buttonStyle(.borderless)
+            .foregroundStyle(
+                syncScrollEnabled && !viewModel.isLargeFile
+                    ? SputnikColor.accent : SputnikColor.secondaryText
+            )
+            .disabled(viewModel.isLargeFile)
+            .accessibilityLabel("Scroll sync")
+            .accessibilityValue(syncScrollEnabled ? "On" : "Off")
+
+            // Bidirectional ⌘-click navigation toggle (ISS-065, Step 9).
+            Button {
+                bidirectionalEnabled.toggle()
+            } label: {
+                Image(systemName: "cursorarrow.click")
+                    .font(.system(size: SputnikFont.caption))
+            }
+            .help(
+                bidirectionalEnabled
+                    ? "⌘-Click Source Navigation On" : "⌘-Click Source Navigation Off"
+            )
+            .buttonStyle(.borderless)
+            .foregroundStyle(
+                bidirectionalEnabled && !viewModel.isLargeFile
+                    ? SputnikColor.accent : SputnikColor.secondaryText
+            )
+            .disabled(viewModel.isLargeFile)
+            .accessibilityLabel("Command-click navigation")
+            .accessibilityValue(bidirectionalEnabled ? "On" : "Off")
+
+            // Large-file degraded-mode indicator (Step 10).
+            if viewModel.isLargeFile {
+                Text("Large file — sync limited")
+                    .font(.system(size: SputnikFont.caption))
+                    .foregroundStyle(SputnikColor.tertiaryText)
+            }
+
             Spacer()
         }
         .padding(.horizontal, SputnikSpacing.md)
@@ -227,6 +287,11 @@ public struct MarkdownPreviewPanel: View {
                 }
 
                 // Wrapping text view with width layout.
+                // Fractional position to pass for editor→preview sync. `nil` disables sync.
+                let syncFraction: Double? =
+                    syncScrollEnabled && !viewModel.isLargeFile
+                    ? appState.editorScrollFraction : nil
+
                 if fitWidth {
                     ScrollView(.vertical) {
                         MarkdownRenderView(
@@ -235,8 +300,10 @@ public struct MarkdownPreviewPanel: View {
                             coordinator: coordinator,
                             settings: settings,
                             scrollOffset: scrollBinding(for: appState.activeDocumentID),
+                            syncScrollFraction: syncFraction,
                             printAction: $printAction,
-                            saveAsPDFAction: $saveAsPDFAction
+                            saveAsPDFAction: $saveAsPDFAction,
+                            saveAsMarkdownAction: $saveAsMarkdownAction
                         )
                         .frame(maxWidth: 720)
                         .frame(maxWidth: .infinity)
@@ -249,8 +316,10 @@ public struct MarkdownPreviewPanel: View {
                             coordinator: coordinator,
                             settings: settings,
                             scrollOffset: scrollBinding(for: appState.activeDocumentID),
+                            syncScrollFraction: syncFraction,
                             printAction: $printAction,
-                            saveAsPDFAction: $saveAsPDFAction
+                            saveAsPDFAction: $saveAsPDFAction,
+                            saveAsMarkdownAction: $saveAsMarkdownAction
                         )
                     }
                 }
@@ -331,10 +400,13 @@ public struct MarkdownPreviewPanel: View {
     // MARK: - Render trigger
 
     /// Initiates a Markdown render when the active session's text changes.
+    /// Also updates the coordinator's export context for Save as Markdown.
     private func triggerRender(markdown: String) {
         guard let session = appState.activeDocument,
             session.fileType == .markdown || session.fileType == .ascii
         else { return }
+        coordinator.currentSourceText = session.text
+        coordinator.currentDocumentName = session.url?.lastPathComponent ?? "Untitled.md"
         viewModel.render(markdown: markdown, fontScale: viewModel.fontScale)
     }
 
@@ -350,6 +422,10 @@ public struct MarkdownPreviewPanel: View {
             viewModel.renderError = nil
             return
         }
+
+        // Update the coordinator's export context for Save as Markdown.
+        coordinator.currentSourceText = session.text
+        coordinator.currentDocumentName = session.url?.lastPathComponent ?? "Untitled.md"
 
         if session.fileType == .markdown || session.fileType == .ascii {
             viewModel.render(markdown: session.text, fontScale: viewModel.fontScale)

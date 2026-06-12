@@ -19,6 +19,16 @@ struct EditorTab: View {
                 "Word wrap",
                 isOn: Binding(
                     get: { settings.wordWrapEnabled }, set: { settings.setWordWrapEnabled($0) }))
+            Toggle(
+                "Code block highlighting",
+                isOn: Binding(
+                    get: { settings.codeBlockHighlightEnabled },
+                    set: { settings.setCodeBlockHighlightEnabled($0) }))
+            Toggle(
+                "HTML syntax checking",
+                isOn: Binding(
+                    get: { settings.htmlSyntaxCheckEnabled },
+                    set: { settings.setHtmlSyntaxCheckEnabled($0) }))
 
             Divider()
 

@@ -50,6 +50,32 @@ public final class MarkdownPreviewCoordinator: NSObject, NSTextViewDelegate {
     /// Updated on every `updateNSView` call so the observer always writes to the right slot.
     var scrollOffsetBinding: Binding<CGFloat>?
 
+    // MARK: - Editor→preview scroll sync (ISS-063, Step 5)
+
+    /// Last fractional position applied by scroll sync. Guards against feedback loops
+    /// and unnecessary layout: the preview only scrolls when the fraction shifts >0.005.
+    var lastSyncScrollFraction: Double = -1
+
+    // MARK: - Bidirectional navigation (ISS-065, Step 9)
+
+    /// When `true`, ⌘-click on rendered text reveals the corresponding source line in the editor.
+    /// Disabled automatically when `viewModel.isLargeFile` (Step 10).
+    var bidirectionalEnabled: Bool = false
+
+    /// Weak reference to the view model for source-map lookups. Held weakly to avoid
+    /// a retain cycle (coordinator → viewModel → coordinator via delegate). (SW-2)
+    weak var viewModel: MarkdownPreviewViewModel?
+
+    // MARK: - Save-as-Markdown export context
+
+    /// The raw Markdown source text of the active document. Set by `MarkdownRenderView.updateNSView`
+    /// before the save-as-Markdown closure is wired, then read when the user triggers the export.
+    var currentSourceText: String = ""
+
+    /// The filename (without parent directory) of the active document. Used to derive the
+    /// default `.md` export filename.
+    var currentDocumentName: String = ""
+
     // MARK: - Init
 
     /// Creates the coordinator.
@@ -121,6 +147,35 @@ public final class MarkdownPreviewCoordinator: NSObject, NSTextViewDelegate {
                     "[MarkdownPreview] Blocked unknown scheme: \(scheme) in \(url.absoluteString)")
             #endif
             return true
+        }
+    }
+
+    // MARK: - Bidirectional click handler (ISS-065, Step 9)
+
+    /// Fired by an `NSClickGestureRecognizer` added to the preview text view.
+    /// When ⌘ is held and `bidirectionalEnabled` is true, maps the clicked character
+    /// position back to a source line via `viewModel.sourceMap` and reveals it in the editor.
+    /// Yields silently when the click lands on a link — the delegate handles those instead.
+    @objc func handleCommandClick(_ recognizer: NSClickGestureRecognizer) {
+        guard bidirectionalEnabled,
+            NSApp.currentEvent?.modifierFlags.contains(.command) == true,
+            let textView = recognizer.view as? NSTextView,
+            let storage = textView.textStorage
+        else { return }
+
+        let point = recognizer.location(in: textView)
+        let charIndex = textView.characterIndex(for: point)
+        guard charIndex != NSNotFound, charIndex < storage.length else { return }
+
+        // Let the NSTextViewDelegate handle ⌘-clicks on actual links.
+        if storage.attribute(.link, at: charIndex, effectiveRange: nil) != nil { return }
+
+        guard let map = viewModel?.sourceMap,
+            let block = map.first(where: { $0.contains(renderedOffset: charIndex) })
+        else { return }
+
+        Task { [weak self] in
+            self?.router?.revealSourceLine(block.sourceStartLine)
         }
     }
 

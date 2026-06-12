@@ -12,10 +12,13 @@ import Foundation
 /// the grammar underline surfaces.
 public struct GrammarAnnotation: Sendable, Equatable {
 
-    /// Whether the annotation came from spelling or grammar checking.
+    /// Whether the annotation came from spelling, grammar, or HTML structural checking.
     public enum Kind: Sendable {
         case spelling
         case grammar
+        /// A structural HTML issue (unclosed tag, mismatched tag, unquoted attribute,
+        /// duplicate id) produced by `HTMLSyntaxChecker`. Rendered with a blue underline.
+        case htmlSyntax
     }
 
     /// The character range (UTF-16, matching `NSTextStorage`) the issue covers.
