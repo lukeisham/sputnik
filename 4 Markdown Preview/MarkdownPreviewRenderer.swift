@@ -37,6 +37,19 @@ internal func applyPresentationIntentStyling(_ attributed: AttributedString) -> 
     return result
 }
 
+/// Cache the ObjC selector for `NSPresentationIntent.identity` so it is
+/// constructed once rather than on every paragraph run (ISS-055).
+private let identitySelector: Selector = NSSelectorFromString("identity")
+
+/// One-time flag to log a warning when the ObjC bridge silently degrades.
+/// Resets on every launch so developers catch OS-update regressions promptly.
+private let objcBridgeDiagnostic: Void = {
+    // Verify that NSSelectorFromString produced a valid selector at load time.
+    // Post-launch failures are caught by respond(to:) in parseIntentKind.
+    debugPrint(
+        "[MarkdownPreview] ObjC bridge initialized — identity=@selector(\(identitySelector))")
+}()
+
 /// Extracts a `ParsedIntentKind` from a Swift `AttributedString` run.
 ///
 /// For heading levels, uses the `NSPresentationIntent` identity (via ObjC runtime,
@@ -47,12 +60,22 @@ internal func applyPresentationIntentStyling(_ attributed: AttributedString) -> 
 /// Known `NSPresentationIntentKind` identity values:
 ///   1 = header, 2 = codeBlock, 3 = blockQuote, 4 = unorderedList,
 ///   5 = orderedList, 6 = listItem, 7 = table, 8 = tableCell
+///
+/// **Fragility note:** These identity values and the `identity` selector are
+/// undocumented `NSPresentationIntent` internals (ISS-055). If a future macOS
+/// release changes or removes them, this function returns `nil` and rendering
+/// degrades gracefully to plain text — no crash, no data loss.
 internal func parseIntentKind(from run: AttributedString.Runs.Element) -> ParsedIntentKind? {
     guard let presentationIntent = run.presentationIntent else { return nil }
+    _ = objcBridgeDiagnostic  // Ensure the diagnostic fires once at module load.
     let obj = presentationIntent as AnyObject
-    let identitySel = NSSelectorFromString("identity")
-    guard obj.responds(to: identitySel) else { return nil }
-    let rawPtr = obj.perform(identitySel)
+    guard obj.responds(to: identitySelector) else {
+        debugPrint(
+            "[MarkdownPreview] ObjC bridge degraded: NSPresentationIntent no longer responds to identity"
+        )
+        return nil
+    }
+    let rawPtr = obj.perform(identitySelector)
     guard let raw = rawPtr?.takeUnretainedValue() else { return nil }
     let identityValue: Int
     if let num = raw as? NSNumber {

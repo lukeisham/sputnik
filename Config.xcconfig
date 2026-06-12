@@ -1,10 +1,15 @@
-// Sputnik Xcode Build Configuration
+// Sputnik Debug Build Configuration
 //
 // How to use:
 //   1. Open Package.swift in Xcode
 //   2. File → Project Settings (or Project → Info in older Xcode)
-//   3. Under Configurations, set the Release and Debug schemes to "Config"
+//   3. Debug → "Config"   (this file — Automatic signing, local dev)
+//      Release → "Config.Release"  (separate file — Manual signing for distribution)
 //   4. Build and run — entitlements will be applied automatically
+//
+// For distribution (ad-hoc / App Store / notarization):
+//   - Set Release config to "Config.Release"
+//   - Fill in your Team ID and provisioning profile in Config.Release.xcconfig
 
 CODE_SIGN_ENTITLEMENTS = App-Sputnik/Sputnik.entitlements
 CODE_SIGN_STYLE = Automatic

@@ -48,7 +48,7 @@ private struct DropZoneDropDelegate: DropDelegate {
     }
 
     func validateDrop(info: DropInfo) -> Bool {
-        guard let item = info.itemProviders(for: [UTType.plainText]).first else { return false }
+        guard info.itemProviders(for: [UTType.plainText]).first != nil else { return false }
         // We need to synchronously validate. The payload is a UUID string.
         // Since we can't read it synchronously from the provider, we return true
         // and let the layout's canInsert guard reject in performDrop.

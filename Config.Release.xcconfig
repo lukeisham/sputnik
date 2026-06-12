@@ -1,0 +1,24 @@
+// Sputnik Release / Distribution Build Configuration
+//
+// How to use:
+//   1. Open Package.swift in Xcode
+//   2. File → Project Settings (or Project → Info in older Xcode)
+//   3. Set the Release configuration to "Config.Release"
+//   4. Fill in your Apple Developer Team ID and provisioning profile below
+//   5. Archive (Product → Archive) and distribute via Organizer
+//
+// WARNING: Do NOT set CODE_SIGN_STYLE = Automatic for release builds.
+// Automatic signing uses a wildcard development profile which cannot
+// be exported for distribution outside your Mac.
+
+#include "Config.xcconfig"  // Inherit common settings (entitlements, bundle ID, etc.)
+
+CODE_SIGN_STYLE = Manual
+
+// Replace <YOUR_TEAM_ID> with your 10-character Apple Team ID
+// (Apple Developer → Membership → Team ID)
+// CODE_SIGN_TEAM = <YOUR_TEAM_ID>
+
+// Replace <PROFILE_NAME> with the name of your distribution provisioning profile
+// (Apple Developer → Certificates, Identifiers & Profiles → Profiles)
+// PROVISIONING_PROFILE_SPECIFIER = <PROFILE_NAME>

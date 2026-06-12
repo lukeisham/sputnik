@@ -119,8 +119,8 @@ public struct ContentView: View {
         }
         .frame(minWidth: 900, minHeight: 600)
         .navigationTitle(windowState.title)
-        .onChange(of: appState.activeDocumentID) { _, newID in
-            guard let newID else { return }
+        .onChange(of: appState.activeDocumentID) { _, _ in
+            guard appState.activeDocumentID != nil else { return }
             Task {
                 try? await editorViewModel.openDocument(appState.activeDocument?.url)
                 // Auto-position: move active text editor column adjacent to File Tree

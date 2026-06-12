@@ -51,7 +51,11 @@ public final class CrashRecoveryStore {
 
     // MARK: - Private
 
-    private func doWrite(url: URL, content: String) {
+    /// The `await` on this call inside `scheduleWrite` performs an `@MainActor`
+    /// actor hop — required because the `.background` Task is not isolated to
+    /// any actor. Making this explicitly `async` resolves a false-positive compiler
+    /// warning about the `await` expression containing no async operations.
+    private func doWrite(url: URL, content: String) async {
         persistence.writeRecovery(for: url, content: content)
     }
 }
