@@ -1,5 +1,5 @@
-import SwiftUI
 import FoundationModule
+import SwiftUI
 
 /// A SwiftUI view wrapping `SputnikHelpPanel` for Grammar Help topics.
 ///
@@ -64,15 +64,18 @@ private struct GrammarHelpTopicContentView: View {
             Text(line)
                 .font(.system(size: SputnikFont.body, design: .monospaced))
                 .foregroundStyle(SputnikColor.accent)
+                .textSelection(.enabled)
         } else if trimmed.hasPrefix("❌") {
             Text(line)
                 .font(.system(size: SputnikFont.body, design: .monospaced))
                 .foregroundStyle(grammarIncorrectColor)
                 .strikethrough(true, color: grammarIncorrectColor)
+                .textSelection(.enabled)
         } else {
             Text(line)
                 .font(.system(size: SputnikFont.body))
                 .foregroundStyle(SputnikColor.primaryText)
+                .textSelection(.enabled)
         }
     }
 

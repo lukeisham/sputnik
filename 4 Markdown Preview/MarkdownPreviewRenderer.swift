@@ -1,8 +1,8 @@
 import AppKit
 import Foundation
 import FoundationModule
-import SputnikShared
 import ResourcesModule
+import SputnikShared
 
 // MARK: - PresentationIntent styling
 
@@ -52,7 +52,8 @@ internal func parseIntentKind(from run: AttributedString.Runs.Element) -> Parsed
     let obj = presentationIntent as AnyObject
     let identitySel = NSSelectorFromString("identity")
     guard obj.responds(to: identitySel) else { return nil }
-    let raw = obj.perform(identitySel).takeUnretainedValue()
+    let rawPtr = obj.perform(identitySel)
+    guard let raw = rawPtr?.takeUnretainedValue() else { return nil }
     let identityValue: Int
     if let num = raw as? NSNumber {
         identityValue = num.intValue

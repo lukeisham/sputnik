@@ -1,6 +1,6 @@
+import FoundationModule
 import SwiftUI
 import WebKit
-import FoundationModule
 
 // MARK: - Sandboxed HTML Demo
 
@@ -152,12 +152,14 @@ public struct HTMLHelpPanelView: View {
                     .font(.system(size: SputnikFont.body))
                     .foregroundStyle(SputnikColor.primaryText)
                     .lineSpacing(4)
+                    .textSelection(.enabled)
             } else {
                 // Fallback: render as plain text
                 Text(topic.body)
                     .font(.system(size: SputnikFont.body))
                     .foregroundStyle(SputnikColor.primaryText)
                     .lineSpacing(4)
+                    .textSelection(.enabled)
             }
 
             // Live demo section
