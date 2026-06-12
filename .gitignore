@@ -34,3 +34,6 @@ Package.resolved
 
 # Project planning and guides (module guides, plans, skills, references)
 1 Setup/
+
+# AI agent configuration
+CLAUDE.md
