@@ -160,7 +160,9 @@ public struct EditorView: NSViewRepresentable {
             let fraction = max(0.0, min(1.0, Double(visibleY / (docH - viewH))))
             guard abs(fraction - coord.lastPublishedFraction) > 0.005 else { return }
             coord.lastPublishedFraction = fraction
-            weakAppState?.editorScrollFraction = fraction
+            MainActor.assumeIsolated {
+                weakAppState?.editorScrollFraction = fraction
+            }
         }
 
         return scrollView

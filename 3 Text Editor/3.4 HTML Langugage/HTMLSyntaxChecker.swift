@@ -181,7 +181,8 @@ public final class HTMLSyntaxChecker {
                 .underlineStyle,
                 value: NSUnderlineStyle.single.rawValue,
                 range: annotation.range)
-            storage.addAttribute(.underlineColor, value: NSColor.systemBlue, range: annotation.range)
+            storage.addAttribute(
+                .underlineColor, value: NSColor.systemBlue, range: annotation.range)
         }
         storage.endEditing()
     }
@@ -217,7 +218,7 @@ public final class HTMLSyntaxChecker {
 
     /// Matches one HTML tag: optional leading `/`, a name, the (lazy) attribute body, and an
     /// optional trailing `/` for self-closing tags.
-    nonisolated(unsafe) private static let tagRegex = try? NSRegularExpression(
+    nonisolated private static let tagRegex = try? NSRegularExpression(
         pattern: "</?([a-zA-Z][a-zA-Z0-9]*)((?:[^>\"']|\"[^\"]*\"|'[^']*')*?)(/?)>",
         options: [])
 
@@ -238,7 +239,8 @@ public final class HTMLSyntaxChecker {
             let tagRange = match.range
             let raw = nsString.substring(with: match.range(at: 1))
             let name = raw.lowercased()
-            let attrs = match.range(at: 2).location != NSNotFound
+            let attrs =
+                match.range(at: 2).location != NSNotFound
                 ? nsString.substring(with: match.range(at: 2)) : ""
             let selfClosed = match.range(at: 3).length > 0
             let isClosing = nsString.substring(with: tagRange).hasPrefix("</")
@@ -258,7 +260,8 @@ public final class HTMLSyntaxChecker {
             }
 
             // Opening (or self-closing) tag: run attribute checks regardless of element type.
-            checkAttributes(attrs: attrs, attrsRange: match.range(at: 2),
+            checkAttributes(
+                attrs: attrs, attrsRange: match.range(at: 2),
                 nsString: nsString, seenIDs: &seenIDs, findings: &findings)
 
             // Only block tags that are not self-closed go on the stack.
@@ -325,13 +328,14 @@ public final class HTMLSyntaxChecker {
     }
 
     /// Captures an `id` attribute value: group 1 = quoted contents, group 2 = unquoted.
-    nonisolated(unsafe) private static let idRegex = try? NSRegularExpression(
+    nonisolated private static let idRegex = try? NSRegularExpression(
         pattern: "\\bid\\s*=\\s*(?:\"([^\"]*)\"|'([^']*)'|([^\\s>]+))",
         options: [.caseInsensitive])
 
     /// Captures an unquoted attribute value (group 1) immediately followed by a bareword
     /// (group 2) with no `=` of its own — the signature of a value broken by a space.
-    nonisolated(unsafe) private static let unquotedRegex = try? NSRegularExpression(
-        pattern: "[a-zA-Z-]+\\s*=\\s*([^\"'\\s/>]+)\\s+([a-zA-Z][a-zA-Z0-9-]*)(?![a-zA-Z0-9-])(?!\\s*=)",
+    nonisolated private static let unquotedRegex = try? NSRegularExpression(
+        pattern:
+            "[a-zA-Z-]+\\s*=\\s*([^\"'\\s/>]+)\\s+([a-zA-Z][a-zA-Z0-9-]*)(?![a-zA-Z0-9-])(?!\\s*=)",
         options: [])
 }
