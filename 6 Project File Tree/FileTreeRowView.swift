@@ -111,7 +111,10 @@ public struct FileTreeRowView: View {
             FileContextMenu(node: node, viewModel: viewModel)
         }
         .onDrag {
-            NSItemProvider(object: node.id as NSURL)
+            // Only image files can be dragged (to insert markup into the editor).
+            // Return an empty provider for non-images so no drag starts.
+            guard node.fileType == .image else { return NSItemProvider() }
+            return NSItemProvider(object: node.id as NSURL)
         }
         // Allow dragging files into directory nodes
         .onDrop(of: [UTType.fileURL], isTargeted: nil) { providers in

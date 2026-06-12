@@ -38,6 +38,10 @@ public struct MarkdownRenderView: NSViewRepresentable {
     /// parent panel can trigger a print of the Markdown content via `NSTextView`.
     @Binding var printAction: (() -> Void)?
 
+    /// Binding to a save-as-PDF closure. The view sets this in `updateNSView` so the
+    /// parent panel can trigger a PDF export of the Markdown content via `NSPrintOperation`.
+    @Binding var saveAsPDFAction: (() -> Void)?
+
     // MARK: - Init
 
     /// Creates the render view.
@@ -55,7 +59,8 @@ public struct MarkdownRenderView: NSViewRepresentable {
         coordinator: MarkdownPreviewCoordinator,
         settings: SettingsStore,
         scrollOffset: Binding<CGFloat> = .constant(0),
-        printAction: Binding<(() -> Void)?> = .constant(nil)
+        printAction: Binding<(() -> Void)?> = .constant(nil),
+        saveAsPDFAction: Binding<(() -> Void)?> = .constant(nil)
     ) {
         self.renderedString = renderedString
         self.fontScale = fontScale
@@ -63,6 +68,7 @@ public struct MarkdownRenderView: NSViewRepresentable {
         self.settings = settings
         self.scrollOffset = scrollOffset
         _printAction = printAction
+        _saveAsPDFAction = saveAsPDFAction
     }
 
     // MARK: - NSViewRepresentable
@@ -141,6 +147,36 @@ public struct MarkdownRenderView: NSViewRepresentable {
             guard let textView, let window = textView.window else { return }
             let printOp = NSPrintOperation(view: textView, printInfo: .shared)
             printOp.runModal(for: window, delegate: nil, didRun: nil, contextInfo: nil)
+        }
+
+        // Wire the save-as-PDF action.
+        saveAsPDFAction = { [weak textView] in
+            guard let textView, let window = textView.window else { return }
+            let panel = NSSavePanel()
+            panel.allowedContentTypes = [.pdf]
+            panel.nameFieldStringValue = "document.pdf"
+            panel.beginSheetModal(for: window) { response in
+                guard response == .OK, let url = panel.url else { return }
+                let pdfRect = textView.bounds
+                let pdfData = textView.dataWithPDF(inside: pdfRect)
+                guard !pdfData.isEmpty else {
+                    let alert = NSAlert()
+                    alert.messageText = "PDF Generation Failed"
+                    alert.informativeText = "Could not generate PDF data from the rendered content."
+                    alert.alertStyle = .warning
+                    alert.runModal()
+                    return
+                }
+                do {
+                    try pdfData.write(to: url)
+                } catch {
+                    let alert = NSAlert()
+                    alert.messageText = "Save as PDF Failed"
+                    alert.informativeText = error.localizedDescription
+                    alert.alertStyle = .warning
+                    alert.runModal()
+                }
+            }
         }
 
         // Only update the text storage when the content has actually changed,

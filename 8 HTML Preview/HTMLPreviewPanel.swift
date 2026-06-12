@@ -25,6 +25,7 @@ public struct HTMLPreviewPanel: View {
     @State private var isLinkNavigationEnabled: Bool = true
     @State private var loadError: String? = nil
     @State private var printAction: (() -> Void)? = nil
+    @State private var saveAsPDFAction: (() -> Void)? = nil
 
     // MARK: - Dependencies
 
@@ -99,8 +100,11 @@ public struct HTMLPreviewPanel: View {
 
             Spacer()
 
-            // Overflow menu: Print…, Reveal in Finder, Reload Preview.
+            // Overflow menu: Save as PDF…, Print…, Reveal in Finder, Reload Preview.
             Menu {
+                Button("Save as PDF…") { saveAsPDFAction?() }
+                    .disabled(saveAsPDFAction == nil)
+
                 Button("Print…") { printAction?() }
                     .disabled(printAction == nil)
 
@@ -183,7 +187,8 @@ public struct HTMLPreviewPanel: View {
                     onLoadError: { message in loadError = message },
                     helpContextResolver: helpContextResolver,
                     settings: settings,
-                    printAction: $printAction
+                    printAction: $printAction,
+                    saveAsPDFAction: $saveAsPDFAction
                 )
                 // Fit Width: centre the preview with a max width of 960 pt.
                 // When disabled, the web view fills the entire panel width.

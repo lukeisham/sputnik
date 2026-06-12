@@ -46,4 +46,31 @@ public protocol InterPanelRouter: AnyObject {
     ///
     /// - Parameter url: The new workspace directory URL.
     func syncDirectory(_ url: URL)
+
+    // MARK: - Preview ↔ Editor bidirectional navigation
+
+    /// Scrolls the active editor to reveal the given source line (0-based).
+    /// No-op when no editor is active or the line is out of range.
+    func revealSourceLine(_ line: Int)
+
+    // MARK: - Editor ↔ Terminal integration
+
+    /// Sends text to the active window's terminal stdin.
+    /// The text is inserted as raw keystrokes (no trailing newline).
+    /// No-op when no terminal is running.
+    func sendToTerminal(_ text: String)
+
+    /// Sends a command string to the active window's terminal, appending a
+    /// trailing newline so the shell executes it.
+    /// No-op when no terminal is running.
+    func runInTerminal(_ command: String)
+
+    /// Returns the terminal's current selected text, or `nil`.
+    func terminalCurrentSelection() -> String?
+
+    /// Returns the output of the last completed command (OSC 133), or `nil`.
+    func terminalLastCommandOutput() -> String?
+
+    /// Focuses the terminal panel via `PanelFocusCoordinator`.
+    func focusTerminal()
 }

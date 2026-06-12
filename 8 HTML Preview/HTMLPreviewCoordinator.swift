@@ -51,6 +51,9 @@ public final class HTMLPreviewCoordinator: NSObject, WKNavigationDelegate {
     /// Closure that prints the web view content. Set by `HTMLPreviewView.updateNSView`.
     var printAction: (() -> Void)?
 
+    /// Closure that saves the web view content as a PDF. Set by `HTMLPreviewView.updateNSView`.
+    var saveAsPDFAction: (() -> Void)?
+
     /// Throttles rapid re-renders during fast HTML edits (SR-4).
     let renderThrottle = RenderThrottle()
 

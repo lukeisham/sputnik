@@ -77,6 +77,12 @@ public final class EditorViewModel: EditorCommandHandling {
     /// Created when a file is opened; resigned when the document closes.
     private var userActivity: NSUserActivity?
 
+    /// The inter-panel router, exposed for drag-and-drop and other actions.
+    /// Read from the shared AppState.
+    public var router: (any InterPanelRouter)? {
+        appState.router
+    }
+
     // MARK: - Init
 
     public init(appState: AppState, persistenceService: PersistenceService) {
@@ -304,6 +310,89 @@ public final class EditorViewModel: EditorCommandHandling {
         appState.toggleColumn(renderMode: .asciiStudio)
     }
 
+    /// Sends the editor's current text selection to the active terminal session.
+    /// With nothing selected, sends the current line instead.
+    public func sendSelectionToTerminal() {
+        guard let router = appState.router else { return }
+        let text = editorSelectionOrCurrentLine()
+        guard !text.isEmpty else { return }
+        router.sendToTerminal(text)
+        router.focusTerminal()
+    }
+
+    /// Builds a shell command referencing the active document's file path
+    /// (shell-escaped) and runs it in the active terminal.
+    /// No-op when there is no active file.
+    public func runCurrentFileInTerminal() {
+        guard let router = appState.router,
+            let url = fileURL
+        else { return }
+        let escaped = url.path.shellEscaped
+        let command: String
+        switch mode {
+        case .markdown:
+            command = "cat \(escaped)"
+        case .html:
+            command = "open \(escaped)"
+        case .asciiArt:
+            command = "cat \(escaped)"
+        case .plainText:
+            command = "cat \(escaped)"
+        }
+        router.runInTerminal(command)
+        router.focusTerminal()
+    }
+
+    /// Inserts the terminal's current selected text at the editor cursor.
+    public func insertTerminalSelection() {
+        guard let router = appState.router,
+            let text = router.terminalCurrentSelection(),
+            let textView
+        else { return }
+        insertTextIntoEditor(text, at: textView)
+    }
+
+    /// Inserts the output of the last completed terminal command at the editor
+    /// cursor. Falls back to terminal selection when no OSC 133 command output
+    /// is available (integration not yet active, e.g. first prompt).
+    public func insertLastCommandOutput() {
+        guard let router = appState.router,
+            let textView
+        else { return }
+        // Prefer exact command-output capture; degrade to selection.
+        let text =
+            router.terminalLastCommandOutput()
+            ?? router.terminalCurrentSelection()
+        guard let text else { return }
+        insertTextIntoEditor(text, at: textView)
+    }
+
+    // MARK: - Private helpers for terminal integration
+
+    /// Returns the selected text in the editor, or the current line if nothing
+    /// is selected. Empty on an empty editor.
+    private func editorSelectionOrCurrentLine() -> String {
+        guard let textView else { return "" }
+        let range = textView.selectedRange()
+        let nsString = textView.string as NSString
+        if range.length > 0 {
+            return nsString.substring(with: range)
+        }
+        // Fall back to current line.
+        let currentLineRange = nsString.lineRange(for: range)
+        let line = nsString.substring(with: currentLineRange)
+        return line.trimmingCharacters(in: .whitespacesAndNewlines)
+    }
+
+    /// Inserts the given text at the editor cursor, replacing any selected range.
+    private func insertTextIntoEditor(_ text: String, at textView: NSTextView) {
+        let range = textView.selectedRange()
+        if textView.shouldChangeText(in: range, replacementString: text) {
+            textView.replaceCharacters(in: range, with: text)
+            textView.didChangeText()
+        }
+    }
+
     // MARK: - View state persistence
 
     /// Flushes the current caret position and scroll offset into the given
@@ -312,6 +401,24 @@ public final class EditorViewModel: EditorCommandHandling {
     /// Reads from the live `NSTextView` so the values reflect the last visible
     /// position before termination, not a stale snapshot.
     @MainActor
+    public func revealLine(_ line: Int) {
+        guard let textView,
+              let storage = textView.textStorage
+        else { return }
+        let text = storage.string as NSString
+        var lineCount = 0
+        var offset = 0
+        while offset < text.length && lineCount < line {
+            let lineRange = text.lineRange(for: NSRange(location: offset, length: 0))
+            offset = lineRange.upperBound
+            lineCount += 1
+        }
+        guard offset <= text.length else { return }
+        let range = NSRange(location: offset, length: 0)
+        textView.scrollRangeToVisible(range)
+        textView.setSelectedRange(range)
+    }
+
     public func flushViewState(to windowState: WindowState?) {
         guard let windowState,
             let activeDoc = windowState.activeDocument,

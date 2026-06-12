@@ -13,21 +13,20 @@ public enum FileType: String, Codable, Sendable, Hashable {
     case unknown
 }
 
-public extension FileType {
+extension FileType {
     /// Derives the `FileType` from the file extension of `url`.
-    init(url: URL) {
+    public init(url: URL) {
         switch url.pathExtension.lowercased() {
-        case "txt":           self = .text
+        case "txt": self = .text
         case "md", "markdown": self = .markdown
-        case "html", "htm":   self = .html
-        case "pdf":           self = .pdf
-        case "asc", "ascii":  self = .ascii
-        case "png", "jpg", "jpeg": self = .image
-        case "gif", "heic", "tiff", "bmp",
-             "zip", "tar", "gz", "bz2", "xz", "7z",
-             "exe", "dmg", "pkg", "o", "a", "dylib":
+        case "html", "htm": self = .html
+        case "pdf": self = .pdf
+        case "asc", "ascii": self = .ascii
+        case "png", "jpg", "jpeg", "gif", "heic", "tiff", "bmp": self = .image
+        case "zip", "tar", "gz", "bz2", "xz", "7z",
+            "exe", "dmg", "pkg", "o", "a", "dylib":
             self = .binary
-        default:              self = .unknown
+        default: self = .unknown
         }
     }
 }

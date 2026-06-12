@@ -163,6 +163,128 @@ internal struct SendableAttributedString: @unchecked Sendable {
     let value: NSAttributedString
 }
 
+// MARK: - Block splitting and source map (Steps 6, 8)
+
+/// A top-level Markdown block (split on blank lines, respecting fenced code blocks).
+internal struct MarkdownBlock: Sendable {
+    let text: String
+    let startLine: Int  // 0-based source line
+    let endLine: Int    // 0-based source line, inclusive
+    var hasImages: Bool { text.contains("![") }
+}
+
+/// Maps a rendered character range in the output `NSAttributedString` back to
+/// the source line range it came from. Used for ⌘-click-to-source navigation (ISS-065).
+public struct MarkdownSourceBlock: Sendable {
+    public let sourceStartLine: Int
+    public let sourceEndLine: Int
+    /// Offset of the first character of this block in the rendered `NSAttributedString`.
+    public let renderedLocation: Int
+    /// Character count of this block in the rendered `NSAttributedString`.
+    public let renderedLength: Int
+
+    public init(sourceStartLine: Int, sourceEndLine: Int, renderedLocation: Int, renderedLength: Int) {
+        self.sourceStartLine = sourceStartLine
+        self.sourceEndLine = sourceEndLine
+        self.renderedLocation = renderedLocation
+        self.renderedLength = renderedLength
+    }
+
+    /// Returns `true` when `renderedOffset` falls inside this block's rendered range.
+    public func contains(renderedOffset: Int) -> Bool {
+        renderedOffset >= renderedLocation && renderedOffset < renderedLocation + renderedLength
+    }
+}
+
+/// Splits Markdown source into top-level blocks on blank lines, tracking source line numbers
+/// and skipping blank lines inside fenced code blocks (``` or ~~~).
+internal func splitMarkdownBlocks(_ markdown: String) -> [MarkdownBlock] {
+    guard !markdown.isEmpty else { return [] }
+    let lines = markdown.components(separatedBy: "\n")
+    var blocks: [MarkdownBlock] = []
+    var blockLines: [String] = []
+    var blockStartLine = 0
+    var currentLine = 0
+    var inFence = false
+
+    for line in lines {
+        let stripped = line.trimmingCharacters(in: .whitespaces)
+        if stripped.hasPrefix("```") || stripped.hasPrefix("~~~") {
+            inFence.toggle()
+        }
+        if !inFence && stripped.isEmpty && !blockLines.isEmpty {
+            blocks.append(MarkdownBlock(
+                text: blockLines.joined(separator: "\n"),
+                startLine: blockStartLine,
+                endLine: currentLine - 1))
+            blockLines = []
+            blockStartLine = currentLine + 1
+        } else {
+            blockLines.append(line)
+        }
+        currentLine += 1
+    }
+    if !blockLines.isEmpty {
+        blocks.append(MarkdownBlock(
+            text: blockLines.joined(separator: "\n"),
+            startLine: blockStartLine,
+            endLine: currentLine - 1))
+    }
+    return blocks.isEmpty
+        ? [MarkdownBlock(text: markdown, startLine: 0, endLine: max(0, currentLine - 1))]
+        : blocks
+}
+
+/// Renders Markdown using per-block caching. Text-only blocks are cached by hash to
+/// avoid re-parsing unchanged paragraphs. Image blocks always re-render.
+///
+/// - Parameters:
+///   - markdown:  The raw Markdown source.
+///   - baseDir:   Directory for resolving relative image paths.
+///   - cache:     Snapshot of the caller's block cache (read-only).
+/// - Returns:
+///   - `NSAttributedString` assembled from all rendered blocks.
+///   - `[MarkdownSourceBlock]` source map for bidirectional navigation.
+///   - New cache entries to merge back on the main actor.
+internal func buildBlockCachedAttributedString(
+    markdown: String,
+    baseDir: URL?,
+    cache: [Int: SendableAttributedString]
+) async -> (NSAttributedString, [MarkdownSourceBlock], [Int: SendableAttributedString]) {
+    let blocks = splitMarkdownBlocks(markdown)
+    guard !blocks.isEmpty else { return (NSAttributedString(), [], [:]) }
+
+    let assembled = NSMutableAttributedString()
+    var sourceMap: [MarkdownSourceBlock] = []
+    var newEntries: [Int: SendableAttributedString] = [:]
+
+    for (i, block) in blocks.enumerated() {
+        let start = assembled.length
+        let rendered: NSAttributedString
+        let hashKey = block.text.hashValue
+
+        if !block.hasImages, let cached = cache[hashKey] {
+            rendered = cached.value
+        } else if block.hasImages {
+            rendered = await buildNSAttributedString(markdown: block.text, baseDir: baseDir)
+        } else {
+            rendered = parseMarkdownSegment(block.text)
+            newEntries[hashKey] = SendableAttributedString(value: rendered)
+        }
+
+        assembled.append(rendered)
+        if i < blocks.count - 1 {
+            assembled.append(NSAttributedString(string: "\n"))
+        }
+        sourceMap.append(MarkdownSourceBlock(
+            sourceStartLine: block.startLine,
+            sourceEndLine: block.endLine,
+            renderedLocation: start,
+            renderedLength: assembled.length - start))
+    }
+    return (assembled, sourceMap, newEntries)
+}
+
 // MARK: - File-scope async helpers (nonisolated; called from Task background)
 
 /// Builds a styled `NSAttributedString` from Markdown source, inserting

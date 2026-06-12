@@ -27,9 +27,54 @@ public struct SputnikCommands: Commands {
         SputnikMenuGroup()
         FileMenuGroup(appState: appState)
         EditMenuGroup(settings: settings)
+        TerminalIntegrationCommands(appState: appState)
         FormatMenuGroup(appState: appState)
         ViewMenuGroup(appState: appState, settings: settings, focusCoordinator: focusCoordinator)
         WindowMenuGroup(appState: appState, router: router)
         HelpMenuGroup(appState: appState)
+    }
+}
+
+// MARK: - Terminal integration commands
+
+private struct TerminalIntegrationCommands: Commands {
+    let appState: AppState
+
+    var body: some Commands {
+        CommandGroup(after: .textEditing) {
+            Divider()
+
+            Button("Send Selection to Terminal") {
+                appState.editorCommandHandler?.sendSelectionToTerminal()
+            }
+            .keyboardShortcut("e", modifiers: [.command, .control])
+            .disabled(appState.editorCommandHandler == nil)
+
+            Button("Run Current File in Terminal") {
+                appState.editorCommandHandler?.runCurrentFileInTerminal()
+            }
+            .keyboardShortcut("r", modifiers: [.command, .control])
+            .disabled(appState.editorCommandHandler == nil)
+
+            Button("Insert Terminal Selection") {
+                appState.editorCommandHandler?.insertTerminalSelection()
+            }
+            .keyboardShortcut("i", modifiers: [.command, .control])
+            .disabled(appState.editorCommandHandler == nil)
+
+            Button("Insert Last Command Output") {
+                appState.editorCommandHandler?.insertLastCommandOutput()
+            }
+            .keyboardShortcut("o", modifiers: [.command, .control])
+            .disabled(appState.editorCommandHandler == nil)
+
+            Divider()
+
+            Button("New Terminal Tab") {
+                appState.activeWindow?.newTerminalTabRequested &+= 1
+            }
+            .keyboardShortcut("t", modifiers: [.command])
+            .disabled(appState.activeWindow == nil)
+        }
     }
 }

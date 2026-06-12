@@ -93,6 +93,10 @@ public struct HTMLPreviewView: NSViewRepresentable {
     /// parent panel can trigger a print of the `WKWebView` content.
     @Binding private var printAction: (() -> Void)?
 
+    /// Binding to a save-as-PDF closure. The view sets this in `updateNSView` so the
+    /// parent panel can trigger a PDF export of the `WKWebView` content.
+    @Binding private var saveAsPDFAction: (() -> Void)?
+
     // MARK: - Init
 
     /// Creates the HTML preview view.
@@ -111,7 +115,8 @@ public struct HTMLPreviewView: NSViewRepresentable {
         onLoadError: ((String) -> Void)? = nil,
         helpContextResolver: HelpContextResolving? = nil,
         settings: SettingsStore,
-        printAction: Binding<(() -> Void)?> = .constant(nil)
+        printAction: Binding<(() -> Void)?> = .constant(nil),
+        saveAsPDFAction: Binding<(() -> Void)?> = .constant(nil)
     ) {
         self.router = router
         self.isLinkNavigationEnabled = isLinkNavigationEnabled
@@ -119,6 +124,7 @@ public struct HTMLPreviewView: NSViewRepresentable {
         self.helpContextResolver = helpContextResolver ?? SputnikHelpContextResolver.shared
         self.settings = settings
         _printAction = printAction
+        _saveAsPDFAction = saveAsPDFAction
     }
 
     // MARK: - NSViewRepresentable
@@ -196,6 +202,41 @@ public struct HTMLPreviewView: NSViewRepresentable {
             printOp.runModal(for: window, delegate: nil, didRun: nil, contextInfo: nil)
         }
         printAction = context.coordinator.printAction
+
+        // Wire the save-as-PDF action.
+        context.coordinator.saveAsPDFAction = { [weak webView] in
+            guard let webView, let window = webView.window else { return }
+            let panel = NSSavePanel()
+            panel.allowedContentTypes = [.pdf]
+            let suggestedName = context.coordinator.currentBaseURL?.lastPathComponent ?? "document"
+            panel.nameFieldStringValue = (suggestedName as NSString).deletingPathExtension + ".pdf"
+            panel.beginSheetModal(for: window) { response in
+                guard response == .OK, let url = panel.url else { return }
+                let config = WKPDFConfiguration()
+                config.rect = .zero  // full document
+                webView.createPDF(configuration: config) { result in
+                    switch result {
+                    case .success(let data):
+                        do {
+                            try data.write(to: url)
+                        } catch {
+                            let alert = NSAlert()
+                            alert.messageText = "Save as PDF Failed"
+                            alert.informativeText = error.localizedDescription
+                            alert.alertStyle = .warning
+                            alert.runModal()
+                        }
+                    case .failure(let error):
+                        let alert = NSAlert()
+                        alert.messageText = "PDF Generation Failed"
+                        alert.informativeText = error.localizedDescription
+                        alert.alertStyle = .warning
+                        alert.runModal()
+                    }
+                }
+            }
+        }
+        saveAsPDFAction = context.coordinator.saveAsPDFAction
 
         // Inject per-panel font and background CSS (F-4), then load (throttled — SR-4).
         let styled = htmlByInjectingOverrides(session.text, settings: settings)

@@ -12,6 +12,11 @@ public final class MockInterPanelRouter: InterPanelRouter {
     public var closeCalls: [UUID] = []
     public var syncDirectoryCalls: [URL] = []
     public var moveActiveTabToNewWindowCalls: Int = 0
+    public var sendToTerminalCalls: [String] = []
+    public var runInTerminalCalls: [String] = []
+    public var terminalSelectionText: String? = nil
+    public var terminalCommandOutputText: String? = nil
+    public var focusTerminalCalls: Int = 0
 
     public var shouldSucceed = true
 
@@ -32,6 +37,26 @@ public final class MockInterPanelRouter: InterPanelRouter {
     public func moveActiveTabToNewWindow() async -> UUID? {
         moveActiveTabToNewWindowCalls += 1
         return shouldSucceed ? UUID() : nil
+    }
+
+    public func sendToTerminal(_ text: String) {
+        sendToTerminalCalls.append(text)
+    }
+
+    public func runInTerminal(_ command: String) {
+        runInTerminalCalls.append(command)
+    }
+
+    public func terminalCurrentSelection() -> String? {
+        terminalSelectionText
+    }
+
+    public func terminalLastCommandOutput() -> String? {
+        terminalCommandOutputText
+    }
+
+    public func focusTerminal() {
+        focusTerminalCalls += 1
     }
 }
 

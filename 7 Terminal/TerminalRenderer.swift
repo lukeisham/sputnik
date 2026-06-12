@@ -16,17 +16,20 @@ public struct TerminalRenderer: NSViewRepresentable {
     public let profile: TerminalProfile
     public let onKeyInput: (Data) -> Void
     public let onResize: (UInt16, UInt16) -> Void
+    public let onTextViewCreated: ((TerminalTextView) -> Void)?
 
     public init(
         snapshot: EmulatorSnapshot?,
         profile: TerminalProfile,
         onKeyInput: @escaping (Data) -> Void,
-        onResize: @escaping (UInt16, UInt16) -> Void
+        onResize: @escaping (UInt16, UInt16) -> Void,
+        onTextViewCreated: ((TerminalTextView) -> Void)? = nil
     ) {
         self.snapshot = snapshot
         self.profile = profile
         self.onKeyInput = onKeyInput
         self.onResize = onResize
+        self.onTextViewCreated = onTextViewCreated
     }
 
     // MARK: - NSViewRepresentable
@@ -35,6 +38,7 @@ public struct TerminalRenderer: NSViewRepresentable {
         let view = TerminalTextView(frame: .zero)
         view.onKeyInput = onKeyInput
         view.onResize = onResize
+        onTextViewCreated?(view)
         return view
     }
 

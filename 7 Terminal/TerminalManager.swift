@@ -1,6 +1,6 @@
 import Foundation
-import SwiftUI
 import FoundationModule
+import SwiftUI
 
 /// Coordinates the `TerminalSession` and `TerminalEmulator` for the terminal panel.
 ///
@@ -12,7 +12,10 @@ import FoundationModule
 /// The manager is the sole writer for all terminal UI state; `TerminalView` reads
 /// from it via `@StateObject` / `@ObservedObject`.
 @MainActor
-public final class TerminalManager: ObservableObject, TerminalLifecycle {
+public final class TerminalManager: ObservableObject, TerminalLifecycle, TerminalCommanding {
+
+    /// Stable identity for tab management within a window.
+    public let id = UUID()
 
     // MARK: - Published UI state
 
@@ -33,7 +36,9 @@ public final class TerminalManager: ObservableObject, TerminalLifecycle {
     /// Terminal importing the monitor directly (SR-1).
     public nonisolated(unsafe) weak var aiOutputObserver: TerminalAIOutputObserving?
 
-    // MARK: - Private storage
+    /// Weak reference to the TerminalTextView for selection queries.
+    /// Set by `TerminalView` via `TerminalRenderer.onTextViewCreated`.
+    public nonisolated(unsafe) weak var terminalTextView: TerminalTextView?
 
     private var session: TerminalSession?
     private var emulator: TerminalEmulator?
@@ -194,13 +199,25 @@ public final class TerminalManager: ObservableObject, TerminalLifecycle {
     public func dismissAlert() {
         pendingAlert = nil
     }
-}
 
-// MARK: - String helper
+    // MARK: - TerminalCommanding (2.6)
 
-extension String {
-    /// Returns a shell-safe version of the string, single-quoted.
-    fileprivate var shellEscaped: String {
-        "'\(replacingOccurrences(of: "'", with: "'\\''"))'"
+    public func sendText(_ text: String) {
+        guard let data = text.data(using: .utf8) else { return }
+        send(data)
+    }
+
+    public func sendCommand(_ command: String) {
+        guard let data = (command + "\n").data(using: .utf8) else { return }
+        send(data)
+    }
+
+    public func currentSelectionText() -> String? {
+        terminalTextView?.selectionText()
+    }
+
+    public func lastCommandOutput() -> String? {
+        // Read from the cached @Published snapshot (updated by the pump task).
+        snapshot?.lastCommandOutput
     }
 }

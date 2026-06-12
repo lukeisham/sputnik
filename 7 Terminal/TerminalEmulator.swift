@@ -8,17 +8,21 @@ import Foundation
 /// copying any non-`Sendable` types (SW-1, SR-4).
 public struct EmulatorSnapshot: Sendable {
     /// Active screen grid: `grid[row][col]`.
-    public let grid:       [[ScreenCell]]
+    public let grid: [[ScreenCell]]
     /// Lines scrolled off the top of the active screen, oldest first.
     public let scrollback: [[ScreenCell]]
     /// Cursor row within the active grid (0-based).
-    public let cursorRow:  Int
+    public let cursorRow: Int
     /// Cursor column within the active grid (0-based).
-    public let cursorCol:  Int
+    public let cursorCol: Int
     /// Whether the cursor should be rendered.
     public let cursorVisible: Bool
     /// Current terminal title (from OSC sequences), if set.
-    public let title:      String?
+    public let title: String?
+    /// The captured output text of the last completed command (OSC 133 D).
+    public let lastCommandOutput: String?
+    /// Exit code from the last completed command, or 0 if none.
+    public let lastCommandExitCode: Int32
 }
 
 // MARK: - Emulator actor
@@ -38,16 +42,16 @@ public actor TerminalEmulator {
 
     // MARK: - Cursor & attributes
 
-    private var cursorRow:  Int = 0
-    private var cursorCol:  Int = 0
+    private var cursorRow: Int = 0
+    private var cursorCol: Int = 0
     private var cursorVisible: Bool = true
-    private var savedRow:   Int = 0
-    private var savedCol:   Int = 0
+    private var savedRow: Int = 0
+    private var savedCol: Int = 0
 
     // MARK: - Current SGR attributes
 
-    private var currentFG:    CellColor = .default
-    private var currentBG:    CellColor = .default
+    private var currentFG: CellColor = .default
+    private var currentBG: CellColor = .default
     private var currentStyle: CellStyle = .plain
 
     // MARK: - Scrollback
@@ -56,10 +60,10 @@ public actor TerminalEmulator {
 
     // MARK: - Alt screen support
 
-    private var altGrid:        [[ScreenCell]]?
-    private var altCursorRow:   Int = 0
-    private var altCursorCol:   Int = 0
-    private var inAltScreen:    Bool = false
+    private var altGrid: [[ScreenCell]]?
+    private var altCursorRow: Int = 0
+    private var altCursorCol: Int = 0
+    private var inAltScreen: Bool = false
 
     // MARK: - Parser
 
@@ -69,12 +73,21 @@ public actor TerminalEmulator {
 
     private var title: String?
 
+    // MARK: - OSC 133 shell-integration command-output capture
+
+    /// When true, printed characters and newlines are captured into `commandOutputBuffer`.
+    private var capturingCommandOutput: Bool = false
+    private var commandOutputBuffer: String = ""
+    /// The captured text of the last finished command (set at OSC 133 D).
+    private var lastCommandOutput: String? = nil
+    private var lastCommandExitCode: Int32 = 0
+
     // MARK: - Init
 
     public init(cols: Int = 80, rows: Int = 24, profile: TerminalProfile = .default) {
-        self.cols       = cols
-        self.rows       = rows
-        self.grid       = TerminalEmulator.emptyGrid(cols: cols, rows: rows)
+        self.cols = cols
+        self.rows = rows
+        self.grid = TerminalEmulator.emptyGrid(cols: cols, rows: rows)
         self.scrollback = ScrollbackBuffer(capacity: profile.scrollbackLineLimit)
     }
 
@@ -113,22 +126,24 @@ public actor TerminalEmulator {
     /// Safe to call from `@MainActor` — the returned value is fully `Sendable`.
     public func snapshot() -> EmulatorSnapshot {
         EmulatorSnapshot(
-            grid:          grid,
-            scrollback:    scrollback.lines(),
-            cursorRow:     cursorRow,
-            cursorCol:     cursorCol,
+            grid: grid,
+            scrollback: scrollback.lines(),
+            cursorRow: cursorRow,
+            cursorCol: cursorCol,
             cursorVisible: cursorVisible,
-            title:         title
+            title: title,
+            lastCommandOutput: lastCommandOutput,
+            lastCommandExitCode: lastCommandExitCode
         )
     }
 
     /// Clears the screen and resets cursor.
     public func reset() {
-        grid       = TerminalEmulator.emptyGrid(cols: cols, rows: rows)
-        cursorRow  = 0
-        cursorCol  = 0
-        currentFG  = .default
-        currentBG  = .default
+        grid = TerminalEmulator.emptyGrid(cols: cols, rows: rows)
+        cursorRow = 0
+        cursorCol = 0
+        currentFG = .default
+        currentBG = .default
         currentStyle = .plain
         scrollback.clear()
     }
@@ -136,7 +151,35 @@ public actor TerminalEmulator {
     // MARK: - Op application
 
     private func apply(_ op: TerminalOp) {
+        // ---- OSC 133 shell-integration capture ----
+        if case .print(let ch) = op, capturingCommandOutput {
+            commandOutputBuffer.append(ch)
+        }
+        if case .newline = op, capturingCommandOutput {
+            commandOutputBuffer.append("\n")
+        }
+
         switch op {
+
+        case .shellPromptStart:
+            // OSC 133 A — prompt begins. No capture action.
+            break
+
+        case .shellCommandStart:
+            // OSC 133 B — command input starts. Discard any stale capture.
+            capturingCommandOutput = false
+            commandOutputBuffer = ""
+
+        case .shellOutputStart:
+            // OSC 133 C — command output begins. Start capturing.
+            capturingCommandOutput = true
+            commandOutputBuffer = ""
+
+        case .shellCommandEnd(let exitCode):
+            // OSC 133 D — command finished.
+            capturingCommandOutput = false
+            lastCommandOutput = commandOutputBuffer
+            lastCommandExitCode = exitCode
 
         case .print(let ch):
             if cursorCol >= cols {
@@ -145,10 +188,10 @@ public actor TerminalEmulator {
                 lineFeed()
             }
             grid[cursorRow][cursorCol] = ScreenCell(
-                character:  ch,
+                character: ch,
                 foreground: currentFG,
                 background: currentBG,
-                style:      currentStyle
+                style: currentStyle
             )
             cursorCol += 1
 
@@ -166,7 +209,7 @@ public actor TerminalEmulator {
             cursorCol = min(nextTab, cols - 1)
 
         case .bell:
-            break // audible/visual bell out of scope
+            break  // audible/visual bell out of scope
 
         case .moveCursor(let row, let col):
             cursorRow = clampRow(row)
@@ -207,20 +250,20 @@ public actor TerminalEmulator {
 
         case .enterAltScreen:
             guard !inAltScreen else { break }
-            altGrid      = grid
+            altGrid = grid
             altCursorRow = cursorRow
             altCursorCol = cursorCol
-            grid         = TerminalEmulator.emptyGrid(cols: cols, rows: rows)
-            cursorRow    = 0
-            cursorCol    = 0
-            inAltScreen  = true
+            grid = TerminalEmulator.emptyGrid(cols: cols, rows: rows)
+            cursorRow = 0
+            cursorCol = 0
+            inAltScreen = true
 
         case .exitAltScreen:
             guard inAltScreen else { break }
             if let saved = altGrid { grid = saved }
-            cursorRow   = clampRow(altCursorRow)
-            cursorCol   = clampCol(altCursorCol)
-            altGrid     = nil
+            cursorRow = clampRow(altCursorRow)
+            cursorCol = clampCol(altCursorCol)
+            altGrid = nil
             inAltScreen = false
 
         case .setCursorVisible(let visible):
@@ -284,20 +327,22 @@ public actor TerminalEmulator {
         for attr in attrs {
             switch attr {
             case .reset:
-                currentFG    = .default
-                currentBG    = .default
+                currentFG = .default
+                currentBG = .default
                 currentStyle = .plain
-            case .bold:          currentStyle.bold          = true
-            case .dim:           currentStyle.dim           = true
-            case .italic:        currentStyle.italic        = true
-            case .underline:     currentStyle.underline     = true
-            case .blink:         currentStyle.blink         = true
-            case .inverse:       currentStyle.inverse       = true
+            case .bold: currentStyle.bold = true
+            case .dim: currentStyle.dim = true
+            case .italic: currentStyle.italic = true
+            case .underline: currentStyle.underline = true
+            case .blink: currentStyle.blink = true
+            case .inverse: currentStyle.inverse = true
             case .strikethrough: currentStyle.strikethrough = true
-            case .noBold:        currentStyle.bold          = false; currentStyle.dim = false
-            case .noItalic:      currentStyle.italic        = false
-            case .noUnderline:   currentStyle.underline     = false
-            case .noInverse:     currentStyle.inverse       = false
+            case .noBold:
+                currentStyle.bold = false
+                currentStyle.dim = false
+            case .noItalic: currentStyle.italic = false
+            case .noUnderline: currentStyle.underline = false
+            case .noInverse: currentStyle.inverse = false
             case .foreground(let c): currentFG = c
             case .background(let c): currentBG = c
             }

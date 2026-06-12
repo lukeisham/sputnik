@@ -425,6 +425,114 @@ public final class EditorTextView: NSTextView {
         return rect
     }
 
+    // MARK: - Drag and drop (image files)
+
+    /// Validates that the dragging pasteboard contains image file URLs.
+    /// Accepts the drag with `.copy` operation if so.
+    public override func draggingEntered(_ sender: NSDraggingInfo) -> NSDragOperation {
+        if hasImageFileURL(in: sender.draggingPasteboard) {
+            return .copy
+        }
+        return super.draggingEntered(sender)
+    }
+
+    /// Continues accepting image file URL drags with `.copy`.
+    public override func draggingUpdated(_ sender: NSDraggingInfo) -> NSDragOperation {
+        if hasImageFileURL(in: sender.draggingPasteboard) {
+            return .copy
+        }
+        return super.draggingUpdated(sender)
+    }
+
+    /// Handles a drop containing an image file URL:
+    /// 1. Opens the image in the PDF Viewer via the router.
+    /// 2. Inserts Markdown/HTML markup at the drop point.
+    public override func performDragOperation(_ sender: NSDraggingInfo) -> Bool {
+        guard let fileURL = imageFileURL(from: sender.draggingPasteboard) else {
+            return super.performDragOperation(sender)
+        }
+
+        // Open the image in the PDF Viewer.
+        if let router = editorViewModel?.router {
+            Task { @MainActor in
+                await router.open(fileURL)
+            }
+        }
+
+        // Compute relative path for markup insertion.
+        let markup = markupString(for: fileURL)
+        insertText(markup, replacementRange: selectedRange())
+
+        return true
+    }
+
+    /// Checks if the pasteboard contains an image file URL.
+    private func hasImageFileURL(in pasteboard: NSPasteboard) -> Bool {
+        imageFileURL(from: pasteboard) != nil
+    }
+
+    /// Extracts the first image file URL from the pasteboard, if any.
+    private func imageFileURL(from pasteboard: NSPasteboard) -> URL? {
+        guard let items = pasteboard.pasteboardItems else { return nil }
+        for item in items {
+            guard let urlString = item.string(forType: .fileURL),
+                let url = URL(string: urlString)
+            else { continue }
+            // Normalise the file URL.
+            let fileURL = if url.isFileURL { url } else { URL(fileURLWithPath: url.path) }
+            guard fileURL.isFileURL else { continue }
+            let ext = fileURL.pathExtension.lowercased()
+            let imageExtensions: Set<String> = ["png", "jpg", "jpeg", "gif", "heic", "bmp", "tiff"]
+            if imageExtensions.contains(ext) {
+                return fileURL
+            }
+        }
+        return nil
+    }
+
+    /// Computes the markup string to insert for the given image file URL.
+    /// Uses Markdown syntax `![filename](path)` for `.markdown` mode and
+    /// HTML `<img src="path" alt="filename">` for `.html` mode.
+    /// Falls back to Markdown for all other modes.
+    private func markupString(for imageURL: URL) -> String {
+        let useHTML = editorViewModel?.mode == .html
+        let filename = imageURL.deletingPathExtension().lastPathComponent
+        let path = relativePath(for: imageURL)
+
+        if useHTML {
+            let escapedPath =
+                path.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? path
+            let escapedAlt =
+                filename.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? filename
+            return "<img src=\"\(escapedPath)\" alt=\"\(escapedAlt)\">"
+        } else {
+            // Markdown syntax (default fallback)
+            return "![\(filename)](\(path))"
+        }
+    }
+
+    /// Computes a relative path from the editor's current file directory to `imageURL`.
+    /// Falls back to the absolute path when no editor file is open.
+    private func relativePath(for imageURL: URL) -> String {
+        guard let editorFileURL = editorViewModel?.fileURL else {
+            return imageURL.path
+        }
+        let editorDir = editorFileURL.deletingLastPathComponent()
+        let imagePath = imageURL.resolvingSymlinksInPath().path
+        let dirPath = editorDir.resolvingSymlinksInPath().path
+
+        guard imagePath.hasPrefix(dirPath) else {
+            // Image is outside the editor's directory tree — use absolute path.
+            return imageURL.path
+        }
+
+        var relative = String(imagePath.dropFirst(dirPath.count))
+        if relative.hasPrefix("/") {
+            relative = String(relative.dropFirst())
+        }
+        return relative.isEmpty ? imageURL.lastPathComponent : relative
+    }
+
 }
 
 // MARK: - Summarization Popover View

@@ -109,6 +109,11 @@ public final class AppState {
 
     public var recentFiles: [URL] { layout.recentFiles }
 
+    public var editorScrollFraction: Double? {
+        get { activeWindow?.editorScrollFraction }
+        set { activeWindow?.editorScrollFraction = newValue }
+    }
+
     public var requestedHelpTarget: HelpRequest? {
         get { activeWindow?.requestedHelpTarget }
         set { activeWindow?.requestedHelpTarget = newValue }
@@ -278,7 +283,7 @@ public final class AppState {
     /// All `TerminalLifecycle` instances across every open window.
     /// `AppDelegate.applicationShouldTerminate` iterates these to kill every PTY.
     public var allTerminalManagers: [any TerminalLifecycle] {
-        windows.values.compactMap { $0.terminalManager }
+        windows.values.flatMap { $0.terminalManagers }
     }
 
     // MARK: - Init

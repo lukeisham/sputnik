@@ -344,12 +344,12 @@ public final class TerminalTextView: NSView {
         return CGFloat(snap.scrollback.count + snap.grid.count)
     }
 
-    /// Copies the currently selected cell range to the system pasteboard as plain text.
-    private func copySelectionToPasteboard() {
+    /// Returns the currently selected text as a plain string, or `nil` if nothing is selected.
+    public func selectionText() -> String? {
         guard let selected = selectedCells,
             let snap = snapshot,
             !selected.isEmpty
-        else { return }
+        else { return nil }
 
         let grid = snap.scrollback + snap.grid
         let sorted = selected.sorted { $0.row != $1.row ? $0.row < $1.row : $0.col < $1.col }
@@ -375,7 +375,12 @@ public final class TerminalTextView: NSView {
             lines.append(currentLine)
         }
 
-        let text = lines.joined(separator: "\n")
+        return lines.joined(separator: "\n")
+    }
+
+    /// Copies the currently selected cell range to the system pasteboard as plain text.
+    private func copySelectionToPasteboard() {
+        guard let text = selectionText() else { return }
         NSPasteboard.general.clearContents()
         NSPasteboard.general.setString(text, forType: .string)
     }

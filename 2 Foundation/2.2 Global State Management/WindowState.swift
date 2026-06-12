@@ -140,6 +140,13 @@ public final class WindowState {
     /// SwiftUI window has appeared. `nil` when no saved frame exists.
     public var restoredWindowFrame: CGRect?
 
+    // MARK: - Preview scroll sync
+
+    /// Live fractional scroll position of the active editor (0.0 = top, 1.0 = bottom).
+    /// Written (throttled) by the editor's scroll observer; read by preview panels for
+    /// editor→preview scroll sync (ISS-063). `nil` before the first scroll event.
+    public var editorScrollFraction: Double?
+
     // MARK: - Per-document view state (caret + scroll)
 
     /// Live buffer for per-document editor view state (caret position, scroll offset).
@@ -148,13 +155,25 @@ public final class WindowState {
     /// Keyed by `DocumentSession.id.uuidString` (string keys for JSON compatibility).
     public var documentViewStates: [String: DocumentViewState] = [:]
 
-    // MARK: - Terminal manager reference
+    // MARK: - Terminal manager reference (multi-session)
 
-    /// The terminal manager owned by this window. Stored here so it survives
-    /// view redraws and is accessible from `AppDelegate` for clean shutdown.
-    /// Set by `TerminalView` via `.onAppear`; `weak` is not used because
-    /// `WindowState` should outlive the view.
-    public var terminalManager: (any TerminalLifecycle)?
+    /// All terminal managers owned by this window.
+    /// Each entry corresponds to an independent Zsh PTY session (one per tab).
+    /// Registered by `TerminalView` on tab creation; deregistered on tab close.
+    /// `AppState.allTerminalManagers` collects these across all windows for clean shutdown.
+    public var terminalManagers: [any TerminalLifecycle] = []
+
+    /// A richer terminal reference for editor↔terminal integration —
+    /// supports sending text/commands, reading selections, and retrieving
+    /// last-command output (OSC 133 shell integration).
+    ///
+    /// Set by `TerminalView` to the active tab's manager.
+    /// The editor reads this via `InterPanelRouter` (SR-1).
+    public var terminalCommander: (any TerminalCommanding)?
+
+    /// Incremented by menu/item commands to request a new terminal tab.
+    /// Observed by `TerminalView.onChange` to create tabs from outside the view.
+    public var newTerminalTabRequested: Int = 0
 
     // MARK: - Init
 

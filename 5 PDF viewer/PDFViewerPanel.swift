@@ -183,7 +183,6 @@ public struct PDFViewerPanel: View {
 
     private func handleActiveDocumentChange() {
         guard let session = appState.activeDocument,
-            session.fileType == FileType.pdf,
             let url = session.url
         else {
             // Non-PDF or no document — don't clear so we don't flash empty state
@@ -192,8 +191,15 @@ public struct PDFViewerPanel: View {
         }
 
         // Only reload if the URL actually changed.
-        if viewModel.document?.documentURL != url {
+        guard viewModel.document?.documentURL != url else { return }
+
+        switch session.fileType {
+        case .pdf:
             Task { await viewModel.loadPDF(url) }
+        case .image:
+            Task { await viewModel.loadImage(url) }
+        default:
+            break
         }
     }
 

@@ -23,6 +23,7 @@ public final class AppInterPanelRouter: InterPanelRouter {
     // MARK: - Dependencies
 
     private weak var appState: AppState?
+    private weak var focusCoordinator: PanelFocusCoordinator?
 
     // MARK: - Init
 
@@ -35,10 +36,11 @@ public final class AppInterPanelRouter: InterPanelRouter {
         self.continuation = continuation
     }
 
-    /// Injects `AppState` after construction.
+    /// Injects `AppState` and `PanelFocusCoordinator` after construction.
     /// Call from `SputnikApp.wireAppDelegate()` before any routing can occur.
-    public func configure(appState: AppState) {
+    public func configure(appState: AppState, focusCoordinator: PanelFocusCoordinator) {
         self.appState = appState
+        self.focusCoordinator = focusCoordinator
     }
 
     // MARK: - InterPanelRouter
@@ -64,13 +66,14 @@ public final class AppInterPanelRouter: InterPanelRouter {
     /// returns `nil` if there is no active document or the user cancels the confirmation.
     public func moveActiveTabToNewWindow() async -> UUID? {
         guard let appState,
-              let sourceWS = appState.activeWindow,
-              let docID = sourceWS.activeDocumentID,
-              let session = sourceWS.activeDocument
+            let sourceWS = appState.activeWindow,
+            let docID = sourceWS.activeDocumentID,
+            let session = sourceWS.activeDocument
         else { return nil }
 
         if session.isDirty {
-            let confirmed = await confirmMoveUnsavedTab(filename: session.url?.lastPathComponent ?? "Untitled")
+            let confirmed = await confirmMoveUnsavedTab(
+                filename: session.url?.lastPathComponent ?? "Untitled")
             guard confirmed else { return nil }
         }
 
@@ -92,7 +95,8 @@ public final class AppInterPanelRouter: InterPanelRouter {
             let alert = NSAlert()
             alert.alertStyle = .warning
             alert.messageText = "Unsaved Changes"
-            alert.informativeText = "\u{201C}\(filename)\u{201D} has unsaved changes. Moving it will not discard them, but you will need to save from the new window."
+            alert.informativeText =
+                "\u{201C}\(filename)\u{201D} has unsaved changes. Moving it will not discard them, but you will need to save from the new window."
             alert.addButton(withTitle: "Move")
             alert.addButton(withTitle: "Cancel")
             continuation.resume(returning: alert.runModal() == .alertFirstButtonReturn)
@@ -103,6 +107,36 @@ public final class AppInterPanelRouter: InterPanelRouter {
         guard let appState else { return }
         appState.activeWorkspaceDirectory = url
         continuation.yield(.directoryChanged(url))
+    }
+
+    // MARK: - Preview ↔ Editor bidirectional navigation
+
+    public func revealSourceLine(_ line: Int) {
+        appState?.editorCommandHandler?.revealLine(line)
+    }
+
+    // MARK: - Editor ↔ Terminal integration
+
+    public func sendToTerminal(_ text: String) {
+        guard let commander = appState?.activeWindow?.terminalCommander else { return }
+        commander.sendText(text)
+    }
+
+    public func runInTerminal(_ command: String) {
+        guard let commander = appState?.activeWindow?.terminalCommander else { return }
+        commander.sendCommand(command)
+    }
+
+    public func terminalCurrentSelection() -> String? {
+        appState?.activeWindow?.terminalCommander?.currentSelectionText()
+    }
+
+    public func terminalLastCommandOutput() -> String? {
+        appState?.activeWindow?.terminalCommander?.lastCommandOutput()
+    }
+
+    public func focusTerminal() {
+        focusCoordinator?.focusTerminal()
     }
 
     // MARK: - Lifecycle

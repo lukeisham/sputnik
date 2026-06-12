@@ -35,6 +35,9 @@ public struct MarkdownPreviewPanel: View {
     /// Print-action closure, set by `MarkdownRenderView` when the text view is available.
     @State private var printAction: (() -> Void)? = nil
 
+    /// Save-as-PDF-action closure, set by `MarkdownRenderView` when the text view is available.
+    @State private var saveAsPDFAction: (() -> Void)? = nil
+
     /// The coordinator for this panel, created once on init and wired into `MarkdownRenderView`.
     private let coordinator: MarkdownPreviewCoordinator
 
@@ -116,8 +119,11 @@ public struct MarkdownPreviewPanel: View {
 
             Spacer()
 
-            // Overflow menu: Print…, Reveal in Finder.
+            // Overflow menu: Save as PDF…, Print…, Reveal in Finder.
             Menu {
+                Button("Save as PDF…") { saveAsPDFAction?() }
+                    .disabled(saveAsPDFAction == nil)
+
                 Button("Print…") { printAction?() }
                     .disabled(printAction == nil)
 
@@ -229,7 +235,8 @@ public struct MarkdownPreviewPanel: View {
                             coordinator: coordinator,
                             settings: settings,
                             scrollOffset: scrollBinding(for: appState.activeDocumentID),
-                            printAction: $printAction
+                            printAction: $printAction,
+                            saveAsPDFAction: $saveAsPDFAction
                         )
                         .frame(maxWidth: 720)
                         .frame(maxWidth: .infinity)
@@ -242,7 +249,8 @@ public struct MarkdownPreviewPanel: View {
                             coordinator: coordinator,
                             settings: settings,
                             scrollOffset: scrollBinding(for: appState.activeDocumentID),
-                            printAction: $printAction
+                            printAction: $printAction,
+                            saveAsPDFAction: $saveAsPDFAction
                         )
                     }
                 }

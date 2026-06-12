@@ -44,13 +44,21 @@ public enum TerminalOp: Sendable {
     case exitAltScreen
     /// Show or hide the cursor.
     case setCursorVisible(Bool)
+    /// OSC 133 A — shell prompt start marker.
+    case shellPromptStart
+    /// OSC 133 B — command input start (pre-exec).
+    case shellCommandStart
+    /// OSC 133 C — command output start.
+    case shellOutputStart
+    /// OSC 133 D — command finished, with optional exit code.
+    case shellCommandEnd(exitCode: Int32)
 }
 
 /// How much of the display or line to erase.
 public enum EraseMode: Sendable {
-    case toEnd      // from cursor to end
-    case toStart    // from start to cursor
-    case all        // entire area
+    case toEnd  // from cursor to end
+    case toStart  // from start to cursor
+    case all  // entire area
 }
 
 /// One SGR (Select Graphic Rendition) attribute.
@@ -83,11 +91,11 @@ public struct ANSIParser {
     // MARK: - Internal state machine
 
     private enum State {
-        case ground                  // normal text
-        case escape                  // received ESC (0x1B)
-        case csi([UInt8])            // received ESC [ — accumulating CSI bytes
-        case osc(String)             // received ESC ] — accumulating OSC string
-        case oscSt(String)           // OSC awaiting terminator
+        case ground  // normal text
+        case escape  // received ESC (0x1B)
+        case csi([UInt8])  // received ESC [ — accumulating CSI bytes
+        case osc(String)  // received ESC ] — accumulating OSC string
+        case oscSt(String)  // OSC awaiting terminator
     }
 
     private var state: State = .ground
@@ -131,13 +139,21 @@ public struct ANSIParser {
 
         case .escape:
             switch byte {
-            case 0x5B: state = .csi([])          // ESC [  → CSI
-            case 0x5D: state = .osc("")           // ESC ]  → OSC
-            case 0x37: ops.append(.saveCursor);   state = .ground  // ESC 7
-            case 0x38: ops.append(.restoreCursor); state = .ground // ESC 8
-            case 0x44: ops.append(.newline);      state = .ground  // ESC D (IND)
-            case 0x4D: ops.append(.scrollUp(1)); state = .ground   // ESC M (RI)
-            default:   state = .ground
+            case 0x5B: state = .csi([])  // ESC [  → CSI
+            case 0x5D: state = .osc("")  // ESC ]  → OSC
+            case 0x37:
+                ops.append(.saveCursor)
+                state = .ground  // ESC 7
+            case 0x38:
+                ops.append(.restoreCursor)
+                state = .ground  // ESC 8
+            case 0x44:
+                ops.append(.newline)
+                state = .ground  // ESC D (IND)
+            case 0x4D:
+                ops.append(.scrollUp(1))
+                state = .ground  // ESC M (RI)
+            default: state = .ground
             }
 
         case .csi(let bytes):
@@ -174,24 +190,24 @@ public struct ANSIParser {
 
     private func dispatchCSI(params bytes: [UInt8], final: UInt8) -> [TerminalOp] {
         let paramString = String(bytes: bytes.filter { $0 != 0x3F }, encoding: .ascii) ?? ""
-        let isPrivate   = bytes.first == 0x3F     // leading '?'
-        let nums        = parseParams(paramString)
-        let p0          = nums.first ?? 0
-        let p1          = nums.count > 1 ? nums[1] : 0
+        let isPrivate = bytes.first == 0x3F  // leading '?'
+        let nums = parseParams(paramString)
+        let p0 = nums.first ?? 0
+        let p1 = nums.count > 1 ? nums[1] : 0
 
         switch final {
 
         // Cursor movement
-        case 0x41: return [.moveCursorRelative(rows: -(max(p0, 1)), cols: 0)] // CUU
-        case 0x42: return [.moveCursorRelative(rows:  max(p0, 1),  cols: 0)] // CUD
-        case 0x43: return [.moveCursorRelative(rows: 0, cols:  max(p0, 1))]  // CUF
-        case 0x44: return [.moveCursorRelative(rows: 0, cols: -(max(p0, 1)))]// CUB
-        case 0x45: return [.moveCursorRelative(rows:  max(p0, 1), cols: 0), .setCursorCol(0)] // CNL
-        case 0x46: return [.moveCursorRelative(rows: -(max(p0, 1)), cols: 0), .setCursorCol(0)] // CPL
-        case 0x47: return [.setCursorCol(max(p0, 1) - 1)]   // CHA
-        case 0x48, 0x66:                                     // CUP / HVP
+        case 0x41: return [.moveCursorRelative(rows: -(max(p0, 1)), cols: 0)]  // CUU
+        case 0x42: return [.moveCursorRelative(rows: max(p0, 1), cols: 0)]  // CUD
+        case 0x43: return [.moveCursorRelative(rows: 0, cols: max(p0, 1))]  // CUF
+        case 0x44: return [.moveCursorRelative(rows: 0, cols: -(max(p0, 1)))]  // CUB
+        case 0x45: return [.moveCursorRelative(rows: max(p0, 1), cols: 0), .setCursorCol(0)]  // CNL
+        case 0x46: return [.moveCursorRelative(rows: -(max(p0, 1)), cols: 0), .setCursorCol(0)]  // CPL
+        case 0x47: return [.setCursorCol(max(p0, 1) - 1)]  // CHA
+        case 0x48, 0x66:  // CUP / HVP
             return [.moveCursor(row: max(p0, 1) - 1, col: max(p1, 1) - 1)]
-        case 0x64: return [.setCursorRow(max(p0, 1) - 1)]   // VPA
+        case 0x64: return [.setCursorRow(max(p0, 1) - 1)]  // VPA
         case 0x73: return [.saveCursor]
         case 0x75: return [.restoreCursor]
 
@@ -213,7 +229,7 @@ public struct ANSIParser {
 
         // Scroll
         case 0x53: return [.scrollUp(max(p0, 1))]  // SU
-        case 0x54: return []                         // SD — ignored for now
+        case 0x54: return []  // SD — ignored for now
 
         default: return []
         }
@@ -249,14 +265,14 @@ public struct ANSIParser {
         while i < nums.count {
             let n = nums[i]
             switch n {
-            case 0:  attrs.append(.reset)
-            case 1:  attrs.append(.bold)
-            case 2:  attrs.append(.dim)
-            case 3:  attrs.append(.italic)
-            case 4:  attrs.append(.underline)
+            case 0: attrs.append(.reset)
+            case 1: attrs.append(.bold)
+            case 2: attrs.append(.dim)
+            case 3: attrs.append(.italic)
+            case 4: attrs.append(.underline)
             case 5, 6: attrs.append(.blink)
-            case 7:  attrs.append(.inverse)
-            case 9:  attrs.append(.strikethrough)
+            case 7: attrs.append(.inverse)
+            case 9: attrs.append(.strikethrough)
             case 22: attrs.append(.noBold)
             case 23: attrs.append(.noItalic)
             case 24: attrs.append(.noUnderline)
@@ -264,16 +280,18 @@ public struct ANSIParser {
             case 30...37: attrs.append(.foreground(.ansi(UInt8(n - 30))))
             case 38:
                 if let (color, consumed) = parseExtendedColor(nums, at: i + 1) {
-                    attrs.append(.foreground(color)); i += consumed
+                    attrs.append(.foreground(color))
+                    i += consumed
                 }
             case 39: attrs.append(.foreground(.default))
             case 40...47: attrs.append(.background(.ansi(UInt8(n - 40))))
             case 48:
                 if let (color, consumed) = parseExtendedColor(nums, at: i + 1) {
-                    attrs.append(.background(color)); i += consumed
+                    attrs.append(.background(color))
+                    i += consumed
                 }
             case 49: attrs.append(.background(.default))
-            case 90...97:  attrs.append(.foreground(.ansi(UInt8(n - 90 + 8))))
+            case 90...97: attrs.append(.foreground(.ansi(UInt8(n - 90 + 8))))
             case 100...107: attrs.append(.background(.ansi(UInt8(n - 100 + 8))))
             default: break
             }
@@ -304,6 +322,23 @@ public struct ANSIParser {
     // MARK: - OSC dispatch
 
     private func dispatchOSC(_ body: String) -> [TerminalOp] {
+        // OSC 133 ; code [; exit_code] — shell-integration markers.
+        if body.hasPrefix("133;") {
+            let rest = String(body.dropFirst(4))
+            // Split at the first semicolon: code and optional exit code.
+            let parts = rest.split(separator: ";", maxSplits: 1, omittingEmptySubsequences: false)
+            let code = parts.first.map { String($0) } ?? ""
+            let exitStr = parts.count > 1 ? String(parts[1]) : ""
+            let exitCode = Int32(exitStr) ?? 0
+            switch code {
+            case "A": return [.shellPromptStart]
+            case "B": return [.shellCommandStart]
+            case "C": return [.shellOutputStart]
+            case "D": return [.shellCommandEnd(exitCode: exitCode)]
+            default: return []
+            }
+        }
+
         // OSC 0 or 2 ; <title>
         guard body.hasPrefix("0;") || body.hasPrefix("2;") else { return [] }
         let title = String(body.dropFirst(2))

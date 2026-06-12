@@ -19,6 +19,11 @@ private final class MockRouter: InterPanelRouter {
     func open(_ file: URL) async { openedURLs.append(file) }
     func close(_ id: UUID) async {}
     func syncDirectory(_ url: URL) { syncedURLs.append(url) }
+    func sendToTerminal(_ text: String) {}
+    func runInTerminal(_ command: String) {}
+    func terminalCurrentSelection() -> String? { nil }
+    func terminalLastCommandOutput() -> String? { nil }
+    func focusTerminal() {}
 }
 
 private func makeTempDir() throws -> URL {

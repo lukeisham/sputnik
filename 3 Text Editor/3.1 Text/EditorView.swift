@@ -123,6 +123,33 @@ public struct EditorView: NSViewRepresentable {
 
         configureTypography(textView, settings: settings)
         textView.isEditable = isEditable
+
+        // Publish the editor's scroll fraction for preview sync (ISS-063, Step 4).
+        // The fraction (0=top, 1=bottom) is written to AppState.editorScrollFraction
+        // so preview panels can follow the editor's scroll position.
+        let clipView = scrollView.contentView
+        clipView.postsBoundsChangedNotifications = true
+        let weakCoordinator = context.coordinator
+        let weakAppState = appState
+        context.coordinator.scrollObserverToken = NotificationCenter.default.addObserver(
+            forName: NSView.boundsDidChangeNotification,
+            object: clipView,
+            queue: .main
+        ) { [weak weakCoordinator, weak scrollView, weak weakAppState] _ in
+            guard let scrollView,
+                  let docView = scrollView.documentView,
+                  let coord = weakCoordinator
+            else { return }
+            let docH = docView.frame.height
+            let viewH = scrollView.contentView.bounds.height
+            guard docH > viewH else { return }
+            let visibleY = scrollView.contentView.documentVisibleRect.origin.y
+            let fraction = max(0.0, min(1.0, Double(visibleY / (docH - viewH))))
+            guard abs(fraction - coord.lastPublishedFraction) > 0.005 else { return }
+            coord.lastPublishedFraction = fraction
+            weakAppState?.editorScrollFraction = fraction
+        }
+
         return scrollView
     }
 
@@ -215,6 +242,10 @@ public struct EditorView: NSViewRepresentable {
         // Syntax highlighting
         fileprivate var syntaxHighlighter: SyntaxHighlighter?
         fileprivate var highlightDebounceTimer: DebounceTimer?
+
+        // Editor scroll fraction observer for preview sync (ISS-063).
+        var scrollObserverToken: NSObjectProtocol?
+        fileprivate var lastPublishedFraction: Double = -1
 
         // Language providers — exactly one is dispatched per text change, based on mode.
         var markdownProvider: MarkdownLanguageProvider?

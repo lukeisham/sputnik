@@ -63,7 +63,9 @@ struct WindowMenuGroup: Commands {
                     // Kill terminal PTYs after closing windows (killAllPTYs is async).
                     Task {
                         for window in windowsToMerge {
-                            await window.terminalManager?.killAllPTYs()
+                            for manager in window.terminalManagers {
+                                await manager.killAllPTYs()
+                            }
                         }
                     }
                 }
