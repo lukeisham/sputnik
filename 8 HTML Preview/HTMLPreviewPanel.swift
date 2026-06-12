@@ -11,7 +11,7 @@ import SwiftUI
 /// states: rendering (`.html` active), wrong-type placeholder (non-`.html` active),
 /// and empty-state placeholder (no document open).
 ///
-/// **Layout:** Occupies the `right` slot by default (`PanelLayout.default`).
+/// **Layout:** Appears as a column in the dynamic layout.
 public struct HTMLPreviewPanel: View {
 
     // MARK: - Environment
@@ -33,6 +33,10 @@ public struct HTMLPreviewPanel: View {
     /// The shared help-context resolver, passed through to `HTMLPreviewView`.
     private let helpContextResolver: HelpContextResolving
 
+    /// Whether help-context actions are enabled for this panel instance.
+    /// `true` for `.active` and `.activePair` columns, `false` for `.viewOnly`.
+    private var helpContextEnabled: Bool = true
+
     // MARK: - Init
 
     /// Creates the HTML Preview panel.
@@ -41,13 +45,17 @@ public struct HTMLPreviewPanel: View {
     ///                            tab-open behaviour for link clicks (preview becomes read-only).
     ///   - helpContextResolver:   Resolver for "More Context" right-click help. Defaults to
     ///                            `SputnikHelpContextResolver.shared`.
+    ///   - helpContextEnabled:    Whether help-context actions are enabled. `true` for active
+    ///                            and active-pair columns, `false` for view-only. Defaults to `true`.
     @MainActor
     public init(
         router: (any InterPanelRouter)? = nil,
-        helpContextResolver: HelpContextResolving? = nil
+        helpContextResolver: HelpContextResolving? = nil,
+        helpContextEnabled: Bool = true
     ) {
         self.router = router
         self.helpContextResolver = helpContextResolver ?? SputnikHelpContextResolver.shared
+        self.helpContextEnabled = helpContextEnabled
     }
 
     // MARK: - Body

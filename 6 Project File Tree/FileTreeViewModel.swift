@@ -1,7 +1,9 @@
 import AppKit
 import Foundation
 import FoundationModule
+import SputnikShared
 import Observation
+import UniformTypeIdentifiers
 
 /// Manages the file tree state: directory scanning, node expansion, selection,
 /// search filtering, and file-system operations.
@@ -18,7 +20,8 @@ public final class FileTreeViewModel {
     public private(set) var rootNode: FileTreeNode?
     public private(set) var activeDirectory: URL?
     public var expandedNodeIDs: Set<URL> = []
-    public var selectedNodeID: URL?
+    public var selectedNodeIDs: Set<URL> = []
+    public var renamingNodeID: URL?
     public var searchText: String = ""
     public private(set) var isScanning: Bool = false
     public private(set) var errorMessage: String?
@@ -55,7 +58,7 @@ public final class FileTreeViewModel {
         activeDirectory = url
         errorMessage = nil
         expandedNodeIDs = []
-        selectedNodeID = nil
+        selectedNodeIDs = []
         // Notify the router so Terminal (module 7) can cd to the new directory
         router?.syncDirectory(url)
         await refreshTree()
@@ -162,7 +165,10 @@ public final class FileTreeViewModel {
         let dest = nodeID.deletingLastPathComponent().appendingPathComponent(trimmed)
         do {
             try FileManager.default.moveItem(at: nodeID, to: dest)
-            if selectedNodeID == nodeID { selectedNodeID = dest }
+            if selectedNodeIDs.contains(nodeID) {
+                selectedNodeIDs.remove(nodeID)
+                selectedNodeIDs.insert(dest)
+            }
             await refreshTree()
         } catch {
             showAlert(title: "Could Not Rename", message: error.localizedDescription)
@@ -171,13 +177,79 @@ public final class FileTreeViewModel {
 
     /// Moves the node at `nodeID` to the system Trash.
     public func trash(nodeID: URL) async {
-        do {
-            try FileManager.default.trashItem(at: nodeID, resultingItemURL: nil)
-            if selectedNodeID == nodeID { selectedNodeID = nil }
-            await refreshTree()
-        } catch {
-            showAlert(title: "Could Not Move to Trash", message: error.localizedDescription)
+        await trash(nodeIDs: [nodeID])
+    }
+
+    /// Moves all nodes in `nodeIDs` to the system Trash.
+    public func trash(nodeIDs: Set<URL>) async {
+        var succeeded = false
+        for id in nodeIDs {
+            do {
+                try FileManager.default.trashItem(at: id, resultingItemURL: nil)
+                selectedNodeIDs.remove(id)
+                succeeded = true
+            } catch {
+                showAlert(title: "Could Not Move to Trash", message: error.localizedDescription)
+            }
         }
+        if succeeded { await refreshTree() }
+    }
+
+    /// Moves all currently selected nodes to the system Trash.
+    public func trashSelected() async {
+        let ids = selectedNodeIDs
+        guard !ids.isEmpty else { return }
+        await trash(nodeIDs: ids)
+    }
+
+    /// Opens a rename text field for the first (or only) selected node.
+    public func beginRenameSelected() {
+        guard renamingNodeID == nil else { return }
+        if let first = selectedNodeIDs.first {
+            renamingNodeID = first
+        }
+    }
+
+    // MARK: - Drag and drop
+
+    /// Handles a drop of file URLs into `directory`.
+    /// Moves files for intra-tree drops, copies for external drops.
+    /// - Returns: `true` if at least one file was accepted.
+    @discardableResult
+    public func handleDrop(_ providers: [NSItemProvider], into directory: URL) -> Bool {
+        let typeID = UTType.fileURL.identifier
+        let activeDirPath = activeDirectory?.path  // Capture before escaping into Sendable closure
+        var handled = false
+        for provider in providers {
+            guard provider.hasItemConformingToTypeIdentifier(typeID) else { continue }
+            provider.loadItem(forTypeIdentifier: typeID, options: nil) { [weak self] item, _ in
+                let url: URL?
+                if let data = item as? Data {
+                    url = URL(dataRepresentation: data, relativeTo: nil)
+                } else if let u = item as? URL {
+                    url = u
+                } else {
+                    url = nil
+                }
+                guard let url, let self else { return }
+                let dest = directory.appendingPathComponent(url.lastPathComponent)
+                let isIntraTree = activeDirPath.map { url.path.hasPrefix($0) } ?? false
+                Task { @MainActor in
+                    do {
+                        if isIntraTree {
+                            try FileManager.default.moveItem(at: url, to: dest)
+                        } else {
+                            try FileManager.default.copyItem(at: url, to: dest)
+                        }
+                        await self.refreshTree()
+                    } catch {
+                        // Silently ignore — drop rejected (standard macOS behaviour)
+                    }
+                }
+            }
+            handled = true
+        }
+        return handled
     }
 
     // MARK: - Search / filtering

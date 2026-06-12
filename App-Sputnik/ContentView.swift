@@ -15,56 +15,103 @@ import TextEditorModule
 /// TextEditorModule or TerminalModule — the dependency arrow stays one-way (ISS-NEW-C).
 public struct ContentView: View {
 
-    @Environment(AppState.self) private var appState
     @Environment(WindowState.self) private var windowState
     @Environment(SettingsStore.self) private var settings
 
-    @State private var editorViewModel = EditorViewModel()
+    @State private var editorViewModel: EditorViewModel
 
+    private let appState: AppState
     private let router: any InterPanelRouter
 
-    public init(windowState: WindowState, router: any InterPanelRouter) {
+    public init(
+        windowState: WindowState, router: any InterPanelRouter,
+        appState: AppState, persistenceService: any PersistenceService
+    ) {
+        self.appState = appState
         self.router = router
+        // Create the editor view model with explicit dependency injection (ISS-056).
+        _editorViewModel = State(
+            initialValue: EditorViewModel(
+                appState: appState,
+                persistenceService: persistenceService
+            )
+        )
         // windowState is injected into the environment by SputnikApp, so @Environment picks it up
     }
 
     public var body: some View {
         VStack(spacing: 0) {
+            // Dynamic column layout
             HStack(spacing: 1) {
-                // Left — Project File Tree (module 6) — reads windowState for per-window workspace
-                FileTreePanel(router: router)
-                    .frame(width: 240)
-                    .frame(maxHeight: .infinity)
-
-                // Centre — tab bar + editor + Markdown preview
-                VStack(spacing: 0) {
-                    DocumentTabBar { id in
-                        Task { await router.close(id) }
+                ForEach(
+                    Array(windowState.layout.dynamicLayout.columns.enumerated()),
+                    id: \.offset
+                ) { index, _ in
+                    let col = windowState.layout.dynamicLayout.columns[index]
+                    let role = windowState.layout.dynamicLayout.role(
+                        of: col.id,
+                        activeColumnID: windowState.activeColumnID
+                    )
+                    // Manual bindings because $windowState is not available for @Environment
+                    let columnBinding = Binding<PanelColumn>(
+                        get: { windowState.layout.dynamicLayout.columns[index] },
+                        set: { windowState.layout.dynamicLayout.columns[index] = $0 }
+                    )
+                    let layoutBinding = Binding<DynamicPanelLayout>(
+                        get: { windowState.layout.dynamicLayout },
+                        set: { windowState.layout.dynamicLayout = $0 }
+                    )
+                    PanelColumnView(
+                        column: columnBinding,
+                        columnIndex: index,
+                        layout: layoutBinding,
+                        columnRole: role
+                    ) { panelID, documentID, columnRole in
+                        panelContentView(
+                            renderMode: panelID,
+                            documentID: documentID,
+                            columnRole: columnRole
+                        )
                     }
 
-                    Divider()
-
-                    TextEditorPanel(
-                        viewModel: editorViewModel, settings: settings, appState: appState
-                    )
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
-
-                    MarkdownPreviewPanel()
+                    if index < windowState.layout.dynamicLayout.columns.count - 1 {
+                        ZStack(alignment: .leading) {
+                            ResizeDivider()
+                            DropZoneView(
+                                insertionIndex: index + 1,
+                                layout: layoutBinding
+                            )
+                        }
+                        .frame(width: 8)
+                    }
                 }
-                .onChange(of: appState.activeDocumentID) { _, _ in
-                    Task { try? await editorViewModel.openDocument(appState.activeDocument?.url) }
-                }
-
-                // Right — help panels or PDF/HTML preview stack
-                rightColumn
             }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .overlay { helpPanelOverlay }
 
             Divider()
 
-            // Terminal strip — reads windowState for per-window directory and manager
-            TerminalView()
-                .frame(maxWidth: .infinity)
-                .frame(height: 200)
+            // Terminal strip + docked scratchpad
+            HStack(spacing: 0) {
+                TerminalView()
+                    .frame(maxWidth: .infinity)
+                    .frame(height: 200)
+
+                if windowState.scratchpadVisible {
+                    Divider()
+                    DockedScratchpadPanel(
+                        text: Binding(
+                            get: { windowState.scratchpadText },
+                            set: { windowState.scratchpadText = $0 }
+                        ),
+                        width: Binding(
+                            get: { windowState.scratchpadDockedWidth },
+                            set: { windowState.scratchpadDockedWidth = $0 }
+                        )
+                    )
+                }
+            }
+            .frame(height: 200)
 
             Divider()
 
@@ -72,33 +119,77 @@ public struct ContentView: View {
         }
         .frame(minWidth: 900, minHeight: 600)
         .navigationTitle(windowState.title)
-        .overlay(alignment: .bottomTrailing) {
-            ScratchpadPanel(
-                isVisible: Binding(
-                    get: { windowState.scratchpadVisible },
-                    set: { windowState.scratchpadVisible = $0 }
-                ),
-                text: Binding(
-                    get: { windowState.scratchpadText },
-                    set: { windowState.scratchpadText = $0 }
-                ),
-                scratchpadFrame: Binding(
-                    get: { windowState.scratchpadFrame },
-                    set: { windowState.scratchpadFrame = $0 }
-                )
-            )
+        .onChange(of: appState.activeDocumentID) { _, newID in
+            guard let newID else { return }
+            Task {
+                try? await editorViewModel.openDocument(appState.activeDocument?.url)
+                // Auto-position: move active text editor column adjacent to File Tree
+                if let fileType = appState.activeDocument?.fileType,
+                    fileType == .text || fileType == .markdown || fileType == .html
+                        || fileType == .ascii,
+                    let activeColID = windowState.activeColumnID
+                {
+                    windowState.layout.dynamicLayout.moveActiveEditorAdjacentToFileTree(
+                        activeColumnID: activeColID)
+                    // Layout is persisted by the next flush cycle from the app delegate.
+                }
+            }
         }
     }
 
-    // MARK: - Right column
+    // MARK: - Panel content
 
-    /// Shows the requested help panel when `requestedHelpTopic` is set, or the
-    /// PDF/HTML preview stack otherwise. All five views stay in the tree so each
-    /// panel's @State (loaded topics, scroll position) survives topic switches.
+    /// Returns the appropriate panel module for the given render mode.
     @ViewBuilder
-    private var rightColumn: some View {
+    private func panelContentView(
+        renderMode: PanelID,
+        documentID: UUID?,
+        columnRole: DynamicPanelLayout.ColumnRole
+    ) -> some View {
+        switch renderMode {
+        case .fileTree:
+            FileTreePanel(router: router)
+
+        case .textEditor:
+            TextEditorPanel(
+                viewModel: editorViewModel,
+                settings: settings,
+                appState: appState,
+                isEditable: columnRole == .active
+            )
+
+        case .markdownPreview:
+            MarkdownPreviewPanel(
+                helpContextEnabled: columnRole == .active || columnRole == .activePair
+            )
+
+        case .htmlPreview:
+            HTMLPreviewPanel(
+                router: router,
+                helpContextEnabled: columnRole == .active || columnRole == .activePair
+            )
+
+        case .pdfViewer:
+            PDFViewerPanel()
+
+        case .asciiArtHelp, .markdownHelp, .htmlHelp, .grammarHelp:
+            // Help panels are rendered via helpPanelOverlay, not as columns.
+            EmptyView()
+        }
+    }
+
+    // MARK: - Help panel overlay
+
+    /// Overlays the help panels on top of the column area.
+    /// All five views stay in the tree so each panel's @State survives topic switches.
+    @ViewBuilder
+    private var helpPanelOverlay: some View {
         let topic = windowState.requestedHelpTopic
         ZStack {
+            // Default content area (visible when no help topic is active)
+            // This is intentionally empty — the columns below handle content.
+            Color.clear
+
             VStack(spacing: 0) {
                 PDFViewerPanel()
                 Divider()

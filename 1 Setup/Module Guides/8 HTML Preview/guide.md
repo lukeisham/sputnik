@@ -1,7 +1,8 @@
 ---
 module: 8 HTML Preview
-status: complete
-last_updated: 2026-06-10
+status: stable
+last_updated: 2026-06-12
+last_verified: 2026-06-12
 plan: 1 Setup/Plans Completed/2026-06-08 8 HTML Preview Complete HTML Preview module.md
 ---
 
@@ -38,13 +39,26 @@ Render the active editor tab's HTML (supporting the **HTML Living Standard**) to
                                          └──────────────────────────────────────┘
 ```
 
+## Source Files
+| File | Responsibility |
+|---|---|
+| `HTMLPreviewPanel.swift` | Top-level SwiftUI panel view — assembles header bar, toolbar (Fit Width + Link Navigation toggle), and the content area; switches between rendering, wrong-type placeholder, and empty-state placeholder based on `AppState.activeDocument` |
+| `HTMLPreviewView.swift` | `NSViewRepresentable` wrapping a single `WKWebView` — owns `WKWebViewConfiguration`, the injected `WKUserScript` for selection capture, `SputnikImageSchemeHandler` registration, F-4 CSS injection, local `<img>` path rewriting, and the `MoreContextWebView` subclass that injects "More Context" menu items |
+| `HTMLPreviewCoordinator.swift` | The `NSViewRepresentable.Coordinator` — conforms to `WKNavigationDelegate` (link navigation policy) and `WKScriptMessageHandler` (selection capture); holds weak references to the router and web view; owns the `RenderThrottle` for debounced re-renders |
+| `LinkNavigationPolicy.swift` | Pure function enum — classifies a URL as `.allowInPage`, `.openAsTab(URL)`, `.openExternally(URL)`, or `.block`; no WebKit types in its signature, unit-testable in isolation |
+| `SputnikImageSchemeHandler.swift` | `WKURLSchemeHandler` for the custom `sputnik-img://` scheme — decodes percent-encoded paths, resolves against the coordinator's base directory, streams downsampled image bytes via `PreviewImageResolver`; serves a 1×1 transparent placeholder for missing/oversized images |
+| `Package.swift` | SPM manifest — declares dependencies on `FoundationModule`, `ResourcesModule`, `SputnikShared` |
+| `Tests/HTMLPreviewModuleTests.swift` | Unit tests — covers `LinkNavigationPolicy` decisions (happy path, edge cases, error conditions) and `HTMLPreviewCoordinator` state transitions |
+
 ## Technical Summary
 - **Framework(s):** WebKit (`WKWebView`, `WKNavigationDelegate`), SwiftUI (`NSViewRepresentable`), AppKit. Target rendering is the **HTML Living Standard** (WebKit/Safari).
 - **Key types:**
-  - `HTMLPreviewView` — `NSViewRepresentable` wrapping a single `WKWebView`; observes `AppState.activeDocumentID` and re-renders when the active document changes or its text mutates (SW-3: AppKit bridge is justified because `WKWebView` has no SwiftUI equivalent)
-  - `HTMLPreviewCoordinator` — the `NSViewRepresentable.Coordinator`; conforms to `WKNavigationDelegate` and owns the link-navigation policy; also conforms to `WKScriptMessageHandler` to receive selection-change messages from the injected script; holds a `weak` reference to the router, never a strong `self` capture in delegate callbacks (SW-2)
-  - `MoreContextWebView` — `WKWebView` subclass that overrides `willOpenMenu(_:with:)` to inject "More Context: Grammar Help" and "More Context: HTML Help" items into the right-click context menu via the shared `MoreContextMenu.items(...)` builder (2.7); reads `capturedSelection` from the coordinator (populated by the `selectionchange` script message)
+  - `HTMLPreviewPanel` — top-level `View` that assembles the header, toolbar (Fit Width + Link Navigation toggle), and content area; observes `AppState.activeDocument` via `@Environment` and switches between rendering (`.html`), wrong-type placeholder, and empty-state placeholder
+  - `HTMLPreviewView` — `NSViewRepresentable` wrapping a single `WKWebView`; observes `AppState.activeDocument` and re-renders when the active document changes or its text mutates (SW-3: AppKit bridge is justified because `WKWebView` has no SwiftUI equivalent); owns F-4 CSS injection and local `<img>` path rewriting (private methods `htmlByInjectingOverrides` and `rewriteLocalImageSources`)
+  - `HTMLPreviewCoordinator` — the `NSViewRepresentable.Coordinator`; conforms to `WKNavigationDelegate` and owns the link-navigation policy; also conforms to `WKScriptMessageHandler` to receive selection-change messages from the injected script; holds a `weak` reference to the router, never a strong `self` capture in delegate callbacks (SW-2); uses `RenderThrottle` (2.7) to debounce rapid keystroke-triggered re-renders
+  - `MoreContextWebView` — private `WKWebView` subclass inside `HTMLPreviewView.swift` that overrides `willOpenMenu(_:with:)` to inject "More Context: Grammar Help" and "More Context: HTML Help" items into the right-click context menu via the shared `MoreContextMenu.items(...)` builder (2.7); reads `capturedSelection` from the coordinator (populated by the `selectionchange` script message)
   - `LinkNavigationPolicy` — pure function `decide(for: URL, targetIsBlank: Bool, currentBaseURL: URL?) -> Decision` returning `.allowInPage` / `.openAsTab(URL)` / `.openExternally(URL)` / `.block`; unit-testable in isolation, no WebKit types in its signature
+  - `SputnikImageSchemeHandler` — `WKURLSchemeHandler` for the custom `sputnik-img://` scheme; streams downsampled image bytes (or a 1×1 transparent placeholder for missing/oversized images); never grants broad file sandbox access (ISS-047)
   - Consumes Foundation types only: `DocumentSession` and `activeDocumentID` (2.2), `InterPanelRouter` (2.1), `FileType` (2.1), `MoreContextMenu` (2.7), `HelpContextResolving` (2.7) — this module owns no document state of its own (SR-1)
 - **Threading model:** All `WKWebView` calls and the render path are `@MainActor`. Re-render is triggered by observing `activeDocumentID` and the active session's debounced text (debounce lives in 3.4, not here). HTML string assembly is trivial and stays on the main thread; no background Task is needed for preview itself.
 - **F-4 (Per-panel font/background):** `HTMLPreviewView.htmlByInjectingOverrides(...)` wraps the user's HTML with a `<style>` block that overrides `body background-color` and base `font-family`/`font-size` using `settings.resolvedHtmlPreviewFont` and `settings.htmlPreviewBackground`; resolved font falls back to `editorFont` when no per-panel override is set. Background colour is not persisted (in-memory only via `Color` value).
@@ -65,6 +79,16 @@ Render the active editor tab's HTML (supporting the **HTML Living Standard**) to
   - Very large HTML string → rendering is bounded by the editor's existing file-size guard (module 3 spec, SR-3); module 8 adds no second copy of the text — it reads the active session's buffer.
   - Web content tries to navigate the top frame on its own (meta refresh, script) → treated like any navigation: same `LinkNavigationPolicy` applies, so it cannot silently desync the preview from the editor.
   - `WKScriptMessageHandler` registration creates a potential retain cycle between `WKUserContentController` and the coordinator — mitigated by the coordinator being the `NSViewRepresentable.Coordinator` whose lifecycle is tied to the view; the coordinator holds `weak` references to the router and app state; no `removeScriptMessageHandler` is needed during normal teardown since the coordinator is released when the representable is destroyed.
+
+## Invariants
+- This panel **observes** `AppState.activeDocument` — it never writes to `AppState.documentSessions` or calls `openDocument`/`closeDocument` directly; all file-open actions are routed through `InterPanelRouter.open(_:)` (SR-1)
+- All `WKWebView` calls and navigation delegate callbacks happen on `@MainActor` — never called from a background queue (SW-1)
+- `LinkNavigationPolicy` is the **only** URL classifier in the module — no inline URL-scheme checks in the coordinator or view code
+- The coordinator holds **weak** references to both the router and web view — never a strong capture in delegate callbacks or closures (SW-2)
+- `MoreContextWebView` references the coordinator weakly — never forms a retain cycle through the menu item closure chain
+- `WKUserScript` for selection capture is the **only** script injected — `allowsContentJavaScript = false` prevents page-authored scripts (ISS-010)
+- Local `<img src>` paths are rewritten to `sputnik-img://` at render-time — `SputnikImageSchemeHandler` is the only path for local image bytes, never direct `file://` access (ISS-047, SR-3)
+- The panel renders **only** when the active session's `fileType == .html` — stale HTML from a previously active tab is never displayed
 
 ## Spec Reference
 > Extracted from `README.md` — the original entry for this module:

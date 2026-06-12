@@ -6,20 +6,27 @@ import SwiftUI
 /// Respects SR-1 and SW-3: editor chrome (mode picker, search bar) is module-3-specific UI
 /// and lives here, not in Foundation. The panel owns the sub-views and composes them into
 /// a cohesive editor interface.
+///
+/// **Dynamic panels:** When `isEditable` is `false` (view-only column), the editor content
+/// is still rendered but `NSTextView.isEditable` is set to `false` so the user cannot type
+/// into it. The property is set synchronously in `makeNSView` (see SW-3).
 public struct TextEditorPanel: View {
 
     @Bindable var viewModel: EditorViewModel
     var settings: SettingsStore
     var appState: AppState
+    var isEditable: Bool
 
     public init(
         viewModel: EditorViewModel,
         settings: SettingsStore,
-        appState: AppState
+        appState: AppState,
+        isEditable: Bool = true
     ) {
         self.viewModel = viewModel
         self.settings = settings
         self.appState = appState
+        self.isEditable = isEditable
     }
 
     public var body: some View {
@@ -50,7 +57,9 @@ public struct TextEditorPanel: View {
             }
 
             // Editor view
-            EditorView(viewModel: viewModel, settings: settings, appState: appState)
+            EditorView(
+                viewModel: viewModel, settings: settings, appState: appState, isEditable: isEditable
+            )
         }
     }
 }

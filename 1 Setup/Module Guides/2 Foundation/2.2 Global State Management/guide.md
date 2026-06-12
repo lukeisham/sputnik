@@ -1,7 +1,8 @@
 ---
 module: 2.2 Foundation – Global State Management
-status: active
+status: stable
 last_updated: 2026-06-12
+last_verified: 2026-06-12
 ---
 
 ## Purpose
@@ -49,29 +50,29 @@ Provide per-window state containers and a top-level coordinator so that each Spu
                                           .terminalManager
 ```
 
+## Source Files
+| File | Responsibility |
+|---|---|
+| `AppState.swift` | `@Observable @MainActor` — window coordinator owning `[UUID: WindowState]`, active window tracking, computed pass-throughs, `beginProcessing()`/`endProcessing()`, window lifecycle |
+| `WindowState.swift` | `@Observable @MainActor` — per-window state: workspace directory, open documents, active document ID, layout, scratchpad, help routing, processing count, main AI state, terminal manager |
+| `DocumentSession.swift` | `@Observable @MainActor` — per-tab model: id, url, fileType, text, isDirty |
+| `EditorCommandHandling.swift` | `@MainActor` protocol — `save()`, `saveAs(to:)`, `renderAsHTML()`, `showASCIIStudio()` |
+| `SupportingAIUsage.swift` | `Sendable` struct — `totalTokensSinceLaunch: Int`, `contextWindow: Int` |
+| `MainAIState.swift` | `Sendable` struct — `modelName: String`, `contextWindow: Int?`, `usage: MainAIContextUsage?` |
+| `TerminalModelInfo.swift` | Deprecated — superseded by `MainAIState` |
+| `ContextUsage.swift` | Deprecated — superseded by `MainAIContextUsage` |
+
 ## Technical Summary
 - **Framework(s):** SwiftUI (`@Observable`, `@Environment`, `@FocusedValue`), Foundation, Swift Concurrency
 - **Key types:**
-  - `AppState` — `@Observable @MainActor` class; **window coordinator** owning a dictionary
-    of `WindowState` instances. Created once in `SputnikApp`, injected via `.environment(appState)`.
-    Provides computed pass-through properties that delegate to the active window so existing
-    callers (`StatusBarView`, `SputnikCommands`, `SputnikMenuBarController`) continue to compile
-    unchanged.
-  - `WindowState` — `@Observable @MainActor` class; one instance per open window. Holds all
-    per-window state: workspace directory, open documents, active document ID, layout, scratchpad,
-    help routing, processing count, main AI state, and a reference to the window's `TerminalManager`.
-  - `ActiveWindowIDKey` — `FocusedValueKey` for `UUID`; set by each `ContentView` via
-    `.focusedSceneValue(\.activeWindowID, windowState.id)` and read by the menu system to
-    determine which window is frontmost.
-  - `DocumentSession` — `@Observable @MainActor` class; one instance per open tab,
-    owning `id`, `url`, `fileType`, `text`, and `isDirty`; stored on `WindowState.openDocuments`.
-  - `FileType` — enum shared with module 2.1; classifies a session so panels render correctly.
-  - `SupportingAIUsage` (`Sendable`) — `totalTokensSinceLaunch: Int`, `contextWindow: Int`;
-    stored globally on `AppState` (Supporting AI is app-level, not per-window).
-  - `MainAIState` (`Sendable`) — `modelName: String`, `contextWindow: Int?`, `usage: MainAIContextUsage?`;
-    stored per-window on `WindowState` (each window's terminal runs its own Main AI).
-  - `WindowDescriptor` — `Codable` struct for persisting/reloading a window's snapshot
-    (id, workspace directory, tab URLs, active document URL, layout).
+  - `AppState` — `@Observable @MainActor` class; **window coordinator** owning a dictionary of `WindowState` instances. Created once in `SputnikApp`, injected via `.environment(appState)`. Provides computed pass-through properties.
+  - `WindowState` — `@Observable @MainActor` class; one per open window. Holds workspace directory, open documents, active document ID, layout, scratchpad, help routing, processing count, main AI state, terminal manager.
+  - `ActiveWindowIDKey` — `FocusedValueKey` for `UUID`; set by `ContentView` for frontmost-window tracking.
+  - `DocumentSession` — `@Observable @MainActor` class; one per open tab: `id`, `url`, `fileType`, `text`, `isDirty`.
+  - `FileType` — enum shared with 2.1; classifies sessions for panel routing.
+  - `SupportingAIUsage` — `Sendable` struct for Supporting AI metrics.
+  - `MainAIState` — `Sendable` struct for Main AI model detection and usage.
+  - `WindowDescriptor` — `Codable` struct for persisting a window's snapshot.
 - **Threading model:** Both `AppState` and `WindowState` are `@MainActor` — all reads and
   writes are on the main thread. Background file-system events must hop via
   `Task { @MainActor in … }` before mutating state (SW-1, SR-4).
@@ -89,13 +90,12 @@ Provide per-window state containers and a top-level coordinator so that each Spu
   a document change (File Tree opening a file, preview link click) writes through
   `InterPanelRouter` (2.1) — modules never mutate `openDocuments` or `activeDocumentID`
   directly. Foundation-layer views (toolbar, `DocumentTabBar`) may write `activeDocumentID`
-  and `focusMode` directly as they are part of the same layer.
+  directly as they are part of the same layer.
 - **State owned (resolves ISS-005):**
   - `activeWorkspaceDirectory: URL?` — folder shown in File Tree / Terminal working dir.
   - `openDocuments: [DocumentSession]` — ordered list driving the tab bar.
   - `activeDocumentID: UUID?` — which tab is active; `nil` = no open documents.
   - `activeDocument: DocumentSession?` — computed from `activeDocumentID`.
-  - `focusMode: FocusMode` — written by toolbar.
   - `currentlyOpenFile: URL?` — read-only computed alias of `activeDocument?.url`.
   - `currentlyOpenFileType: FileType` — read-only computed alias of `activeDocument?.fileType`.
   - `requestedHelpTarget: HelpRequest?` — the live help-routing primitive (resolves ISS-008). `nil` when no help is open; set by the Help menu (with `topicID = nil`) or by the editor's "Look Up Help" action (with a resolved `topicID`). Module 9 panels observe this to reveal and navigate. The backward-compatible computed property `requestedHelpTopic: HelpTopic?` overlays it for callers that only need the panel kind (e.g. the Help menu, the right-column switch in `ContentView`).
@@ -106,7 +106,7 @@ Provide per-window state containers and a top-level coordinator so that each Spu
   - `mainAIState: MainAIState?` — Main AI state (the user-loaded AI in the terminal); `nil` when no Main AI is active; written by `MainAIMonitor` (2.7) only (SR-1); consumed by `StatusBarView` for the Main AI model name + CTX % segment
   - `scratchpadVisible: Bool` — toggled by **View ▸ Scratchpad** (⌘⇧K) via `SputnikCommands`; observed by `ScratchpadPanel` (2.4) to show/hide the overlay; initial value restored from `PersistenceService` on launch.
 - **Dependencies:** `InterPanelRouter` (2.1) is the sole external writer. Foundation-layer
-  UI (toolbar, `DocumentTabBar`) may write `activeDocumentID` and `focusMode` directly.
+  UI (toolbar, `DocumentTabBar`) may write `activeDocumentID` directly.
 - **Failure modes:**
   - File-system watcher fires after workspace directory deleted → `activeWorkspaceDirectory`
     set to `nil`; panels show placeholder; no crash.
@@ -114,6 +114,14 @@ Provide per-window state containers and a top-level coordinator so that each Spu
     mutation; actor isolation catches violations at compile time.
   - `activeDocumentID` references a session that was removed → `activeDocument` returns
     `nil`; panels show placeholder; no stale rendering.
+
+## Invariants
+- `AppState` and `WindowState` are both `@MainActor` — all reads and writes are on the main thread (SW-1)
+- Neither `AppState` nor `WindowState` conforms to `Sendable` — `@MainActor` isolation provides safety; do **not** add `@unchecked Sendable` (resolves ISS-052)
+- Modules never write to `AppState.openDocuments` or `WindowState.openDocuments` directly — all file-open events flow through `InterPanelRouter` (2.1) (SR-1)
+- `beginProcessing()`/`endProcessing()` must be balanced — each `begin` must have a matching `end` (SR-2)
+- Frontmost-window tracking uses `@FocusedValue` only — no `NSApplication` delegate callbacks for window focus (SW-3)
+- `WindowDescriptor` is the sole persistence contract — no other module serialises its own window state
 
 ## Spec Reference
 > Extracted verbatim from `readme.md`:

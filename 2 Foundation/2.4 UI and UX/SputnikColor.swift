@@ -1,5 +1,5 @@
-import SwiftUI
 import AppKit
+import SwiftUI
 
 /// Shared colour palette with automatic light/dark resolution.
 ///
@@ -45,38 +45,46 @@ public enum SputnikColor {
 
     /// The editor text area background (distinct from the window background).
     public static var editorBackground: Color {
-        Color(light: Color(red: 0.99, green: 0.99, blue: 0.99),
-              dark:  Color(red: 0.12, green: 0.12, blue: 0.13))
+        Color(
+            light: Color(red: 0.99, green: 0.99, blue: 0.99),
+            dark: Color(red: 0.12, green: 0.12, blue: 0.13))
     }
 
     /// Ghost-text / inline suggestion foreground.
     public static var ghostText: Color { Color(NSColor.tertiaryLabelColor) }
 
+    /// Primary accent for dynamic panel borders, active indicators, and toggle pills.
+    /// Uses the system control accent colour.
+    public static var accentPrimary: Color { Color(NSColor.controlAccentColor) }
+
     // MARK: - Terminal
 
     /// Terminal strip background.
     public static var terminalBackground: Color {
-        Color(light: Color(red: 0.95, green: 0.95, blue: 0.95),
-              dark:  Color(red: 0.08, green: 0.08, blue: 0.09))
+        Color(
+            light: Color(red: 0.95, green: 0.95, blue: 0.95),
+            dark: Color(red: 0.08, green: 0.08, blue: 0.09))
     }
 
     /// Default terminal foreground (ANSI normal text).
     public static var terminalForeground: Color {
-        Color(light: Color(red: 0.10, green: 0.10, blue: 0.10),
-              dark:  Color(red: 0.88, green: 0.88, blue: 0.88))
+        Color(
+            light: Color(red: 0.10, green: 0.10, blue: 0.10),
+            dark: Color(red: 0.88, green: 0.88, blue: 0.88))
     }
 }
 
 // MARK: - Helpers
 
-private extension Color {
+extension Color {
     /// Creates a `Color` that resolves to `light` in light mode and `dark` in dark mode
     /// without requiring a view environment — backed by an `NSColor` dynamic provider.
-    init(light: Color, dark: Color) {
-        self.init(NSColor(name: nil) { appearance in
-            appearance.bestMatch(from: [.aqua, .darkAqua]) == .darkAqua
-                ? NSColor(dark)
-                : NSColor(light)
-        })
+    fileprivate init(light: Color, dark: Color) {
+        self.init(
+            NSColor(name: nil) { appearance in
+                appearance.bestMatch(from: [.aqua, .darkAqua]) == .darkAqua
+                    ? NSColor(dark)
+                    : NSColor(light)
+            })
     }
 }

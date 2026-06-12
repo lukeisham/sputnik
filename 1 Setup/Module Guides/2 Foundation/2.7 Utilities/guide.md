@@ -1,7 +1,8 @@
 ---
 module: 2.7 Foundation – Utilities
-status: active
+status: stable
 last_updated: 2026-06-12
+last_verified: 2026-06-12
 ---
 
 ## Purpose
@@ -187,7 +188,7 @@ Provide Foundation-specific utilities: AI monitors, menu helpers, slash-command 
   - `TestingSupport` (`2 Foundation/2.7 Utilities/TestingSupport.swift`) — three mock implementations for unit testing module logic without real panels or state:
     - `MockInterPanelRouter`: conforms to `InterPanelRouter`; records calls to `open(_:)`, `close(_:)`, `syncDirectory(_:)`, `moveActiveTabToNewWindow()` in tracked arrays/counters; `shouldSucceed` controls whether `moveActiveTabToNewWindow()` returns a `UUID` or `nil`; `events` returns a no-op `AsyncStream`
     - `MockAppState`: tracks `isProcessing` via `beginProcessing()`/`endProcessing()`; holds `activeDocument`, `activeWindowID`, `requestedHelpTarget`, and `contextUsageForTesting` for assertions
-    - `MockWindowState`: tracks `openDocuments`, `activeDocumentID`, `panelLayout`, `panelSizes`; records `moveDocumentCalls` and `closeDocumentCalls`; `openDocument(_:)` appends and sets `activeDocumentID`; `closeDocument(_:)` removes and returns the session or `nil`
+    - `MockWindowState`: tracks `openDocuments`, `activeDocumentID`, `dynamicLayout`; records `moveDocumentCalls` and `closeDocumentCalls`; `openDocument(_:)` appends and sets `activeDocumentID`; `closeDocument(_:)` removes and returns the session or `nil`
 - **Threading model:**
   - `ClosureMenuItem` and `MoreContextMenu` are `@MainActor` — menu construction and activation happen on the main thread
   - `HelpContextResolving.resolve` is `async` — the resolver runs the coordinator lookup (which may be actor-isolated) inside a `Task`; the host's `onRequest` sink writes to `AppState.requestedHelpTarget` on `@MainActor`

@@ -1,11 +1,10 @@
 import SwiftUI
-import AppKit
 
 /// Menu items for the file-tree right-click context menu.
 ///
 /// Used as the content of `.contextMenu { FileContextMenu(node:viewModel:) }` on
-/// each row. Name-input dialogs use `NSAlert` with a text field accessory so the
-/// menu itself stays stateless.
+/// each row. Rename triggers an inline text field on the row instead of an NSAlert.
+/// New File / New Folder still use NSAlert prompts since they create new items.
 public struct FileContextMenu: View {
 
     public let node: FileTreeNode
@@ -18,9 +17,16 @@ public struct FileContextMenu: View {
             Divider()
         }
 
-        Button("Rename") { promptRename() }
+        Button("Rename") {
+            viewModel.selectedNodeIDs = [node.id]
+            viewModel.renamingNodeID = node.id
+        }
         Button("Move to Trash", role: .destructive) {
-            Task { await viewModel.trash(nodeID: node.id) }
+            Task {
+                await viewModel.trash(
+                    nodeIDs: viewModel.selectedNodeIDs.isEmpty
+                        ? [node.id] : viewModel.selectedNodeIDs)
+            }
         }
 
         Divider()
@@ -48,12 +54,6 @@ public struct FileContextMenu: View {
     private func promptNewFolder() {
         prompt(title: "New Folder", message: "Enter a name for the new folder:") { name in
             Task { await viewModel.createFolder(named: name, in: node.id) }
-        }
-    }
-
-    private func promptRename() {
-        prompt(title: "Rename", message: "Enter a new name:", defaultValue: node.name) { name in
-            Task { await viewModel.rename(nodeID: node.id, to: name) }
         }
     }
 

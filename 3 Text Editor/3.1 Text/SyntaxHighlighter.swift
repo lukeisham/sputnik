@@ -18,21 +18,29 @@ public final class SyntaxHighlighter {
 
     // MARK: - Public interface
 
-    /// Re-highlights the full document for `mode`. No-op for `.plainText`.
-    public func highlight(mode: EditorMode) {
+    /// Re-highlights the document for `mode`, optionally scoped to an edited range.
+    /// No-op for `.plainText`.
+    ///
+    /// - Parameter editedRange: The character range that changed. `nil` = full document
+    ///   (used on initial load). Only the affected range (plus a look-behind margin) is
+    ///   re-coloured — O(range) instead of O(n) per keystroke (ISS-057).
+    public func highlight(mode: EditorMode, editedRange: NSRange? = nil) {
         guard mode != .plainText else { return }
 
         Task(priority: .utility) { [weak self] in
             guard let self, let storage = self.textStorage else { return }
             // Capture text on main actor before leaving it.
             let text = await MainActor.run { storage.string }
-            let attrs = self.buildAttributes(for: mode, text: text)
+            let highlightRange = self.expandedRange(for: editedRange, in: text)
+            let segment = (text as NSString).substring(with: highlightRange)
+            let attrs = self.buildAttributes(
+                for: mode, text: segment,
+                baseOffset: highlightRange.location)
 
             await MainActor.run { [weak self] in
                 guard let self, let storage = self.textStorage else { return }
-                let full = NSRange(location: 0, length: storage.length)
                 storage.beginEditing()
-                storage.removeAttribute(.foregroundColor, range: full)
+                storage.removeAttribute(.foregroundColor, range: highlightRange)
                 for (range, color) in attrs {
                     guard range.location + range.length <= storage.length else { continue }
                     storage.addAttribute(.foregroundColor, value: color, range: range)
@@ -44,15 +52,37 @@ public final class SyntaxHighlighter {
 
     // MARK: - Pattern matching (runs off main actor)
 
+    /// Expands a character range to include full surrounding lines.
+    /// If `range` is nil, returns the full document range.
+    /// The look-behind margin (5 lines) catches multi-line constructs such as fenced
+    /// code blocks whose opening delimiter may be well above the actual edit (ISS-057).
+    private func expandedRange(for range: NSRange?, in text: String) -> NSRange {
+        guard let range = range else {
+            return NSRange(location: 0, length: (text as NSString).length)
+        }
+        let nsText = text as NSString
+        let lookBackLines = 5
+        var startLine = nsText.lineRange(for: range).location
+        // Walk back N lines to catch multi-line construct delimiters.
+        for _ in 0..<lookBackLines {
+            guard startLine > 0 else { break }
+            startLine = nsText.lineRange(for: NSRange(location: startLine - 1, length: 0)).location
+        }
+        let lineRange = nsText.lineRange(for: NSRange(location: range.location, length: 0))
+        let endLocation = min(nsText.length, lineRange.upperBound)
+        return NSRange(location: startLine, length: endLocation - startLine)
+    }
+
     private func buildAttributes(
         for mode: EditorMode,
-        text: String
+        text: String,
+        baseOffset: Int = 0
     ) -> [(NSRange, NSColor)] {
         switch mode {
         case .plainText: return []
-        case .markdown:  return markdownAttributes(in: text)
-        case .html:      return htmlAttributes(in: text)
-        case .asciiArt:  return []   // ASCII art has no colour highlighting.
+        case .markdown: return markdownAttributes(in: text)
+        case .html: return htmlAttributes(in: text)
+        case .asciiArt: return []  // ASCII art has no colour highlighting.
         }
     }
 
@@ -61,19 +91,21 @@ public final class SyntaxHighlighter {
         let ns = text as NSString
 
         let patterns: [(String, NSColor)] = [
-            (#"^#{1,6} .+"#,              .systemBlue),    // Headings
-            (#"\*\*[^*]+\*\*"#,           .systemPurple),  // Bold
-            (#"\*[^*]+\*"#,               .systemPink),    // Italic
-            (#"`[^`]+`"#,                 .systemGreen),   // Inline code
-            (#"```[\s\S]*?```"#,          .systemGreen),   // Fenced code
-            (#"\[[^\]]+\]\([^)]+\)"#,     .systemOrange),  // Links
+            (#"^#{1,6} .+"#, .systemBlue),  // Headings
+            (#"\*\*[^*]+\*\*"#, .systemPurple),  // Bold
+            (#"\*[^*]+\*"#, .systemPink),  // Italic
+            (#"`[^`]+`"#, .systemGreen),  // Inline code
+            (#"```[\s\S]*?```"#, .systemGreen),  // Fenced code
+            (#"\[[^\]]+\]\([^)]+\)"#, .systemOrange),  // Links
         ]
 
         for (pattern, color) in patterns {
-            guard let regex = try? NSRegularExpression(
-                pattern: pattern,
-                options: .anchorsMatchLines
-            ) else { continue }
+            guard
+                let regex = try? NSRegularExpression(
+                    pattern: pattern,
+                    options: .anchorsMatchLines
+                )
+            else { continue }
             let range = NSRange(location: 0, length: ns.length)
             for match in regex.matches(in: text, range: range) {
                 result.append((match.range, color))
@@ -87,14 +119,16 @@ public final class SyntaxHighlighter {
         let ns = text as NSString
 
         let patterns: [(String, NSColor, NSRegularExpression.Options)] = [
-            (#"<!DOCTYPE[^>]*>"#,         .systemPurple, [.caseInsensitive]),
-            (#"<!--[\s\S]*?-->"#,         .systemGray,   [.dotMatchesLineSeparators]),
-            (#"</?[a-zA-Z][^>]*>"#,       .systemBlue,   []),
-            (#"[a-zA-Z-]+=\"[^\"]*\""#,   .systemOrange, []),
+            (#"<!DOCTYPE[^>]*>"#, .systemPurple, [.caseInsensitive]),
+            (#"<!--[\s\S]*?-->"#, .systemGray, [.dotMatchesLineSeparators]),
+            (#"</?[a-zA-Z][^>]*>"#, .systemBlue, []),
+            (#"[a-zA-Z-]+=\"[^\"]*\""#, .systemOrange, []),
         ]
 
         for (pattern, color, opts) in patterns {
-            guard let regex = try? NSRegularExpression(pattern: pattern, options: opts) else { continue }
+            guard let regex = try? NSRegularExpression(pattern: pattern, options: opts) else {
+                continue
+            }
             let range = NSRange(location: 0, length: ns.length)
             for match in regex.matches(in: text, range: range) {
                 result.append((match.range, color))

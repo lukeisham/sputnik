@@ -38,21 +38,29 @@ public struct MarkdownPreviewPanel: View {
     /// The help-context resolver used for the "More Context" right-click gesture.
     private let helpContextResolver: HelpContextResolving
 
+    /// Whether help-context actions are enabled for this panel instance.
+    /// `true` for `.active` and `.activePair` columns, `false` for `.viewOnly`.
+    private var helpContextEnabled: Bool = true
+
     // MARK: - Init
 
     /// Creates the Markdown Preview panel.
     /// - Parameters:
-    ///   - router:              The app's `InterPanelRouter` instance. `nil` disables
-    ///                          tab-open behaviour for link clicks (preview becomes read-only).
-    ///   - helpContextResolver: The resolver for right-click "More Context" help.
-    ///                          Defaults to `SputnikHelpContextResolver.shared`.
+    ///   - router:                The app's `InterPanelRouter` instance. `nil` disables
+    ///                            tab-open behaviour for link clicks (preview becomes read-only).
+    ///   - helpContextResolver:   The resolver for right-click "More Context" help.
+    ///                            Defaults to `SputnikHelpContextResolver.shared`.
+    ///   - helpContextEnabled:    Whether help-context actions are enabled. `true` for active
+    ///                            and active-pair columns, `false` for view-only. Defaults to `true`.
     @MainActor
     public init(
         router: (any InterPanelRouter)? = nil,
-        helpContextResolver: HelpContextResolving? = nil
+        helpContextResolver: HelpContextResolving? = nil,
+        helpContextEnabled: Bool = true
     ) {
         self.coordinator = MarkdownPreviewCoordinator(router: router)
         self.helpContextResolver = helpContextResolver ?? SputnikHelpContextResolver.shared
+        self.helpContextEnabled = helpContextEnabled
     }
 
     // MARK: - Body

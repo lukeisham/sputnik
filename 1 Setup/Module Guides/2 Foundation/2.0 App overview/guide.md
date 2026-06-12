@@ -1,7 +1,8 @@
 ---
 module: 2.0 App Overview
 status: active
-last_updated: 2026-06-11
+last_updated: 2026-06-12
+last_verified: 2026-06-12
 ---
 
 ## Purpose
@@ -16,146 +17,62 @@ Sputnik is a native macOS development environment that coordinates six concurren
 ╔══════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╗
 ║ ●  ○  ○   Sputnik          Sputnik   File   Edit   View   Window   Help                              — □ ×             ║
 ╠══════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╣
-║  WINDOW TAB BAR  (DocumentTabBar — Module 2.4)                                                                           ║
+║  DYNAMIC COLUMNS  (ordered list of PanelColumn — Module 2.4)                                                              ║
 ║                                                                                                                          ║
-║   ┌─────────────────┐  ┏━━━━━━━━━━━━━━━━━━━━━━━┓  ┌──────────────────────┐  ┌──────────────────┐  ┌─┐                 ║
-║   │  📄 readme.md ×  │  ┃ ◉ 📝 guide.md      × ┃  │  🌐 index.html     × │  │  📕 spec.pdf   × │  │+│                 ║
-║   └─────────────────┘  ┗━━━━━━━━━━━━━━━━━━━━━━━┛  └──────────────────────┘  └──────────────────┘  └─┘                 ║
-║        inactive                  ▲ ACTIVE                inactive                  inactive         new                 ║
-║                                  │                                                                                       ║
-║                    ┌─────────────┴──────────────────────────────────────┐                                               ║
-║                    │  active tab drives both centre panels below  (↓↓)  │                                               ║
-║                    └────────────────────────────────────────────────────┘                                               ║
-╠════════════════════╦═════════════════════════════════════════════════════╦════════════════════════════════════════════════╣
-║                    ║                                                     ║                                               ║
-║  LEFT SLOT         ║  ╔══ ACTIVE PAIR: guide.md  [Markdown mode] ══════╗ ║  RIGHT SLOT                                  ║
-║  Module 6          ║  ║                                                 ║ ║  Module 5 — PDF Viewer                       ║
-║  File Tree         ║  ║  CENTRE UPPER — Text Editor  (Module 3)        ║ ║  ──────────────────────────────────          ║
-║  ────────────────  ║  ║  ─────────────────────────────────────────     ║ ║                                               ║
-║                    ║  ║   1  │ ---                                      ║ ║  ┌────────────────────────────────────┐      ║
-║  📂 App_Sputnik/   ║  ║   2  │ module: 2.0 App Overview                ║ ║  │                                    │      ║
-║  ├── 📂 2 Found.   ║  ║   3  │ status: draft                           ║ ║  │        Sputnik Design Doc          │      ║
-║  │   ├── 📄 App..  ║  ║   4  │ last_updated: 2026-06-08                ║ ║  │        ────────────────────        │      ║
-║  │   ├── 📄 Con..  ║  ║   5  │                                         ║ ║  │                                    │      ║
-║  │   └── 📄 Lay..  ║  ║   6  │ ## Purpose                              ║ ║  │  1. Introduction .............. 1  │      ║
-║  ├── 📂 3 Editor   ║  ║   7  │                                         ║ ║  │  2. Architecture .............. 4  │      ║
-║  ├── 📂 4 Mkdn.    ║  ║   8  │ Sputnik is a native macOS              ║ ║  │  3. Modules ................... 8  │      ║
-║  ├── 📂 5 PDF      ║  ║   9  │ development environment...              ║ ║  │                                    │      ║
-║  ├── 📂 7 Term.    ║  ║   ·  │                                         ║ ║  │  ░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░   │      ║
-║  └── 📂 8 HTML     ║  ║   ·  │  ░░ inline suggestion ░░░░░░░░░░░░░░   ║ ║  │  ░░░░░░  page content  ░░░░░░░░   │      ║
-║                    ║  ║                                                 ║ ║  │  ░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░   │      ║
-║  ────────────────  ║  ╠═════════════════════════════════════════════════╣ ║  │                                    │      ║
-║  Right-click menu: ║  ║  CENTRE LOWER — Markdown Preview  (Module 4)   ║ ║  │  [◀ Prev]   Page 1 / 24  [Next ▶] │      ║
-║  ┌──────────────┐  ║  ║  [synced to active tab: guide.md]              ║ ║  │                                    │      ║
-║  │ 📄 New File  │  ║  ║  ─────────────────────────────────────────     ║ ║  ├────────────────────────────────────┤      ║
-║  │ 📂 New Folder│  ║  ║                                                 ║ ║  │ TOC Sidebar                        │      ║
-║  │    Rename    │  ║  ║  # 2.0 App Overview                            ║ ║  │ ▸ 1. Introduction                  │      ║
-║  │    Trash     │  ║  ║                                                 ║ ║  │ ▸ 2. Architecture                  │      ║
-║  └──────────────┘  ║  ║  Sputnik is a native macOS development         ║ ║  │ ▸ 3. Modules                       │      ║
-║                    ║  ║  environment that coordinates **six**           ║ ║  └────────────────────────────────────┘      ║
-║  File icons:       ║  ║  concurrent views within a unified,            ║ ║                                               ║
-║  📂 folder open    ║  ║  crash-resistant, memory-efficient layout.      ║ ║                                               ║
-║  📁 folder closed  ║  ║                                                 ║ ║                                               ║
-║  📄 text/generic   ║  ║  ## Technical Summary                          ║ ║                                               ║
-║  📝 markdown .md   ║  ║  - **Framework(s):** SwiftUI, AppKit           ║ ║                                               ║
-║  🌐 html .html     ║  ║  - **Key types:** ContentView, AppState...     ║ ║                                               ║
-║  📕 pdf .pdf       ║  ║                                                 ║ ║                                               ║
-║  🔤 swift .swift   ║  ╚═════════════════════════════════════════════════╝ ║                                               ║
-║                    ║                                                     ║                                               ║
-╠════════════════════╩═════════════════════════════════════════════════════╩════════════════════════════════════════════════╣
+║   ┌─────────────────┐  ┏━━━━━━━━━━━━━━━━━━━━━━━┓  ┌──────────────────────┐                                              ║
+║   │  File Tree      │  ┃  Text Editor          ┃  │  Markdown Preview    │                                              ║
+║   │  ────────────   │  ┃  ──────────────────   ┃  │  ──────────────────  │                                              ║
+║   │  📂 App_Sputn.  │  ┃  guide.md             ┃  │  # guide.md          │                                              ║
+║   │  ├── 📂 2 Found.│  ┃  [━active━]           ┃  │  Sputnik is...      │                                              ║
+║   │  ├── 📂 3 Editor│  ┃  module: 2.0 App...  ┃  │  ...rendered...     │                                              ║
+║   │  ├── 📂 4 Mkdn. │  ┃  status: draft       ┃  │                     │                                              ║
+║   │  ├── 📂 5 PDF   │  ┃  last_updated: ...   ┃  │  (dashed border     │                                              ║
+║   │  ├── 📂 7 Term. │  ┃                       ┃  │   = active pair)    │                                              ║
+║   │  └── 📂 8 HTML  │  ┃  solid accent border  ┃  │                     │                                              ║
+║   │                 │  ┗━━━━━━━━━━━━━━━━━━━━━━━┛  └──────────────────────┘                                              ║
+║   └─────────────────┘      ▲                          │                                                                  ║
+║        File Tree     <drop zone> <drop zone>         │                                                                  ║
+║     only at edges    ──────▬▬──────▬▬─────           │                                                                  ║
+║                                                     │                                                                  ║
+║  Columns are reorderable via drag-and-drop:          │                                                                  ║
+║  • Drag title bar onto another column → tab          │                                                                  ║
+║  • Drag title bar into drop zone → new column        │                                                                  ║
+║  • File Tree is constrained to edge positions         │                                                                  ║
+║                                                       │                                                                  ║
+║  Multi-tab columns show a scrollable tab bar         │                                                                  ║
+║  Click a tab to switch; active editor has solid border│                                                                  ║
+║  Matching-doc preview has dashed active-pair border   │                                                                  ║
+╠══════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╣
 ║  TERMINAL STRIP — Module 7  (pinned at bottom; cannot be relocated)                                                      ║
-║  ┌────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┐  ║
-║  │  [zsh ×]  [zsh ×]  [+]                                                                      [↑ Expand]  [Clear]    │  ║
-║  ├────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┤  ║
-║  │  App_Sputnik % swift build                                                                                          │  ║
-║  │  Build complete!  (0.43s)                                                                                           │  ║
-║  │  App_Sputnik % █                                                                                                    │  ║
-║  └────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┘  ║
+║  ┌────────────────────────────────────────────────────────────────────────────────────────────────────┬──────────────┐  ║
+║  │  [zsh ×]  [zsh ×]  [+]                                                      [↑ Expand]  [Clear]  │  Scratchpad  │  ║
+║  ├────────────────────────────────────────────────────────────────────────────────────────────────────┤  (docked,     │  ║
+║  │  App_Sputnik % swift build                                                                        │  resizable)  │  ║
+║  │  Build complete!  (0.43s)                                                                         │              │  ║
+║  │  App_Sputnik % █                                                                                  │  ⇧⌘K toggle  │  ║
+║  └────────────────────────────────────────────────────────────────────────────────────────────────────┴──────────────┘  ║
 ╚══════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╝
 
 
-ACTIVE PAIR — how the tab bar drives the centre column:
+ACTIVE PAIR — how column roles work:
 
-  Each open document tab owns a DocumentSession (file URL + mode + dirty flag).
-  The active tab's session is the single source of truth for BOTH centre panels:
+  Each column has a `renderMode` (PanelID) and an `activeDocumentID`.
+  The active column (tapped/focused) gets `.active` role with solid border.
+  A preview column showing the same document as the active text editor
+  gets `.activePair` role with dashed border.
 
-  ┌────────────────────────────────────────────────────────────────────────────────────────────┐
-  │  TAB BAR                                                                                   │
-  │  [ readme.md ]  [━━━ guide.md ◉ ━━━]  [ index.html ]  [ spec.pdf ]  [+]                  │
-  │                          │                                                                 │
-  │            ┌─────────────┴──────────────────────┐                                         │
-  │            │  DocumentSession: guide.md          │                                         │
-  │            │  mode: .markdown   dirty: false     │                                         │
-  │            └──────────┬──────────────────────────┘                                         │
-  │                       │                                                                    │
-  │          ┌────────────┴────────────┐                                                       │
-  │          ▼                         ▼                                                       │
-  │  ┌───────────────────┐   ┌─────────────────────────┐                                      │
-  │  │  Text Editor      │   │  Markdown Preview        │                                      │
-  │  │  (Module 3)       │   │  (Module 4)              │                                      │
-  │  │  edits content    │   │  renders content live    │                                      │
-  │  │  of guide.md      │   │  from the same session   │                                      │
-  │  └───────────────────┘   └─────────────────────────┘                                      │
-  └────────────────────────────────────────────────────────────────────────────────────────────┘
-
-  Mode determines which lower panel is active:
-  ┌─────────────┬──────────────────────────────────────────┬───────────────────────────────────┐
-  │  File type  │  Centre Upper                            │  Centre Lower                     │
-  ├─────────────┼──────────────────────────────────────────┼───────────────────────────────────┤
-  │  .md        │  Text Editor  (Module 3)                 │  Markdown Preview  (Module 4)     │
-  │  .html      │  Text Editor  (Module 3)                 │  HTML Preview      (Module 8)     │
-  │  .txt/.swift│  Text Editor  (Module 3)                 │  (lower panel hidden)             │
-  │  .pdf       │  PDF Viewer   (Module 5)  — read only    │  (lower panel hidden)             │
-  └─────────────┴──────────────────────────────────────────┴───────────────────────────────────┘
-
-
-PANEL SLOT MAP (relocatable except Terminal):
-
-  ┌──────────────┬─────────────────────────────────────────┬──────────────────────────────────┐
-  │  LEFT SLOT   │         CENTRE UPPER SLOT               │         RIGHT SLOT               │
-  │  (Module 6)  │         (Module 3 or 5)                 │      (Module 4 / 5 / 8)          │
-  │  File Tree   │  Text Editor  /  PDF Viewer             │  PDF Viewer  /  Preview          │
-  │              ├─────────────────────────────────────────┤                                  │
-  │  (any panel  │         CENTRE LOWER SLOT               │                                  │
-  │   can move   │         (Module 4 or 8)                 │                                  │
-  │   here via   │  Markdown Preview  /  HTML Preview      │                                  │
-  │   drag-drop) │  (hidden when active file has no pair)  │                                  │
-  ├──────────────┴─────────────────────────────────────────┴──────────────────────────────────┤
-  │  TERMINAL STRIP — Module 7 — PINNED, NOT RELOCATABLE                                      │
-  └───────────────────────────────────────────────────────────────────────────────────────────┘
-
-
-FOCUS / TOGGLE MODES  (View menu):
-
-  Default layout (all panels visible):
-  ┌──────────────┬────────────────────────────────────────┬─────────────────────────────────┐
-  │              │  [━guide.md◉━] [readme] [index] [+]   │                                 │
-  │  File Tree   │  ──────────────────────────────────    │  PDF Viewer                     │
-  │              │  Text Editor  (guide.md)               │                                 │
-  │              │  ──────────────────────────────────    │                                 │
-  │              │  Markdown Preview  (guide.md)          │                                 │
-  ├──────────────┴────────────────────────────────────────┴─────────────────────────────────┤
-  │  Terminal                                                                                │
-  └──────────────────────────────────────────────────────────────────────────────────────────┘
-
-  Focus: Editor  (left + right panels hidden):
-  ┌────────────────────────────────────────────────────────────────────────────────────────┐
-  │  [━guide.md◉━]  [readme]  [index]  [+]                                                 │
-  │  ──────────────────────────────────────────────────────────────────────────────────    │
-  │  Full-width Text Editor  (guide.md)                                                    │
-  │  ──────────────────────────────────────────────────────────────────────────────────    │
-  │  Full-width Markdown Preview  (guide.md)                                               │
-  ├────────────────────────────────────────────────────────────────────────────────────────┤
-  │  Terminal                                                                               │
-  └────────────────────────────────────────────────────────────────────────────────────────┘
-
-  Focus: Reader  (left panel + editor hidden, preview fills):
-  ┌────────────────────────────────────────────────────────────────────────────────────────┐
-  │  Full-width Markdown / HTML Preview  or  PDF Viewer                                    │
-  │                                                                                        │
-  ├────────────────────────────────────────────────────────────────────────────────────────┤
-  │  Terminal                                                                               │
-  └────────────────────────────────────────────────────────────────────────────────────────┘
+  ┌──────────────────────────────────────────────────────────────────────────────┐
+  │  COLUMN ROLE COMPUTATION                                                    │
+  │                                                                              │
+  │  For each column (computed fresh each render):                              │
+  │    if columnID == activeColumnID → role = .active  (solid border)           │
+  │    elif activeCol.renderMode == .textEditor                                 │
+  │         && thisCol.renderMode in [.markdownPreview, .htmlPreview]           │
+  │         && thisCol.activeDocumentID == activeCol.activeDocumentID           │
+  │         → role = .activePair  (dashed border)                               │
+  │    else → role = .viewOnly  (no border)                                     │
+  │                                                                              │
+  └──────────────────────────────────────────────────────────────────────────────┘
 ```
 
 ---
@@ -283,8 +200,9 @@ FOCUS / TOGGLE MODES  (View menu):
   - `WindowState` — `@Observable @MainActor` class, one per open window; holds workspace directory, open documents, active document ID, layout, scratchpad, help routing, AI state, and terminal manager reference
   - `DocumentSession` — per-tab model: file URL, dirty flag, mode (`.text` / `.markdown` / `.html` / `.pdf`); stored on `WindowState.openDocuments`
   - `DocumentTabBar` — SwiftUI tab strip spanning the full window width; maps to `windowState.openDocuments`
-  - `PanelPosition` — enum (`left`, `centerUpper`, `centerLower`, `right`)
-  - `LayoutState` — persisted struct holding panel visibility bitmask, layout preset, and focus mode (stored per-window on `WindowState`)
+  - `DynamicPanelLayout` — `Codable Sendable` struct; ordered `columns` array; default three-column layout; File Tree edge constraint; column role computation; render-mode toggle
+  - `PanelColumn` — `Codable Sendable Identifiable` struct; stable UUID, renderMode, originalRenderMode (for toggle), documentIDs, activeDocumentIndex, width
+  - `LayoutState` — persisted struct holding `dynamicLayout: DynamicPanelLayout`, `terminalVisible`, `recentFiles`, `openDocumentURLs` (stored per-window on `WindowState`)
   - `InterPanelRouter` — routes open-file events from File Tree → Editor, and sync events Editor → Previews
   - `SputnikCommands` — SwiftUI `Commands` struct wiring all menu bar items to `AppState` actions; uses `openWindow` environment action for window creation
   - `SettingsStore` — `@Observable` model backing the Settings panel; settings are global (not per-window)
@@ -333,13 +251,13 @@ FOCUS / TOGGLE MODES  (View menu):
 
 - **New Window ⇧⌘N** — calls `appState.createWindow()` to allocate a new `WindowState`, then calls `openWindow(id: "main", value: ws.id)` to open a fully independent Sputnik window with its own file tree, editor, previews, and terminal.
 - **Render as HTML ⌥⌘P** — calls `editorCommandHandler?.renderAsHTML()`; converts the active Markdown document to an HTML file and opens it in the HTML Preview panel; disabled when no document is open.
-- **Toggle File Tree ⌥⌘1** — calls `appState.toggleVisibility(.left)`; shows or hides the left File Tree panel without affecting other panels.
-- **Toggle Preview ⌥⌘2** — calls `appState.toggleVisibility(.centerLower)`; shows or hides the centre-lower Markdown/HTML Preview panel.
-- **Toggle Right Panel ⌥⌘3** — calls `appState.toggleVisibility(.right)`; shows or hides the right PDF Viewer / Preview panel.
+- **Toggle File Tree ⌥⌘1** — calls `appState.toggleColumn(renderMode: .fileTree)`; adds or removes the File Tree column (edge-constrained).
+- **Toggle Preview ⌥⌘2** — calls `appState.toggleColumn(renderMode: .markdownPreview)`; adds or removes the Markdown Preview column.
+- **Toggle Right Panel ⌥⌘3** — calls `appState.toggleColumn(renderMode: .htmlPreview)`; adds or removes the HTML Preview column.
 - **Toggle Terminal ⌥⌘4** — calls `appState.toggleTerminal()`; shows or hides the pinned Terminal strip at the bottom of the window.
-- **Scratchpad ⇧⌘K** — toggles `appState.scratchpadVisible`; a floating overlay scratchpad that persists independently of the open document.
-- **Focus: Editor ⌃⌘E** — sets left and right panel visibility to `false`, centre-upper to `true`, centre-lower to `false`; expands the editor to full window width.
-- **Focus: Reader ⌃⌘R** — hides left, right, and centre-upper panels; expands the preview (Markdown, HTML, or PDF) to fill the window.
+- **Scratchpad ⇧⌘K** — toggles `appState.scratchpadVisible`; a docked scratchpad beside the Terminal strip; width persisted via `UserDefaults`.
+- **Focus: Editor ⌃⌘E** — replaces the layout with a two-column File Tree + full-width Text Editor.
+- **Focus: Reader ⌃⌘R** — replaces the layout with a single-column Markdown Preview.
 - **Restore Default Layout ⌃⌘0** — calls `appState.restoreDefaultLayout()`; returns all panels to the default three-column arrangement.
 - **Appearance ▶ (Light / Dark / Use System Setting)** — calls `settings.setTheme(.light / .dark / .system)`; overrides the per-app colour scheme independently of macOS system appearance.
 - **ASCII Studio ⌥⌘A** — calls `editorCommandHandler?.showASCIIStudio()`; opens the ASCII art creation panel for the active document; disabled when no document is open.
@@ -361,6 +279,19 @@ FOCUS / TOGGLE MODES  (View menu):
 - **Report an Issue…** — constructs a `mailto:` URL with a pre-filled subject and calls `NSWorkspace.shared.open(_:)`; opens the user's default mail client addressed to the developer.
 
 ---
+
+## Source Files
+| File | Responsibility |
+|---|---|
+| `SputnikCommands.swift` | `Commands` struct wiring all macOS menu bar items to `AppState`/`SettingsStore` actions; delegates to `SputnikMenuGroup`, `FileMenuGroup`, `EditMenuGroup`, `FormatMenuGroup`, `ViewMenuGroup`, `WindowMenuGroup`, `HelpMenuGroup` |
+| `SputnikMenuGroup.swift` | Sputnik app menu group (About, Settings, etc.) |
+| `FileMenuGroup.swift` | File menu group (New Window, Open, Save, etc.) |
+| `EditMenuGroup.swift` | Edit menu group (Undo, Cut, Copy, Paste, Find, Spelling & Grammar) |
+| `FormatMenuGroup.swift` | Format menu group (ASCII Studio, Render as HTML) |
+| `ViewMenuGroup.swift` | View menu group (panel toggles, focus modes, scratchpad, appearance) |
+| `WindowMenuGroup.swift` | Window menu group (Move Tab, Merge All Windows, window list) |
+| `HelpMenuGroup.swift` | Help menu group (Sputnik Help, Markdown/HTML/ASCII/Grammar Help, Release Notes, Report Issue) |
+| `MenuHelpers.swift` | Reusable `NSMenuItem` builders and action helpers |
 
 ## 2.7.4 Error & Performance Utilities
 
@@ -392,6 +323,6 @@ minimalist layout.
   3. Settings
   4. UI / UX
      1. Appearance: light/dark mode, dialogs, tabs, toggles, sliders, buttons, icons
-     2. Functionality: adjustable panels, panel toggling (Focus Modes), layout state
+     2. Functionality: adjustable panels, panel toggling, layout state
         persistence, error types, tabs and windows, panel relocation
 ```

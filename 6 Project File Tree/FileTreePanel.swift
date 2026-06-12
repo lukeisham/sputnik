@@ -132,12 +132,106 @@ public struct FileTreePanel: View {
                 }
                 .padding(.vertical, SputnikSpacing.xs)
             }
-            .onDrop(of: [UTType.fileURL], isTargeted: nil) { providers in
-                handleDrop(providers, into: viewModel.activeDirectory)
+            .onDrop(of: [UTType.fileURL], isTargeted: nil) { [viewModel] providers in
+                guard let dir = viewModel.activeDirectory else { return false }
+                return viewModel.handleDrop(providers, into: dir)
+            }
+            .onDeleteCommand {
+                Task { await viewModel.trashSelected() }
+            }
+            .background {
+                keyboardShortcutOverlay
             }
         } else {
             emptyState
         }
+    }
+
+    // MARK: - Keyboard shortcuts
+
+    /// Hidden buttons that capture ⌘N, ⌘⇧N, and ⏎ (Enter) keyboard shortcuts.
+    private var keyboardShortcutOverlay: some View {
+        Group {
+            // ⌘N — New file in active directory
+            Button {
+                guard let dir = viewModel.activeDirectory else { return }
+                promptNewFile(in: dir)
+            } label: {
+                EmptyView()
+            }
+            .keyboardShortcut("n", modifiers: .command)
+            .frame(width: 0, height: 0)
+
+            // ⌘⇧N — New folder in active directory
+            Button {
+                guard let dir = viewModel.activeDirectory else { return }
+                promptNewFolder(in: dir)
+            } label: {
+                EmptyView()
+            }
+            .keyboardShortcut("n", modifiers: [.command, .shift])
+            .frame(width: 0, height: 0)
+
+            // ⏎ — Start inline rename on selected node
+            Button {
+                viewModel.beginRenameSelected()
+            } label: {
+                EmptyView()
+            }
+            .keyboardShortcut(.return, modifiers: [])
+            .frame(width: 0, height: 0)
+
+            // ⌘C — Copy path of selected node(s) to clipboard
+            Button {
+                copySelectedPaths()
+            } label: {
+                EmptyView()
+            }
+            .keyboardShortcut("c", modifiers: .command)
+            .frame(width: 0, height: 0)
+        }
+    }
+
+    // MARK: - Clipboard operations
+
+    private func copySelectedPaths() {
+        let paths = viewModel.selectedNodeIDs.map(\.path).sorted()
+        guard !paths.isEmpty else { return }
+        let pasteboard = NSPasteboard.general
+        pasteboard.clearContents()
+        pasteboard.setString(paths.joined(separator: "\n"), forType: .string)
+    }
+
+    // MARK: - File creation prompts
+
+    private func promptNewFile(in directory: URL) {
+        promptFile(title: "New File", message: "Enter a name for the new file:") { name in
+            Task { await viewModel.createFile(named: name, in: directory) }
+        }
+    }
+
+    private func promptNewFolder(in directory: URL) {
+        promptFile(title: "New Folder", message: "Enter a name for the new folder:") { name in
+            Task { await viewModel.createFolder(named: name, in: directory) }
+        }
+    }
+
+    private func promptFile(title: String, message: String, onConfirm: @escaping (String) -> Void) {
+        let alert = NSAlert()
+        alert.messageText = title
+        alert.informativeText = message
+        alert.addButton(withTitle: "OK")
+        alert.addButton(withTitle: "Cancel")
+
+        let textField = NSTextField(frame: NSRect(x: 0, y: 0, width: 240, height: 24))
+        textField.stringValue = ""
+        alert.accessoryView = textField
+        alert.window.initialFirstResponder = textField
+
+        guard alert.runModal() == .alertFirstButtonReturn else { return }
+        let name = textField.stringValue.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !name.isEmpty else { return }
+        onConfirm(name)
     }
 
     // MARK: - Recursive tree rows
@@ -231,40 +325,4 @@ public struct FileTreePanel: View {
         Task { await viewModel.selectRootDirectory(url) }
     }
 
-    // MARK: - Drop handling
-
-    /// Accepts dropped file URLs and copies them into `directory`.
-    ///
-    /// `URL` does not conform to `NSItemProviderReading`, so we use the lower-level
-    /// `loadItem(forTypeIdentifier:)` API and coerce the result to a URL manually.
-    private func handleDrop(_ providers: [NSItemProvider], into directory: URL?) -> Bool {
-        guard let directory else { return false }
-        let typeID = UTType.fileURL.identifier
-        var handled = false
-        for provider in providers {
-            guard provider.hasItemConformingToTypeIdentifier(typeID) else { continue }
-            provider.loadItem(forTypeIdentifier: typeID, options: nil) { item, _ in
-                let url: URL?
-                if let data = item as? Data {
-                    url = URL(dataRepresentation: data, relativeTo: nil)
-                } else if let u = item as? URL {
-                    url = u
-                } else {
-                    url = nil
-                }
-                guard let url else { return }
-                let dest = directory.appendingPathComponent(url.lastPathComponent)
-                Task { @MainActor in
-                    do {
-                        try FileManager.default.copyItem(at: url, to: dest)
-                        await viewModel.refreshTree()
-                    } catch {
-                        // Silently ignore — drop rejected (standard macOS behaviour)
-                    }
-                }
-            }
-            handled = true
-        }
-        return handled
-    }
 }

@@ -16,11 +16,18 @@ public struct EditorView: NSViewRepresentable {
     var viewModel: EditorViewModel
     var settings: SettingsStore
     var appState: AppState
+    var isEditable: Bool
 
-    public init(viewModel: EditorViewModel, settings: SettingsStore, appState: AppState) {
+    public init(
+        viewModel: EditorViewModel,
+        settings: SettingsStore,
+        appState: AppState,
+        isEditable: Bool = true
+    ) {
         self.viewModel = viewModel
         self.settings = settings
         self.appState = appState
+        self.isEditable = isEditable
     }
 
     // MARK: - NSViewRepresentable
@@ -115,6 +122,7 @@ public struct EditorView: NSViewRepresentable {
         }
 
         configureTypography(textView, settings: settings)
+        textView.isEditable = isEditable
         return scrollView
     }
 
@@ -137,6 +145,9 @@ public struct EditorView: NSViewRepresentable {
         // Reapply font and background from settings (F-4) — settings may have changed
         // while the view was alive (e.g. per-panel override toggled in Preferences).
         applyFontAndBackground(textView, settings: settings)
+
+        // Update isEditable in case the column role changed.
+        textView.isEditable = isEditable
 
         // Trigger ruler redraw when the view model changes (e.g. on content reload).
         nsView.verticalRulerView?.needsDisplay = true

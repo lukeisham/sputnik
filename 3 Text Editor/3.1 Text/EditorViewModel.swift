@@ -60,30 +60,24 @@ public final class EditorViewModel: EditorCommandHandling {
     /// Watches the open file for external changes. Instantiated per document; cleared on close.
     private var fileWatcher: FileWatcher?
 
-    // MARK: - Crash recovery
+    // MARK: - Dependencies (injected via init)
+
+    private let appState: AppState
+    private let persistenceService: PersistenceService
 
     /// Serializes editor buffer to recovery cache on text changes (ISS-036).
-    private var recoveryStore: CrashRecoveryStore? = {
-        if let appDelegate = NSApp.delegate as? AppDelegate,
-            let persistence = appDelegate.persistenceService
-        {
-            return CrashRecoveryStore(persistence: persistence)
-        }
-        return nil
-    }()
+    private let recoveryStore: CrashRecoveryStore?
 
     /// Task for debouncing recovery writes (cancelled when a new write is scheduled).
     private var recoveryDebounceTask: Task<Void, Never>?
 
     // MARK: - Init
 
-    public init() {
-        // Register as the editor command handler (Save, Save As, etc.).
-        if let appDelegate = NSApp.delegate as? AppDelegate,
-            let appState = appDelegate.appState
-        {
-            appState.registerEditorCommandHandler(self)
-        }
+    public init(appState: AppState, persistenceService: PersistenceService) {
+        self.appState = appState
+        self.persistenceService = persistenceService
+        self.recoveryStore = CrashRecoveryStore(persistence: persistenceService)
+        appState.registerEditorCommandHandler(self)
     }
 
     // MARK: - Deinit
@@ -266,11 +260,7 @@ public final class EditorViewModel: EditorCommandHandling {
     /// Routes via the app's InterPanelRouter; no-op if HTML mode is inactive or no file is open.
     public func renderAsHTML() async throws {
         guard htmlModeActive, let url = fileURL else { return }
-        if let appDelegate = NSApp.delegate as? AppDelegate,
-            let router = appDelegate.appState?.router
-        {
-            await router.open(url)
-        }
+        await appState.router?.open(url)
     }
 
     /// Presents the ASCII Studio floating panel (⌘⌥A, Format menu).

@@ -60,10 +60,9 @@ public protocol PersistenceService: AnyObject {
     /// Returns the previously saved scratchpad text, or an empty string.
     func loadScratchpadText() -> String
 
-    /// Persists the scratchpad panel frame (size + offset) to UserDefaults.
-    func saveScratchpad(frame: CGRect)
+    /// Persists the docked scratchpad width to UserDefaults.
+    func saveScratchpadDockedWidth(_ width: CGFloat)
 
-    /// Returns the previously saved scratchpad frame, or the default (320×240, zero offset)
-    /// if none has been saved yet.
-    func loadScratchpadFrame() -> CGRect
+    /// Returns the previously saved docked scratchpad width, or 280 if not yet saved.
+    func loadScratchpadDockedWidth() -> CGFloat
 }

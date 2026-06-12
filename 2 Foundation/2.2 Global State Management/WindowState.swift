@@ -72,8 +72,33 @@ public final class WindowState {
 
     // MARK: - Layout
 
-    /// Per-window panel arrangement, slot visibility, and terminal pinned flag.
+    /// Per-window panel arrangement, terminal pinned flag, recent files, and open tabs.
     public var layout: LayoutState = .default
+
+    /// The UUID of the column that currently has keyboard focus.
+    /// Transient — never persisted. Initialised to the first text editor column
+    /// (or first column if no text editor column exists) on launch.
+    public var activeColumnID: UUID? {
+        didSet {
+            // Revert a toggled preview column back to .textEditor when focused.
+            if let id = activeColumnID {
+                layout.dynamicLayout.revertToggleIfNeeded(forColumnID: id)
+            }
+        }
+    }
+
+    /// The `PanelID` of the currently active column, or `nil`.
+    public var activeColumnRenderMode: PanelID? {
+        layout.dynamicLayout.columns.first(where: { $0.id == activeColumnID })?.renderMode
+    }
+
+    /// The `DocumentSession` ID of the active text editor column, or `nil`.
+    /// Returns `nil` if the active column is not a `.textEditor` or has no open document.
+    public var activeTextEditorDocumentID: UUID? {
+        guard activeColumnRenderMode == .textEditor else { return nil }
+        return layout.dynamicLayout.columns.first(where: { $0.id == activeColumnID })?
+            .activeDocumentID
+    }
 
     // MARK: - Help routing
 
@@ -104,7 +129,10 @@ public final class WindowState {
 
     public var scratchpadVisible: Bool = false
     public var scratchpadText: String = ""
-    public var scratchpadFrame: CGRect = CGRect(x: 0, y: 0, width: 320, height: 240)
+
+    /// The width of the docked scratchpad panel, persisted via `UserDefaults`.
+    /// Clamped to 200…600 pt on read.
+    public var scratchpadDockedWidth: CGFloat = 280
 
     // MARK: - Terminal manager reference
 
@@ -119,6 +147,17 @@ public final class WindowState {
 
     public init(id: UUID = UUID()) {
         self.id = id
+        // Initialise activeColumnID to the first text editor column, or first column.
+        self.activeColumnID =
+            layout.dynamicLayout.columns.first(where: { $0.renderMode == .textEditor })?.id
+            ?? layout.dynamicLayout.columns.first?.id
+    }
+
+    // MARK: - Document lookup
+
+    /// Returns the `DocumentSession` with the given ID, or `nil` if not found.
+    public func document(for id: UUID) -> DocumentSession? {
+        openDocuments.first { $0.id == id }
     }
 
     // MARK: - Document lifecycle
@@ -162,14 +201,27 @@ public final class WindowState {
         }
     }
 
-    // MARK: - Panel visibility
+    // MARK: - Panel visibility (dynamic layout)
 
-    public func isVisible(_ position: PanelPosition) -> Bool {
-        layout.visibility[position] ?? true
+    /// Returns true if a column with the given render mode exists.
+    public func hasColumn(renderMode: PanelID) -> Bool {
+        layout.dynamicLayout.columns.contains { $0.renderMode == renderMode }
     }
 
-    public func toggleVisibility(_ position: PanelPosition) {
-        layout.visibility[position] = !isVisible(position)
+    /// Toggle a column by render mode: remove if present (and not the last column),
+    /// add if absent (respecting File Tree edge constraint).
+    public func toggleColumn(renderMode: PanelID) {
+        if let index = layout.dynamicLayout.columns.firstIndex(where: {
+            $0.renderMode == renderMode
+        }) {
+            // Don't remove the last column
+            guard layout.dynamicLayout.columns.count > 1 else { return }
+            layout.dynamicLayout.columns.remove(at: index)
+        } else {
+            // Add at the end (File Tree constraint is enforced by addColumn)
+            layout.dynamicLayout.addColumn(
+                renderMode: renderMode, at: layout.dynamicLayout.columns.count)
+        }
     }
 
     public func toggleTerminal() {
@@ -177,10 +229,20 @@ public final class WindowState {
     }
 
     public func restoreDefaultLayout() {
-        layout.panelLayout = .default
-        layout.visibility = Dictionary(
-            uniqueKeysWithValues: PanelPosition.allCases.map { ($0, true) }
-        )
+        layout.dynamicLayout = .default
         layout.terminalVisible = true
+    }
+
+    // MARK: - Dynamic layout convenience
+
+    /// Replace the current dynamic layout entirely.
+    public func setDynamicLayout(_ newLayout: DynamicPanelLayout) {
+        layout.dynamicLayout = newLayout
+        // Ensure activeColumnID is still valid.
+        if let id = activeColumnID, !layout.dynamicLayout.columns.contains(where: { $0.id == id }) {
+            activeColumnID =
+                layout.dynamicLayout.columns.first(where: { $0.renderMode == .textEditor })?.id
+                ?? layout.dynamicLayout.columns.first?.id
+        }
     }
 }

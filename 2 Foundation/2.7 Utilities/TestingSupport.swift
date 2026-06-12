@@ -65,8 +65,7 @@ public final class MockWindowState {
     public var title: String = "Test Window"
     public var openDocuments: [DocumentSession] = []
     public var activeDocumentID: UUID?
-    public var panelLayout: PanelLayout = .default
-    public var panelSizes: [PanelPosition: CGFloat] = [:]
+    public var dynamicLayout: DynamicPanelLayout = .default
 
     public var moveDocumentCalls: [(from: IndexSet, to: Int)] = []
     public var closeDocumentCalls: [UUID] = []

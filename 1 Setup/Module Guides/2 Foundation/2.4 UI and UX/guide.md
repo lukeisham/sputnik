@@ -1,92 +1,121 @@
 ---
 module: 2.4 Foundation – UI and UX
 status: active
-last_updated: 2026-06-09
+last_updated: 2026-06-12
+last_verified: 2026-06-12
+open_issues: none
 ---
 
 ## Purpose
-Define every shared visual primitive and layout behaviour — design tokens, panel arrangement, focus modes, error dialogs — once in Foundation so all modules consume a consistent, maintainable interface.
+Define every shared visual primitive and layout behaviour — design tokens, dynamic panel arrangement, drag-to-reorder, scrollable tab bar, render-mode toggle, error dialogs — once in Foundation so all modules consume a consistent, maintainable interface.
 
 ## Diagram
 
 ```
-Named slots above the terminal (panels can be placed in any slot):
+Dynamic columns above the terminal (ordered list of PanelColumn):
 
-┌─────────────────────────────────────────────────────────────────┐
-│  Toolbar  [⊞ File Tree] [✎ Editor] [▤ Preview] [▣ PDF] [> Term]│
-├──────────────┬──────────────────────┬──────────────────────────┤
-│              │                      │                          │
-│   .left      │   .centerUpper       │   .right                 │
-│              │                      │                          │
-│  (any panel) │   (any panel)        │   (any panel)            │
-│              │                      │                          │
-│  resizable  ◀▶  resizable          ◀▶  resizable              │
-│              ├──────────────────────┴──────────────────────────┤
-│              │                                                  │
-│              │   .centerLower  (any panel, optional)           │
-│              │                                                  │
-├──────────────┴──────────────────────────────────────────────────┤
-│   Terminal (7)   — always here, not part of the slot system     │
-├─────────────────────────────────────────────────────────────────┤
-│   StatusBarView  — 24 pt fixed height, non-resizable            │
-│   [ 🛰 ]  deepseek-chat  claude-sonnet-4-6  CTX 34%  RAM 48 MB  CPU 2.1%      │
-│    ↑ Supporting AI       ↑ Main AI model + CTX %                │
-└─────────────────────────────────────────────────────────────────┘
-  ↑ .overlay(alignment: .bottomTrailing) on ContentView:
-  ┌──────────────┐
-  │  Scratchpad  │  ← ScratchpadPanel (320×240 pt default, resizable,
-  │              │    draggable; visible when AppState.scratchpadVisible)
-  │  NSTextView  │
-  └──────────────┘
+Default three-column layout:
+┌──────────┬──────────────────────────────┬─────────────────────────┐
+│          │                              │                         │
+│ .fileTree│    .textEditor               │ .markdownPreview        │
+│ (20%)    │    (45%)                     │ (35%)                   │
+│          │                              │                         │
+│  resizable  ◀▬drop zone▬▶  resizable    ◀▬drop zone▬▶  resizable │
+├──────────┴──────────────────────────────┴─────────────────────────┤
+│   Terminal (7) — always here, full-width bottom strip              │
+├────────────────────────────────────────────────────────────────────┤
+│   DockedScratchpadPanel (docked to right of Terminal)              │
+│   [⇧⌘K toggles]  width persisted via UserDefaults (200…600 pt)    │
+├────────────────────────────────────────────────────────────────────┤
+│   StatusBarView — 24 pt fixed height, non-resizable               │
+│   [ 🛰 ]  deepseek-chat  claude-sonnet-4-6  CTX 34%  RAM 48 MB  CPU 2.1%     │
+└────────────────────────────────────────────────────────────────────┘
 
-Default slot assignment (restored from PersistenceService on launch):
-  .left        → File Tree (6)
-  .centerUpper → Text Editor (3)
-  .right        → Markdown Preview (4) or HTML Preview (8)
-  .centerLower → PDF Viewer (5)  [hidden unless a PDF is open]
+Column creation:
+- Drag a column title bar into a between-column drop zone → new column appears
+- Drag a column title bar onto another column → becomes a tab in the target column
+- File Tree constraint: .fileTree column can only exist at index 0 or last
 
-Panel relocation — drag to swap:
-  User drags panel title bar  →  drop target highlights on other panels
-  On drop: the two panels swap PanelPosition in PanelLayout
-  Terminal slot is not a valid drop target
+Column removal:
+- ✕ button on title bar removes the column
+- Removing the last column restores the default three-column layout
 
-Focus Modes (panel toggles hide/show; positions are preserved):
-  Writer mode  → .left hidden, Terminal hidden
-  Reader mode  → .centerUpper hidden, Terminal hidden
-  Dev mode     → all panels visible (default)
+Multi-tab columns:
+- More than one document in a column → scrollable tab bar appears below title bar
+- Click tab to switch visible document
+- Active text editor column has a 2 pt solid accent border
+- Active-pair preview (matching-doc MD/HTML) has a 1 pt dashed accent border
 ```
+
+## Source Files
+| File | Responsibility |
+|---|---|
+| `DesignTokens.swift` | Enum namespaces: `SputnikSpacing` (xs/sm/md/lg/xl), `SputnikFont` (caption/body/headline/title pt sizes) |
+| `SputnikColor.swift` | `enum` — static `Color`/`NSColor` properties for backgrounds, text, accents, selection, separators |
+| `PanelID.swift` | `Codable Sendable` enum — `fileTree`, `textEditor`, `markdownPreview`, `htmlPreview`, `pdfViewer`, plus help panel IDs |
+| `DynamicPanelLayout.swift` | `Codable Sendable` struct — ordered list of `PanelColumn`s; column role computation, File Tree constraint, render-mode toggle, column mutations |
+| `PanelColumn.swift` | `Codable Sendable` struct — single column: stable UUID, renderMode, tabbed document IDs, proportional width |
+| `PanelColumnView.swift` | SwiftUI view — title bar, tab bar, role border, `.onDrag`/`.onDrop`, drag-to-tab creation, close button |
+| `ColumnDropDelegate.swift` | `DropDelegate` — decode UUID from item provider, call `moveColumn` to reposition columns on drop |
+| `DropZoneView.swift` | SwiftUI view — 8 pt invisible between-column drop zone with blue hover highlight; calls `addColumn` on drop |
+| `SputnikAlert.swift` | `Error Sendable Equatable` enum — typed error cases for dialog presentation |
+| `SputnikError.swift` | `Error Sendable` enum — `hardwareAccessDenied`, `processLaunchFailed`, `ptyWriteFailed` |
+| `HelpTopic.swift` | `Codable Sendable CaseIterable Identifiable` enum — `.sputnik`, `.markdown`, `.html`, `.asciiArt`, `.grammar` |
+| `DocumentTabBar.swift` | SwiftUI tab strip — reads `openDocuments`/`activeDocumentID`, writes `activeDocumentID`, drag-to-reorder (ISS-019) |
+| `AboutWindowView.swift` | SwiftUI About window — Sputnik logo, version, build, credits |
+| `DockedScratchpadPanel.swift` | SwiftUI panel — docked beside Terminal, resizable horizontally, persisted width |
+| `ScratchpadTextView.swift` | `NSViewRepresentable` wrapping `NSTextView` (SW-3) |
+| `SlashCommandPopup.swift` | SwiftUI popup — filtered slash-command list anchored to cursor |
+| `StatusBarView.swift` | SwiftUI bottom bar — satellite, AI segments, RAM, CPU |
+| `DebounceStepPicker.swift` | Reusable SwiftUI `Picker` for `AutoCompleteDebounceStep` |
 
 ## Technical Summary
 - **Framework(s):** SwiftUI, AppKit (for `NSFont`, system icon access)
 - **Key types:**
-  - `DesignTokens` — namespace enum of static constants: colors (`SputnikColor`), fonts (`SputnikFont`), spacing (`SputnikSpacing`); also registers two named image assets: `SputnikMenuBar` (16 pt @1x / 32 pt @2x monochrome template for the menu-bar status item — F-1) and `SputnikLogo` (64 pt @1x / 128 pt @2x full-colour for the About window — F-1/F-2) <!-- assumed -->
-  - `SputnikColor` — color set bridging `Color` (SwiftUI) and `NSColor` (AppKit), with light/dark variants driven by `SettingsStore.theme` <!-- assumed -->
-  - `PanelID` — enum identifying each panel: `.fileTree`, `.textEditor`, `.markdownPreview`, `.htmlPreview`, `.pdfViewer`; Terminal is excluded — it is not relocatable <!-- assumed -->
-  - `PanelPosition` — enum of named slots: `.left`, `.centerUpper`, `.centerLower`, `.right` <!-- assumed -->
-  - `PanelLayout` — `Codable, Sendable` struct with two maps: `assignments: [PanelPosition: PanelID]` (which panel is in which slot) and `sizes: [PanelPosition: CGFloat]` (split proportions). **Component of `LayoutState`** (2.5) — not persisted standalone. See ISS-001 resolution.
-  - `FocusMode` — enum: `.dev`, `.writer`, `.reader`; stored in `AppState` (2.2) <!-- assumed -->
-  - `SputnikAlert` — typed error enum with associated `title: String` and `message: String`; all error dialogs are constructed from this type so presentation is consistent <!-- assumed -->
-  - `DocumentTabBar` — SwiftUI view rendered above the `.centerUpper` editor slot; reads `AppState.openDocuments` and `activeDocumentID`, writes `activeDocumentID` on tab-tap, and calls an `onClose: (UUID) -> Void` callback for close gestures so the router can run the `isDirty` guard (spec 2.4.2.5 "Tabs and Windows")
-  - `HelpTopic` — enum (`sputnik`, `markdown`, `html`, `asciiArt`, `grammar`) identifying which help panel to reveal; consumed by `AppState.requestedHelpTopic` and the Help menu
-  - `AboutWindowView` — SwiftUI `View` in `2 Foundation/2.4 UI and UX/AboutWindowView.swift`; displays `SputnikLogo` (128 pt), app name, version string from `CoreSputnik`, build number, and a static credits block (hard-coded `let` string — not loaded from disk at runtime); hosted in the `Window("about")` scene in `SputnikApp`; opened via `openWindow(id: "about")` from `SputnikCommands`
-  - `ScratchpadPanel` (`2 Foundation/2.4 UI and UX/ScratchpadPanel.swift`) — SwiftUI container applied as `.overlay(alignment: .bottomTrailing)` on `ContentView`; visible when `AppState.scratchpadVisible` is `true`; contains a title bar ("Scratchpad" label + close button that sets `scratchpadVisible = false`), resize handles (drag from any edge), and a drag gesture on the title bar for repositioning; default size 320×240 pt, minimum 200×120 pt; size and position persisted via `PersistenceService.scratchpadFrame`; hosts `ScratchpadTextView`
-  - `ScratchpadTextView` (`2 Foundation/2.4 UI and UX/ScratchpadTextView.swift`) — `NSViewRepresentable` wrapping a plain `NSTextView`; binds to `@Binding<String>` backed by `PersistenceService.scratchpadText`; no spell-check underlines by default; `NSViewRepresentable` use is justified: `NSTextView` provides raw plain-text editing performance that `TextEditor` cannot match for an unstructured scratchpad (SW-3 — documented at call site); `NSTextViewDelegate` callbacks in `Coordinator` use `[weak self]`; becomes a consumer of `SlashCommandRegistry` when F-7 is active
-  - `SlashCommandPopup` (`2 Foundation/2.4 UI and UX/SlashCommandPopup.swift`) — SwiftUI `View`; filtered `List` of `SlashCommand` rows grouped by `category`; triggered by host views when a `/` is typed at a word boundary; anchored to the cursor using `NSTextView.firstRect(forCharacterRange:actualRange:)` converted to SwiftUI coordinates; dismissed by Escape, focus loss, or confirmed selection; `onSelect: (SlashCommand) -> Void` callback returns the chosen command to the host, which replaces the `/…` token and dismisses the popup
-  - `StatusBarView` (`2 Foundation/2.4 UI and UX/StatusBarView.swift`) — SwiftUI `HStack` fixed at 24 pt height at the very bottom of `ContentView` (below the Terminal strip); reads `AppState`, `SettingsStore`, `ProcessMonitor`, and `MainAIMonitor` from the environment; segments (left to right): satellite icon with `rotationEffect` animation when `AppState.isProcessing` is true; **Supporting AI** model name (`settings.supportingAIConfig.modelName`, shown only when non-empty); **Main AI** segment (`appState.mainAIState.modelName` + CTX % when a Main AI is active in the terminal; shows `—` when none is detected); RAM and CPU % from `ProcessMonitor`; context menu with "Set Main AI Model…" and "Clear Main AI" for manual model declaration; terminal model segment injected by F-8 as optional child views
-  - `HelpRequest` — `Equatable Sendable` value type wrapping a `HelpTopic` `kind` and an optional `topicID: String?`; the Foundation-owned single route for help-panel navigation (ISS-008 resolved). The Help menu sets `topicID = nil` (overview); the editor's "Look Up Help" sets a resolved `topicID` so the panel scrolls to the matching topic. Written to `AppState.requestedHelpTarget`; module 9 panels observe it via `SputnikHelpPanel.navigate(to:)`. Coordinator-side wiring pattern: each coordinator singleton exposes `var onNavigate: ((HelpRequest) -> Void)?`; its panel view assigns `coordinator.onNavigate = { [weak state] request in state?.requestedHelpTarget = request }` in its `.task` body, capturing `AppState` weakly (SW-2).
-- **Threading model:** All UI work is `@MainActor`. Design tokens are pure value types with no threading concerns. Panel resize and relocation events update `PanelLayout` synchronously on the main thread; the subsequent `PersistenceService` write is `Task(priority: .utility)`.
-- **Data flow:** `DesignTokens` are accessed as static constants — no injection needed. `PanelLayout` is read at launch from `PersistenceService`, mutated by drag-to-swap and resize events, and written back on each change. `FocusMode` lives in `AppState`; the toolbar writes it, panels observe it via `@Environment`. Panel relocation: panel title bars expose `.onDrag` returning a `PanelID`; slot views expose `.onDrop` accepting a `PanelID`; on a valid drop the two panels' `PanelPosition` values are swapped in `PanelLayout`.
+  - `SputnikSpacing` / `SputnikFont` / `SputnikColor` — design token enums; colours bridge `Color` (SwiftUI) and `NSColor` (AppKit)
+  - `PanelID` — `Codable Sendable` enum identifying panels; Terminal excluded (not relocatable)
+  - `DynamicPanelLayout` — `Codable Sendable` struct; ordered `columns` array; default three-column layout; File Tree edge constraint; column role computation (`active`, `activePair`, `viewOnly`); render-mode toggle (`toggleRenderMode`, `revertToggleIfNeeded`)
+  - `PanelColumn` — `Codable Sendable Identifiable` struct; stable `id` (UUID), `renderMode`, `originalRenderMode` (for toggle persistence), `documentIDs`, `activeDocumentIndex`, `width`
+  - `PanelColumnView` — SwiftUI view rendering a single column; title bar with badge/toggle pills/drag handle/close button; scrollable tab bar for multi-document columns; role-based border; `.onDrag` (UUID payload) and `.onDrop` (`ColumnDropDelegate`)
+  - `ColumnDropDelegate` — `DropDelegate`; decodes source UUID asynchronously from `NSItemProvider`; calls `DynamicPanelLayout.moveColumn(id:to:)`; File Tree constraint enforced at the model level
+  - `DropZoneView` — 8 pt invisible drop zone between columns; blue tint on hover; calls `layout.addColumn(renderMode:at:)` on drop to create a new column
+  - `SputnikAlert` — `Error Sendable Equatable` enum for typed error dialogs
+  - `SputnikError` — `Error Sendable` enum for hardware/process errors
+  - `HelpTopic` — `Codable Sendable CaseIterable Identifiable` enum for help panel kind
+  - `HelpRequest` — `Equatable Sendable` value type; Foundation-owned single route for help-panel navigation (ISS-008 resolved)
+  - `AboutWindowView` — SwiftUI About window
+  - `DockedScratchpadPanel` / `ScratchpadTextView` — docked scratchpad via `NSViewRepresentable` (SW-3); replaces floating `ScratchpadPanel`
+  - `SlashCommandPopup` — filtered command list
+  - `StatusBarView` — SwiftUI bottom bar with satellite animation, AI model segments, RAM/CPU
+
+- **Threading model:** All UI work is `@MainActor`. Design tokens are pure value types with no threading concerns. Panel drag operations update `DynamicPanelLayout` synchronously on the main thread via async callback from `NSItemProvider.loadItem` dispatched to `@MainActor`.
+- **Data flow:**
+  - `DynamicPanelLayout` is read at launch from `PersistenceService` (2.5) via `LayoutState.dynamicLayout`.
+  - Panel drag-to-move: `.onDrag` in `PanelColumnView` → `NSItemProvider(uuidString)` → `.onDrop` in target column (`ColumnDropDelegate`) or drop zone (`DropZoneView`) → decode UUID → call `moveColumn` or `addColumn` on `DynamicPanelLayout`.
+  - Panel close: ✕ button → `DynamicPanelLayout.removeColumn(id:)` → if last column, restore `.default`.
+  - Render-mode toggle: pill buttons → `DynamicPanelLayout.toggleRenderMode(ofColumnID:to:)`; tap on toggled preview column → `revertToggleIfNeeded` → back to `.textEditor`.
+  - Auto-position on file open: `ContentView.onChange(of: activeDocumentID)` calls `moveActiveEditorAdjacentToFileTree` for text-type files.
 - **State owned:**
-  - Design tokens — static, no runtime state.
-  - `PanelLayout` — owned by `PersistenceService` (2.5); UI/UX reads and writes through it.
-  - `FocusMode` — owned by `AppState` (2.2); UI/UX defines the enum and the toolbar writes it.
-- **Dependencies:** `SettingsStore` (2.3) for theme; `PersistenceService` (2.5) for layout persistence; `AppState` (2.2) for focus mode.
+  - Design tokens (`SputnikSpacing`, `SputnikFont`, `SputnikColor`) — static, no runtime state.
+  - `DynamicPanelLayout` — owned by `LayoutState` (2.5); UI/UX reads and writes through it.
+- **Dependencies:** `SettingsStore` (2.3) for theme; `PersistenceService` (2.5) for layout persistence.
 - **Failure modes:**
-  - Saved `PanelLayout` dimensions exceed current screen bounds → clamped to safe minimum/maximum on load; no crash.
-  - Saved `assignments` map is missing a slot (e.g. saved before a new panel was added) → missing slots fall back to the default assignment; no crash.
-  - User drops a panel onto the Terminal slot → drop is rejected; Terminal position is hardcoded and is not a valid drop target.
+  - Drag payload decode failure → drop silently ignored; no crash.
+  - File Tree dropped at invalid position → `moveColumn` guard rejects; column stays put.
+  - Last column closed → `removeColumn` restores `.default`; never empty.
   - Light/dark mode change while app is running → `SputnikColor` resolves dynamically via `colorScheme` environment value; no manual refresh needed.
   - Error dialog presented with no active window → `SputnikAlert` is queued and shown once a window becomes key; never silently dropped.
+
+## Invariants
+- `SputnikColor` resolves dynamically via SwiftUI `@Environment(\.colorScheme)` — no manual refresh needed on light/dark change
+- `DynamicPanelLayout.columns` is never empty — removing the last column restores `.default`
+- `.fileTree` column: at most one, always at index 0 or last (enforced at both UI `validateDrop` and model `moveColumn`)
+- Terminal is pinned to the bottom strip — not part of the column system, not a valid drop target
+- Column role (`active` / `activePair` / `viewOnly`) is computed fresh each render from `activeColumnID` and document ID — never cached
+- Scratchpad is always docked bottom-right (beside Terminal) — floating overlay removed
+- `HelpRequest` is the **single** Foundation route for help-panel navigation — no module bypasses it (ISS-008 resolved)
+- `DocumentTabBar` drag-to-reorder goes through `WindowState.moveDocument(fromOffsets:toOffset:)` — reordered order persists (ISS-019)
+- `revertToggleIfNeeded` is called BEFORE setting `activeColumnID` in the focus tap gesture — order matters for correct toggle state
 
 ## Spec Reference
 > Extracted verbatim from `readme.md`:

@@ -49,27 +49,30 @@ public struct SputnikApp: App {
                 if let ws = appState.activeWindow { return ws }
                 return appState.createWindow()
             }()
-            ContentView(windowState: windowState, router: router)
-                .environment(appState)
-                .environment(windowState)
-                .environment(settingsStore)
-                .environment(processMonitor)  // F-5
-                .environment(supportingAIMonitor)
-                .environment(mainAIMonitor)
-                .onAppear {
-                    wireAppDelegate()
-                    // Ensure activeWindowID reflects which window just appeared.
-                    appState.setActiveWindow(windowState.id)
-                    // Tag the NSWindow with the WindowState UUID so Merge All Windows
-                    // can close it by identity (ISS-018).
-                    NSApp.keyWindow?.identifier = NSUserInterfaceItemIdentifier(
-                        windowState.id.uuidString)
-                }
-                .focusedSceneValue(\.activeWindowID, windowState.id)
-                // Opens additional restored windows (step 9) on first render.
-                .background {
-                    WindowRestorerView(appState: appState)
-                }
+            ContentView(
+                windowState: windowState, router: router, appState: appState,
+                persistenceService: persistence
+            )
+            .environment(appState)
+            .environment(windowState)
+            .environment(settingsStore)
+            .environment(processMonitor)  // F-5
+            .environment(supportingAIMonitor)
+            .environment(mainAIMonitor)
+            .onAppear {
+                wireAppDelegate()
+                // Ensure activeWindowID reflects which window just appeared.
+                appState.setActiveWindow(windowState.id)
+                // Tag the NSWindow with the WindowState UUID so Merge All Windows
+                // can close it by identity (ISS-018).
+                NSApp.keyWindow?.identifier = NSUserInterfaceItemIdentifier(
+                    windowState.id.uuidString)
+            }
+            .focusedSceneValue(\.activeWindowID, windowState.id)
+            // Opens additional restored windows (step 9) on first render.
+            .background {
+                WindowRestorerView(appState: appState)
+            }
         }
         .commands { SputnikCommands(appState: appState, settings: settingsStore, router: router) }
         // No .handlesExternalEvents(matching: []) — multi-window is intentional.

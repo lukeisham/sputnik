@@ -1,7 +1,8 @@
 ---
 module: 2.1 Foundation – Inter-panel Communication
-status: active
-last_updated: 2026-06-08
+status: stable
+last_updated: 2026-06-12
+last_verified: 2026-06-12
 ---
 
 ## Purpose
@@ -54,13 +55,20 @@ Directory change event (from module 6 or module 7)
                    └──▶ Terminal (7) observes and calls `cd <url>`
 ```
 
+## Source Files
+| File | Responsibility |
+|---|---|
+| `InterPanelRouter.swift` | `@MainActor` protocol — `open(_:)`, `close(_:)`, `syncDirectory(_:)`, `events: AsyncStream<PanelEvent>` |
+| `AppInterPanelRouter.swift` | `@MainActor` class — concrete implementation of `InterPanelRouter`; find-or-create open semantics, dirty-tab close guard (ISS-020), directory sync |
+| `FileType.swift` | `Codable Sendable` enum — classifies URLs by extension: `.text`, `.markdown`, `.html`, `.pdf`, `.ascii`, `.image`, `.binary`, `.unknown` |
+| `PanelEvent.swift` | `Sendable` enum — `fileOpened(URL, FileType)`, `directoryChanged(URL)` |
+
 ## Technical Summary
 - **Framework(s):** Foundation, Swift Concurrency
 - **Key types:**
-  - `InterPanelRouter` — `@MainActor` protocol with `open(_:)`, `close(_:)`, and
-    `syncDirectory(_:)`; registered in Foundation, never implemented here
-  - `FileType` — enum classifying a URL by extension (`.text`, `.markdown`, `.html`,
-    `.pdf`, `.ascii`, `.binary`, `.unknown`); defined here, shared with module 2.2
+  - `InterPanelRouter` — `@MainActor` protocol with `open(_:)`, `close(_:)`, `syncDirectory(_:)`, and `events: AsyncStream<PanelEvent>`; registered in Foundation, concrete implementation is `AppInterPanelRouter`
+  - `AppInterPanelRouter` — `@MainActor` concrete class implementing `InterPanelRouter`; find-or-create open semantics, dirty-tab guard on close (ISS-020), directory sync, `moveActiveTabToNewWindow()` with unsaved-changes prompt
+  - `FileType` — `Codable Sendable` enum classifying a URL by extension (`.text`, `.markdown`, `.html`, `.pdf`, `.ascii`, `.image`, `.binary`, `.unknown`); defined here, shared with module 2.2; includes `.image` for PNG/JPEG routing (ISS-048)
   - `PanelEvent` — `Sendable` enum of events broadcast via `AsyncStream<PanelEvent>`
     (`fileOpened(URL, FileType)`, `directoryChanged(URL)`)
 - **`open(_:)` contract — find-or-create:**
@@ -86,6 +94,14 @@ Directory change event (from module 6 or module 7)
   - No module registered for a `FileType` → router logs a warning and shows a dialog;
     does not assert or force-unwrap.
   - `close(_:)` called with an `id` not in `openDocuments` → no-op.
+
+## Invariants
+- `InterPanelRouter` and `AppInterPanelRouter` are `@MainActor` — all routing decisions mutate `AppState` synchronously on the main thread (SW-1)
+- `FileType` classification is a pure function of the URL extension — no disk I/O involved (SR-4)
+- The `open(_:)` contract guarantees **find-or-create**: no duplicate tabs for the same URL
+- The `close(_:)` contract runs the `isDirty` guard before removing — unsaved changes are never silently discarded (SR-2)
+- Modules never call `AppState.openDocuments` or `WindowState.openDocument` directly — all file-open events flow through `InterPanelRouter.open(_:)` (SR-1, SC-9)
+- `moveActiveTabToNewWindow()` shows an `NSAlert` confirmation when `session.isDirty`; returns `nil` on cancel (ISS-020)
 
 ## Spec Reference
 > Extracted verbatim from `readme.md`:

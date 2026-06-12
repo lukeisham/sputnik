@@ -1,7 +1,8 @@
 ---
 module: 2.3 Foundation – Settings
-status: active
-last_updated: 2026-06-11
+status: stable
+last_updated: 2026-06-12
+last_verified: 2026-06-12
 ---
 
 ## Purpose
@@ -57,10 +58,24 @@ Own all user-configurable preferences — appearance, editor behaviour, and spel
 
 ## Technical Summary
 - **Framework(s):** SwiftUI (`@Observable`, `Settings` scene), Foundation
+## Source Files
+| File | Responsibility |
+|---|---|
+| `SettingsStore.swift` | `@Observable @MainActor` — all user-configurable preferences (theme, fonts, per-panel overrides, AI config, writing-assist matrix, terminal profile, debounce steps) |
+| `AppTheme.swift` | `Codable Sendable` enum — `.light`, `.dark`, `.system` |
+| `EditorFont.swift` | `Codable Sendable` struct — PostScript font name + point size |
+| `TerminalColor.swift` | `Codable Sendable` RGBA struct — owned here so Foundation owns colour without importing Terminal |
+| `SupportingAIConfiguration.swift` | `Codable Sendable` struct — `provider`, `modelName`, `baseURL`; no API key field (ISS-014) |
+| `AIConfiguration.swift` | Deprecated typealias for `SupportingAIConfiguration` (ISS-015) |
+| `ModelCapacity.swift` | `Sendable` enum — static `contextWindow(for:)` lookup for known AI model families |
+| `WritingAssistMatrix.swift` | `Codable Sendable` struct — per-language × per-function writing-assist toggle matrix (ISS-011) |
+| `AutoCompleteDebounceStep.swift` | `CaseIterable Codable Sendable` enum — 7 steps from Instant to 3 s |
+| `SupportingAISettingsView.swift` | SwiftUI view for the AI settings tab |
+
 - **Key types:**
-  - `SettingsStore` — `@Observable @MainActor` class; single instance created at app launch alongside `AppState` and injected via `.environment(settingsStore)` <!-- assumed -->
-  - `AppTheme` — enum: `.light`, `.dark`, `.system` <!-- assumed -->
-  - `EditorFont` — struct wrapping PostScript font name and point size <!-- assumed -->
+  - `SettingsStore` — `@Observable @MainActor` class; single instance created at app launch alongside `AppState` and injected via `.environment(settingsStore)`
+  - `AppTheme` — `Codable Sendable` enum: `.light`, `.dark`, `.system`
+  - `EditorFont` — `Codable Sendable` struct wrapping PostScript font name and point size
   - `TerminalColor` — lightweight RGBA struct, `Codable`; extracted from module 7 so Foundation owns it without importing Terminal
   - `SupportingAIProvider` (enum, `Codable Sendable CaseIterable`, `2 Foundation/2.3 Settings/SupportingAIConfiguration.swift`) — `.deepSeek`, `.gemini`, `.local`; each case has a `defaultBaseURL: URL` computed property
   - `SupportingAIConfiguration` (`Codable Sendable Equatable`, `2 Foundation/2.3 Settings/SupportingAIConfiguration.swift`) — `provider: SupportingAIProvider`, `modelName: String`, `baseURL: URL?` (override; `nil` uses provider default); consumed by `SettingsStore.supportingAIConfig`; no API key field (key lives in Keychain only, never in this struct)
@@ -112,6 +127,14 @@ Own all user-configurable preferences — appearance, editor behaviour, and spel
 - **Failure modes:**
   - `UserDefaults` returns nil on first launch → `SettingsLoader.load(into:)` skips every key; `SettingsStore` falls back to hardcoded defaults; no crash.
   - Corrupt preferences key → caught by `Codable` decode failure → `SettingsLoader` skips that key; default value used; corrupt key is overwritten on next save.
+
+## Invariants
+- `SettingsStore` is `@MainActor` — all property changes are on the main thread; `PersistenceService` writes are dispatched with `Task(priority: .utility)` (SR-4)
+- The API key is never stored in `SettingsStore` or `SupportingAIConfiguration` — it lives only in the macOS Keychain via `KeychainService` (resolves ISS-014)
+- `spellCheckEnabled` and `grammarCheckEnabled` are **computed** over `writingAssist` — they are not independent storage (resolves ISS-011)
+- Corrupt or missing `UserDefaults` keys fall back to hardcoded defaults — no crash on decode failure (SR-2)
+- `AutoCompleteDebounceStep` is defined once in Foundation — all editor sub-modules read it from here; never re-implemented (SC-3)
+- `TerminalColor` is a Foundation type — module 7 imports it; never re-implemented in Terminal (SR-1)
 
 ## Spec Reference
 > Extracted verbatim from `readme.md`:

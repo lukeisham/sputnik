@@ -58,7 +58,7 @@ public final class AppDelegate: NSObject, NSApplicationDelegate {
             // Restore scratchpad state (F-6)
             if let state = appState {
                 state.scratchpadText = persistence.loadScratchpadText()
-                state.scratchpadFrame = persistence.loadScratchpadFrame()
+                state.scratchpadDockedWidth = persistence.loadScratchpadDockedWidth()
             }
 
             // Restore per-window state (step 9)
@@ -99,7 +99,7 @@ public final class AppDelegate: NSObject, NSApplicationDelegate {
         // Save scratchpad state (F-6)
         if let state = appState {
             persistenceService?.saveScratchpad(text: state.scratchpadText)
-            persistenceService?.saveScratchpad(frame: state.scratchpadFrame)
+            persistenceService?.saveScratchpadDockedWidth(state.scratchpadDockedWidth)
 
             // Save per-window state (step 9)
             let descriptors = state.collectDescriptors()

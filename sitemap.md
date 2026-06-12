@@ -3,10 +3,12 @@
 ```
 App_Sputnik/
 ├── 1 Setup/                                                ─── Scaffolding & meta
+│   ├── Guides/                                             ─── Additional guides
+│   │   └── Testing.md
 │   ├── Module Guides/                                      ─── One guide per module
 │   │   ├── 2 Foundation/
 │   │   │   ├── 2.0 App overview/
-│   │   │   │   └── guide.md  ← (287 ln)
+│   │   │   │   └── guide.md
 │   │   │   ├── 2.1 Inter-panel communication/
 │   │   │   │   └── guide.md
 │   │   │   ├── 2.2 Global State Management/
@@ -42,18 +44,21 @@ App_Sputnik/
 │   │   │   └── guide.md
 │   │   ├── 8 HTML Preview/
 │   │   │   └── guide.md
-│   │   └── 9 Resources/
-│   │       ├── 9.1 ASCII Library/
-│   │       │   └── guide.md
-│   │       ├── 9.2 ASCII Art Help/
-│   │       │   └── guide.md
-│   │       ├── 9.3 Markdown Help/
-│   │       │   └── guide.md
-│   │       ├── 9.4 Html Help/
-│   │       │   └── guide.md
-│   │       └── 9.5 Grammar Help/
-│   │           └── guide.md
-│   ├── Plans Completed/                                    ─── *.md  ← 23 plan(s)
+│   │   ├── 9 Resources/
+│   │   │   ├── 9.1 ASCII Library/
+│   │   │   │   └── guide.md
+│   │   │   ├── 9.2 ASCII Art Help/
+│   │   │   │   └── guide.md
+│   │   │   ├── 9.3 Markdown Help/
+│   │   │   │   └── guide.md
+│   │   │   ├── 9.4 Html Help/
+│   │   │   │   └── guide.md
+│   │   │   ├── 9.5 Grammar Help/
+│   │   │   │   └── guide.md
+│   │   │   └── guide.md
+│   │   └── 10 SputnikShared/
+│   │       └── guide.md
+│   ├── Plans Completed/                                    ─── *.md  ← 45 plan(s)
 │   │   ├── 2026-06-08 2 Foundation Implement Foundation module source.md
 │   │   ├── 2026-06-08 2 Foundation Multi-tab document model and preview sync.md
 │   │   ├── 2026-06-08 2.0 App Overview Wire menu bar via SputnikCommands.md
@@ -76,36 +81,75 @@ App_Sputnik/
 │   │   ├── 2026-06-09 SPM Build Wire-Up Plan.md
 │   │   ├── 2026-06-10 2 Foundation Make project build ready.md
 │   │   ├── 2026-06-10 2 Foundation Window and tab fixes.md
-│   │   └── 2026-06-10 7 Terminal Input focus and live resize wiring.md
-│   ├── Plans New/                                          ─── *.md  ← 2 plan(s)
 │   │   ├── 2026-06-10 3 Text Editor Wire document lifecycle and editor UI.md
-│   │   └── 2026-06-10 9 Resources Image display across previews and PDF viewer.md
+│   │   ├── 2026-06-10 7 Terminal Input focus and live resize wiring.md
+│   │   ├── 2026-06-10 9 Resources Image display across previews and PDF viewer.md
+│   │   ├── 2026-06-11 2 Foundation Add stepped auto-complete debounce controls.md
+│   │   ├── 2026-06-11 2 Foundation Close out ISS-023-028 Foundation compile fixes.md
+│   │   ├── 2026-06-11 Foundation Polish — ErrorReporting actor + TestingSupport target + PreviewImageCache + RenderThrottle + guide updates.md
+│   │   ├── 2026-06-11_ErrorReporting-wiring-into-AI-monitors.md
+│   │   ├── 2026-06-11_Fix-open-issues-ISS-042-043-044-049.md
+│   │   ├── 2026-06-11_Module-guide-updates-testing-and-closeout.md
+│   │   ├── 2026-06-11_Update-Package-swift-for-TestingSupport.md
+│   │   ├── 2026-06-11_Verify-and-mark-resolved-ISS-030-through-ISS-041.md
+│   │   ├── 2026-06-11_Wire-PreviewImageCache-and-RenderThrottle.md
+│   │   ├── 2026-06-12 Dynamic Panels Part 1 — Data Model and Persistence.md
+│   │   ├── 2026-06-12 Extract loadAll() from SettingsStore.md
+│   │   ├── 2026-06-12 File Tree quality-of-life features.md
+│   │   ├── 2026-06-12 Fix EditorViewModel dependency injection and incremental highlighting.md
+│   │   ├── 2026-06-12 Fix MarkdownPreviewViewModel PresentationIntent and file split.md
+│   │   ├── 2026-06-12 Foundation Sendable sweep and utility extraction.md
+│   │   ├── 2026-06-12 Make AppState Sendable-safe.md
+│   │   ├── 2026-06-12 Terminal pasteboard integration.md
+│   │   ├── Plan-Create-Testing-Skill.md
+│   │   ├── Plan-Split-SputnikApp.md
+│   │   └── Plan-Split-SputnikCommands.md
+│   ├── Plans New/                                          ─── *.md  ← 2 plan(s)
+│   │   ├── 2026-06-12 Dynamic Panels Part 2 — UI Shell.md
+│   │   └── 2026-06-12 Dynamic Panels Part 3 — Drag Interactions and Cleanup.md
 │   ├── References/
 │   │   ├── Issues.md  ← Known issues log
 │   │   ├── module-template.md
 │   │   └── plan-template.md
 │   ├── SKILLS/                                             ─── Agent skill prompts
 │   │   ├── !CreateAModuleGuide/
-│   │   │   └── skill.md  ← skill.md
+│   │   │   └── skill.md
+│   │   ├── !CreateTests/
+│   │   │   └── skill.md
+│   │   ├── !DiagnoseABug/
+│   │   │   └── skill.md
+│   │   ├── !EvaluateFeatureRequest/
+│   │   │   └── skill.md
 │   │   ├── !GenerateAPlan/
-│   │   │   └── skill.md  ← skill.md
+│   │   │   └── skill.md
 │   │   ├── !GrillMeWithContext/
-│   │   │   └── skill.md  ← skill.md
-│   │   └── !TrackIssues/
-│   │       └── skill.md  ← skill.md
+│   │   │   └── skill.md
+│   │   ├── !TrackIssues/
+│   │   │   └── skill.md
+│   │   └── !UpdateGuides/
+│   │       └── skill.md
 │   └── Vibe_Coding_Rules.md
 ├── 2 Foundation/                                            ─── CORE — Comms, state, settings, UI, persistence, lifecycle, utils
 │   ├── 2.0 App Overview/
-│   │   └── SputnikCommands.swift  ← (412 ln)
+│   │   ├── EditMenuGroup.swift
+│   │   ├── FileMenuGroup.swift
+│   │   ├── FormatMenuGroup.swift
+│   │   ├── HelpMenuGroup.swift
+│   │   ├── MenuHelpers.swift
+│   │   ├── SputnikCommands.swift
+│   │   ├── SputnikMenuGroup.swift
+│   │   ├── ViewMenuGroup.swift
+│   │   └── WindowMenuGroup.swift
 │   ├── 2.1 Inter-Panel communication/
 │   │   ├── AppInterPanelRouter.swift
 │   │   ├── FileType.swift
 │   │   ├── InterPanelRouter.swift
 │   │   └── PanelEvent.swift
 │   ├── 2.2 Global State Management/
-│   │   ├── AppState.swift  ← (241 ln)
+│   │   ├── AppState.swift
 │   │   ├── ContextUsage.swift
 │   │   ├── DocumentSession.swift
+│   │   ├── EditorCommandHandling.swift
 │   │   ├── MainAIState.swift
 │   │   ├── SupportingAIUsage.swift
 │   │   ├── TerminalModelInfo.swift
@@ -113,24 +157,28 @@ App_Sputnik/
 │   ├── 2.3 Settings/
 │   │   ├── AIConfiguration.swift
 │   │   ├── AppTheme.swift
+│   │   ├── AutoCompleteDebounceStep.swift
 │   │   ├── EditorFont.swift
 │   │   ├── ModelCapacity.swift
-│   │   ├── SettingsStore.swift  ← (361 ln)
+│   │   ├── SettingsStore.swift
 │   │   ├── SupportingAIConfiguration.swift
-│   │   ├── SupportingAISettingsView.swift  ← (212 ln)
+│   │   ├── SupportingAISettingsView.swift
 │   │   ├── TerminalColor.swift
 │   │   └── WritingAssistMatrix.swift
 │   ├── 2.4 UI and UX/
 │   │   ├── AboutWindowView.swift
+│   │   ├── DebounceStepPicker.swift
 │   │   ├── DesignTokens.swift
 │   │   ├── DocumentTabBar.swift
+│   │   ├── DynamicPanelLayout.swift
 │   │   ├── HelpTopic.swift
+│   │   ├── PanelColumn.swift
 │   │   ├── PanelID.swift
 │   │   ├── PanelLayout.swift
 │   │   ├── PanelPosition.swift
 │   │   ├── ScratchpadPanel.swift
 │   │   ├── ScratchpadTextView.swift
-│   │   ├── SlashCommandPopup.swift  ← (201 ln)
+│   │   ├── SlashCommandPopup.swift
 │   │   ├── SputnikAlert.swift
 │   │   ├── SputnikColor.swift
 │   │   ├── SputnikError.swift
@@ -139,6 +187,7 @@ App_Sputnik/
 │   │   ├── FilePersistenceService.swift
 │   │   ├── LayoutState.swift
 │   │   ├── PersistenceService.swift
+│   │   ├── SettingsLoader.swift
 │   │   └── WindowDescriptor.swift
 │   ├── 2.6 App Lifecycle/
 │   │   ├── AppDelegate.swift
@@ -148,19 +197,20 @@ App_Sputnik/
 │   ├── 2.7 Utilities/
 │   │   ├── ClosureMenuItem.swift
 │   │   ├── CompletionProviding.swift
-│   │   ├── DebounceTimer.swift
 │   │   ├── HelpContextResolving.swift
 │   │   ├── KeychainService.swift
-│   │   ├── MainAIMonitor.swift  ← (291 ln)
+│   │   ├── MainAIMonitor.swift
 │   │   ├── MoreContextMenu.swift
 │   │   ├── ProcessMonitor.swift
 │   │   ├── SlashCommand.swift
 │   │   ├── SlashCommandRegistry.swift
-│   │   └── SupportingAIMonitor.swift
+│   │   ├── SupportingAIMonitor.swift
+│   │   └── TestingSupport.swift
 │   └── Package.swift
 ├── 3 Text Editor/                                            ─── EDITOR — Multi-language text editing with ASCII art, Markdown, HTML
 │   ├── 3.1 Text/
 │   │   ├── CrashRecoveryStore.swift
+│   │   ├── EditorCommandHandling.swift
 │   │   ├── EditorMode.swift
 │   │   ├── EditorTextView.swift
 │   │   ├── EditorView.swift
@@ -171,7 +221,8 @@ App_Sputnik/
 │   │   ├── LineNumberRulerView.swift
 │   │   ├── SearchBarView.swift
 │   │   ├── SearchController.swift
-│   │   └── SyntaxHighlighter.swift
+│   │   ├── SyntaxHighlighter.swift
+│   │   └── TextEditorPanel.swift
 │   ├── 3.2 Markdown Language/
 │   │   └── MarkdownLanguageProvider.swift
 │   ├── 3.3 ASCII art/
@@ -191,11 +242,13 @@ App_Sputnik/
 │   │   ├── QuickfixPresenter.swift
 │   │   ├── SpellCheckFileTypeGuard.swift
 │   │   ├── SpellingCompletionProvider.swift
-│   │   └── SpellingGrammarChecker.swift  ← (212 ln)
+│   │   └── SpellingGrammarChecker.swift
 │   └── Package.swift
 ├── 4 Markdown Preview/                                            ─── MARKDOWN — Live-rendered preview synced to editor
+│   ├── MarkdownPreview+ParsedIntentKind.swift
 │   ├── MarkdownPreviewCoordinator.swift
-│   ├── MarkdownPreviewPanel.swift  ← (266 ln)
+│   ├── MarkdownPreviewPanel.swift
+│   ├── MarkdownPreviewRenderer.swift
 │   ├── MarkdownPreviewViewModel.swift
 │   ├── MarkdownRenderView.swift
 │   └── Package.swift
@@ -204,201 +257,79 @@ App_Sputnik/
 │   ├── PDFKitView.swift
 │   ├── PDFToolbarView.swift
 │   ├── PDFViewerPanel.swift
-│   ├── PDFViewerViewModel.swift  ← (218 ln)
+│   ├── PDFViewerViewModel.swift
 │   ├── ThumbnailsSidebarView.swift
 │   └── TOCSidebarView.swift
 ├── 6 Project File Tree/                                            ─── FILE TREE — Folder tree, file ops, drag-and-drop
 │   ├── FileContextMenu.swift
 │   ├── FileSystemWatcher.swift
 │   ├── FileTreeNode.swift
-│   ├── FileTreePanel.swift  ← (235 ln)
+│   ├── FileTreePanel.swift
 │   ├── FileTreeRowView.swift
-│   ├── FileTreeViewModel.swift  ← (268 ln)
+│   ├── FileTreeViewModel.swift
 │   └── Package.swift
 ├── 7 Terminal/                                            ─── TERMINAL — PTY-hosted Zsh with ANSI rendering
-│   ├── ANSIParser.swift  ← (282 ln)
+│   ├── ANSIParser.swift
+│   ├── CellPosition.swift
 │   ├── KeyEncoder.swift
 │   ├── Package.swift
 │   ├── PTYHandle.swift
 │   ├── ScreenCell.swift
 │   ├── ScrollbackBuffer.swift
-│   ├── TerminalEmulator.swift  ← (258 ln)
+│   ├── TerminalEmulator.swift
 │   ├── TerminalManager.swift
 │   ├── TerminalProfile.swift
 │   ├── TerminalRenderer.swift
 │   ├── TerminalSession.swift
-│   ├── TerminalTextView.swift  ← (259 ln)
+│   ├── TerminalTextView.swift
 │   └── TerminalView.swift
 ├── 8 HTML Preview/                                            ─── HTML — Live WebKit preview synced to editor
 │   ├── HTMLPreviewCoordinator.swift
 │   ├── HTMLPreviewPanel.swift
-│   ├── HTMLPreviewView.swift  ← (260 ln)
+│   ├── HTMLPreviewView.swift
 │   ├── LinkNavigationPolicy.swift
 │   ├── Package.swift
 │   └── SputnikImageSchemeHandler.swift
 ├── 9 Resources/                                            ─── ASSETS — ASCII library, help guides (4 topics), completions
-│   ├── 9.1 ASCII Library/
-│   │   ├── Arrows/
-│   │   │   ├── corner_right_down.txt
-│   │   │   ├── double_right.txt
-│   │   │   ├── left_right.txt
-│   │   │   ├── simple_right.txt
-│   │   │   └── up_down.txt
-│   │   ├── Decorative/
-│   │   │   ├── diamond_row.txt
-│   │   │   ├── floral_corner.txt
-│   │   │   ├── heart_row.txt
-│   │   │   ├── star_border.txt
-│   │   │   └── wave_line.txt
-│   │   ├── Dividers/
-│   │   │   ├── dashed.txt
-│   │   │   ├── dotted.txt
-│   │   │   ├── double_line.txt
-│   │   │   ├── single_line.txt
-│   │   │   └── star_divider.txt
-│   │   ├── Frames/
-│   │   │   ├── double_box.txt
-│   │   │   ├── rounded_box.txt
-│   │   │   ├── shadow_box.txt
-│   │   │   ├── single_box.txt
-│   │   │   └── thick_box.txt
-│   │   ├── Symbols/
-│   │   │   ├── checkmark.txt
-│   │   │   ├── heart.txt
-│   │   │   ├── info.txt
-│   │   │   ├── star.txt
-│   │   │   └── warning.txt
-│   │   ├── ASCIIArtRecord.swift
-│   │   ├── ASCIILibrary.swift
-│   │   ├── ASCIILibraryIndex.swift
-│   │   └── index.json
-│   ├── 9.2 ASCII art Help/
-│   │   ├── basics/
-│   │   │   ├── drawing-shapes.md
-│   │   │   ├── getting-started.md
-│   │   │   └── using-borders.md
-│   │   ├── examples/
-│   │   │   ├── cat-art.md
-│   │   │   └── header-design.md
-│   │   ├── techniques/
-│   │   │   ├── arrows-and-direction.md
-│   │   │   ├── decorative-patterns.md
-│   │   │   ├── dividers-and-separators.md
-│   │   │   ├── frames-and-boxes.md
-│   │   │   └── symbols-and-icons.md
-│   │   ├── ascii_art_help_index.json
-│   │   ├── ascii_completions.json
-│   │   ├── ASCIIArtHelpContent.swift
-│   │   ├── ASCIIArtHelpCoordinator.swift
-│   │   ├── ASCIIArtHelpIndex.swift
-│   │   └── ASCIIArtHelpPanelView.swift  ← (254 ln)
-│   ├── 9.3 Markdown Help/
-│   │   ├── index.json
-│   │   ├── markdown_completions.json
-│   │   ├── MarkdownHelpContent.swift
-│   │   ├── MarkdownHelpCoordinator.swift
-│   │   ├── MarkdownHelpIndex.swift
-│   │   └── MarkdownHelpPanelView.swift
-│   ├── 9.4 Html Help/
-│   │   ├── attributes/
-│   │   │   ├── class-and-id.md
-│   │   │   └── style.md
-│   │   ├── elements/
-│   │   │   ├── div-and-span.md
-│   │   │   ├── forms.md
-│   │   │   ├── headings.md
-│   │   │   ├── images.md
-│   │   │   ├── links.md
-│   │   │   ├── lists.md
-│   │   │   └── tables.md
-│   │   ├── events/
-│   │   │   └── onclick-and-events.md
-│   │   ├── globals/
-│   │   │   └── data-attributes.md
-│   │   ├── guides/
-│   │   │   └── best-practices.md
-│   │   ├── html_completions.json
-│   │   ├── html_help_index.json
-│   │   ├── HTMLHelpContent.swift
-│   │   ├── HTMLHelpCoordinator.swift
-│   │   ├── HTMLHelpIndex.swift
-│   │   └── HTMLHelpPanelView.swift
-│   ├── 9.5 Grammar Help/
-│   │   ├── edge-cases/
-│   │   │   ├── collective-nouns.md
-│   │   │   ├── conditional-sentences.md
-│   │   │   ├── ending-with-prepositions.md
-│   │   │   ├── irregular-plurals.md
-│   │   │   ├── irregular-verbs.md
-│   │   │   ├── singular-they.md
-│   │   │   ├── split-infinitives.md
-│   │   │   └── subjunctive-mood.md
-│   │   ├── grammar/
-│   │   │   ├── adjectives.md
-│   │   │   ├── adverbs.md
-│   │   │   ├── articles-a-an-the.md
-│   │   │   ├── conjunctions.md
-│   │   │   ├── dangling-modifiers.md
-│   │   │   ├── gerunds-and-infinitives.md
-│   │   │   ├── interjections.md
-│   │   │   ├── prepositions.md
-│   │   │   ├── pronouns.md
-│   │   │   ├── subject-verb-agreement.md
-│   │   │   └── verb-tense.md
-│   │   ├── mechanics/
-│   │   │   ├── abbreviations-and-acronyms.md
-│   │   │   ├── capitalization-rules.md
-│   │   │   └── writing-numbers.md
-│   │   ├── punctuation/
-│   │   │   ├── apostrophes.md
-│   │   │   ├── colons.md
-│   │   │   ├── commas.md
-│   │   │   ├── dashes-and-hyphens.md
-│   │   │   ├── parentheses-and-brackets.md
-│   │   │   ├── quotation-marks.md
-│   │   │   └── semicolons.md
-│   │   ├── sentence-structure/
-│   │   │   ├── clause-types.md
-│   │   │   ├── diagramming-basics.md
-│   │   │   ├── direct-and-indirect-objects.md
-│   │   │   ├── phrase-types.md
-│   │   │   ├── sentence-types.md
-│   │   │   └── subject-and-predicate.md
-│   │   ├── spelling/
-│   │   │   ├── affect-vs-effect.md
-│   │   │   ├── commonly-misspelled-words.md
-│   │   │   ├── lose-vs-loose.md
-│   │   │   ├── their-there-theyre.md
-│   │   │   └── your-vs-youre.md
-│   │   ├── style/
-│   │   │   ├── active-vs-passive.md
-│   │   │   ├── avoiding-cliches.md
-│   │   │   ├── conciseness.md
-│   │   │   ├── parallelism.md
-│   │   │   ├── rhythm-and-flow.md
-│   │   │   ├── sentence-variety.md
-│   │   │   ├── tone-and-register.md
-│   │   │   └── word-choice-and-colour.md
-│   │   ├── usage/
-│   │   │   ├── farther-vs-further.md
-│   │   │   ├── fewer-vs-less.md
-│   │   │   ├── i-e-vs-e-g.md
-│   │   │   ├── lay-vs-lie.md
-│   │   │   ├── that-vs-which.md
-│   │   │   ├── then-vs-than.md
-│   │   │   └── who-vs-whom.md
-│   │   ├── GrammarHelpContent.swift
-│   │   ├── GrammarHelpCoordinator.swift
-│   │   ├── GrammarHelpIndex.swift
-│   │   ├── GrammarHelpPanelView.swift
-│   │   └── index.json
 │   ├── 9.6 Preview Images/
 │   │   └── PreviewImageResolver.swift
-│   ├── Bundle+ResourcesModule.swift
-│   ├── Package.swift
-│   ├── SputnikCompletionCorpus.swift
-│   ├── SputnikHelpContextResolver.swift
-│   └── SputnikHelpPanel.swift  ← (408 ln)
+│   ├── Sources/
+│   │   ├── 9.1 ASCII Library/
+│   │   │   ├── ASCIIArtRecord.swift
+│   │   │   ├── ASCIILibrary.swift
+│   │   │   └── ASCIILibraryIndex.swift
+│   │   ├── 9.2 ASCII art Help/
+│   │   │   ├── ASCIIArtHelpContent.swift
+│   │   │   ├── ASCIIArtHelpCoordinator.swift
+│   │   │   ├── ASCIIArtHelpIndex.swift
+│   │   │   └── ASCIIArtHelpPanelView.swift
+│   │   ├── 9.3 Markdown Help/
+│   │   │   ├── MarkdownHelpContent.swift
+│   │   │   ├── MarkdownHelpCoordinator.swift
+│   │   │   ├── MarkdownHelpIndex.swift
+│   │   │   └── MarkdownHelpPanelView.swift
+│   │   ├── 9.4 Html Help/
+│   │   │   ├── HTMLHelpContent.swift
+│   │   │   ├── HTMLHelpCoordinator.swift
+│   │   │   ├── HTMLHelpIndex.swift
+│   │   │   └── HTMLHelpPanelView.swift
+│   │   ├── 9.5 Grammar Help/
+│   │   │   ├── GrammarHelpContent.swift
+│   │   │   ├── GrammarHelpCoordinator.swift
+│   │   │   ├── GrammarHelpIndex.swift
+│   │   │   └── GrammarHelpPanelView.swift
+│   │   ├── Bundle+ResourcesModule.swift
+│   │   ├── SputnikCompletionCorpus.swift
+│   │   ├── SputnikHelpContextResolver.swift
+│   │   └── SputnikHelpPanel.swift
+│   └── Package.swift
+├── SputnikShared/                                            ─── SHARED — Cross-module utilities (ErrorReporting, caches, throttle)
+│   ├── Sources/
+│   │   ├── DebounceTimer.swift
+│   │   ├── ErrorReporting.swift
+│   │   ├── PreviewImageCache.swift
+│   │   └── RenderThrottle.swift
+│   └── Package.swift
 └── App-Sputnik/                                            ─── macOS app target
     ├── Assets.xcassets/
     │   ├── AppIcon.appiconset/
@@ -422,10 +353,19 @@ App_Sputnik/
     │   │   ├── SputnikMenuBar.png
     │   │   └── SputnikMenuBar@2x.png
     │   └── Contents.json
+    ├── AppearanceTab.swift
+    ├── ColumnDropDelegate.swift
     ├── ContentView.swift
+    ├── DockedScratchpadPanel.swift
+    ├── EditorTab.swift
     ├── Info.plist
+    ├── SettingsHelpers.swift
+    ├── SettingsView.swift
+    ├── SpellingTab.swift
     ├── Sputnik.entitlements
-    └── SputnikApp.swift  ← (443 ln)
+    ├── SputnikApp.swift
+    ├── TerminalTab.swift
+    └── WindowRestorerView.swift
 ├── .gitignore
 ├── _gen_sitemap.py  ← Sitemap generator script
 ├── CLAUDE.md  ← Project guide / agent rules
@@ -438,8 +378,8 @@ App_Sputnik/
 ─────────────────────────────────────────────────────────────────
   SUMMARY
 ─────────────────────────────────────────────────────────────────
-  Modules:         8  (2–9) + 1 Setup + 1 App target
-  Swift files:   193  (18,060 lines total)
+  Modules:         9  (2–9) + SputnikShared + 1 Setup + 1 App target
+  Swift files:   193  (24,380 lines total)
   Executables:      1  (Sputnik.app)
   Help guides:      4  (ASCII art, Markdown, HTML, Grammar)
   ASCII library:    5  categories (Arrows, Decorative, Dividers, Frames, Symbols)
@@ -468,10 +408,11 @@ App_Sputnik/
                         │   ─ Router, State, Settings │
                         │   ─ Persistence, Lifecycle  │
                         │   ─ UI/UX, Utilities        │
-                        └─────────────────────────────┘
-                               │
-                        ┌──────▼──────┐
-                        │  9 Resources │
-                        │  (Help,ASCII)│
-                        └─────────────┘
+                        └──────────────┬──────────────┘
+                               │       │
+                        ┌──────▼──┐  ┌─▼────────────┐
+                        │  9 Res. │  │ SputnikShared │
+                        │  (Help, │  │ (ErrorReport, │
+                        │  ASCII) │  │  Cache, Timer)│
+                        └─────────┘  └───────────────┘
 ```

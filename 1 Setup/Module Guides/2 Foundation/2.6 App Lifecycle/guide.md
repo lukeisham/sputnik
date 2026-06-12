@@ -1,7 +1,8 @@
 ---
 module: 2.6 Foundation – App Lifecycle
-status: active
-last_updated: 2026-06-09
+status: stable
+last_updated: 2026-06-12
+last_verified: 2026-06-12
 ---
 
 ## Purpose
@@ -40,22 +41,34 @@ SwiftUI `App` struct owns the view hierarchy; a traditional `AppDelegate` handle
               ├── Window("About Sputnik", id: "about")
               │        └── AboutWindowView               ← fixed size, no resize handle
               │                 └── .handlesExternalEvents(matching: [])  ← single instance
-              │
-              └── Settings { SettingsView }
-                       └── Appearance, Editor, Spelling, Terminal tabs
-```
+ ```
 
-## Technical Summary
+ ## Source Files
+ | File | Responsibility |
+ |---|---|
+ | `SputnikApp.swift` | `@main` SwiftUI `App` struct — multi-window `WindowGroup`, About window scene, Settings scene, `@NSApplicationDelegateAdaptor` |
+ | `ContentView.swift` | Root SwiftUI layout — three-column `HStack` + pinned Terminal + StatusBar + Scratchpad overlay |
+ | `AppDelegate.swift` | `@MainActor NSApplicationDelegate` — launch restore, termination gate, flush on terminate |
+ | `SputnikMenuBarController.swift` | `@MainActor` — owns `NSStatusItem` with satellite icon; spins on `isProcessing` |
+ | `TerminalLifecycle.swift` | `@MainActor` protocol — `killAllPTYs()`; Foundation owns, Terminal provides conformance (SR-1) |
 
-- **`@main struct SputnikApp: App`** — entry point. Declares the `WindowGroup` (multi-instance, data-driven), the `Window("About Sputnik", id: "about")` scene, and attaches `AppDelegate` via `@NSApplicationDelegateAdaptor(AppDelegate.self) var appDelegate`. Commands are attached via `.commands { SputnikCommands(appState:appState, settings:settingsStore) }`.
-- **Multi-window scene:** `WindowGroup(id: "main", for: UUID.self) { $windowID in … }` creates a new window instance for each unique `UUID` value that is passed to `openWindow(id: "main", value:)`. The closure resolves the matching `WindowState` from `AppState.windows`, falling back to the active window or creating a new one if none exists. Each window receives its own `WindowState` via `.environment(windowState)`. No `.handlesExternalEvents(matching:)` on the main scene — multi-window is intentional.
-- **`AppDelegate`** — `NSObject` + `NSApplicationDelegate`. Does not own any views. Responsibilities:
-  1. **Launch** — calls `PersistenceService.restore()`, surfaces crash-recovery dialog if needed, and instantiates `SputnikMenuBarController` (held as a `strong` property for app lifetime).
-  2. **Termination gate** — collects all `TerminalManager` instances from every open window (`AppState.allTerminalManagers`) and calls `killAllPTYs()` on each concurrently via a `TaskGroup`; returns `.terminateLater` until all PTYs are confirmed dead, then calls `NSApp.replyToApplicationShouldTerminate(true)`.
-  3. **Flush** — calls `PersistenceService.flushLayout()` and `PersistenceService.saveWindows(appState.collectDescriptors())` in `applicationWillTerminate`.
-- **`SputnikMenuBarController`** (`@MainActor`, `2.6 App Lifecycle/SputnikMenuBarController.swift`) — creates and holds an `NSStatusItem` displaying a monochrome Sputnik satellite template image in the macOS menu bar. Observes `AppState.isProcessing` (now a computed property that is `true` if *any* window is processing) via `withObservationTracking`; applies a `CABasicAnimation` spin to the button's `CALayer` when `true`. Uses `[weak self]` in the observation change handler.
-- **About window scene** — `Window("About Sputnik", id: "about")`; fixed size; `.handlesExternalEvents(matching: [])` ensures single instance.
-- **`WindowRestorerView`** — SwiftUI helper view (invisible, `frame(width: 0, height: 0)`) attached via `.background { … }` to the first `ContentView`. On its first `task`, it reads `appState.pendingWindowIDs` and calls `openWindow(id: "main", value:)` for each, opening additional windows restored from persistence.
-- **`ProcessMonitor` wiring** — singleton created at app launch alongside `AppState`; injected via `.environment(processMonitor)`.
-- **No `NSWindowController` subclass** — window behaviour is configured in `AppDelegate.applicationDidFinishLaunching` via the first `NSApp.windows` reference.
-- **`@MainActor` boundary** — `AppDelegate` methods are called on the main thread by AppKit; mark `AppDelegate` as `@MainActor` to satisfy Swift 6 strict concurrency.
+ ## Technical Summary
+
+ - **`@main struct SputnikApp: App`** — entry point. Declares multi-window `WindowGroup(id: "main", for: UUID.self)`, About window, Settings scene, and `AppDelegate` via `@NSApplicationDelegateAdaptor`.
+ - **Multi-window scene:** Creates one window per unique `UUID`; resolves matching `WindowState` from `AppState.windows`.
+ - **`AppDelegate`** — `@MainActor NSObject + NSApplicationDelegate`. Launch: restore layout, start `SputnikMenuBarController` and `ProcessMonitor`. Termination: collect all `TerminalManager` instances via `AppState.allTerminalManagers`, `killAllPTYs()` concurrently via `TaskGroup`, return `.terminateLater` until clean. Flush: `PersistenceService.flushLayout()` and `saveWindows()` on terminate.
+ - **`SputnikMenuBarController`** (`@MainActor`) — creates `NSStatusItem` with satellite template image; observes `AppState.isProcessing` via `withObservationTracking` with `[weak self]`.
+ - **`WindowRestorerView`** — invisible helper attached via `.background { }` on `ContentView`; restores persisted windows.
+ - **`ProcessMonitor`** — started at launch, injected via `.environment(processMonitor)`.
+ - **`@MainActor` boundary** — all delegate methods are on the main thread.
+
+ ## Invariants
+ - `AppDelegate` is `@MainActor` — all delegate methods run on the main thread (SW-1)
+ - Termination gate: collects `TerminalManager` instances via `AppState.allTerminalManagers` and calls `killAllPTYs()` concurrently — only when all PTYs confirm exit does `NSApp.replyToApplicationShouldTerminate(true)` fire (SR-2)
+ - `SputnikMenuBarController` captures `[weak self]` in observation handler — no retain cycle (SW-2)
+ - `ContentView` receives per-window `WindowState` via `.environment(windowState)` — never shared across windows (SR-1)
+ - About window uses `.handlesExternalEvents(matching: [])` — single instance only
+
+ ## Decision
+
+

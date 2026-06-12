@@ -9,7 +9,7 @@ import SwiftUI
 /// Thumbnails). Observes `AppState.activeDocument` and calls `viewModel.loadPDF(_:)`
 /// whenever the active session changes to a `.pdf` file (SR-1).
 ///
-/// **Layout:** occupies `PanelPosition.right` by default (see `PanelLayout.default`).
+/// **Layout:** appears as a column in the dynamic layout.
 public struct PDFViewerPanel: View {
 
     // MARK: - Environment

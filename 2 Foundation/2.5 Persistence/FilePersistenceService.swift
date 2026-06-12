@@ -177,7 +177,7 @@ public final class FilePersistenceService: PersistenceService {
 
     private enum ScratchpadKeys {
         static let text = "scratchpadText"
-        static let frame = "scratchpadFrame"
+        static let dockedWidth = "scratchpadDockedWidth"
     }
 
     public func saveScratchpad(text: String) {
@@ -188,29 +188,13 @@ public final class FilePersistenceService: PersistenceService {
         UserDefaults.standard.string(forKey: ScratchpadKeys.text) ?? ""
     }
 
-    public func saveScratchpad(frame: CGRect) {
-        // CGRect is not Codable by default, so encode its components as a dictionary.
-        let dict: [String: Double] = [
-            "x": frame.origin.x,
-            "y": frame.origin.y,
-            "width": frame.size.width,
-            "height": frame.size.height,
-        ]
-        if let data = try? JSONEncoder().encode(dict) {
-            UserDefaults.standard.set(data, forKey: ScratchpadKeys.frame)
-        }
+    public func saveScratchpadDockedWidth(_ width: CGFloat) {
+        UserDefaults.standard.set(Double(width), forKey: ScratchpadKeys.dockedWidth)
     }
 
-    public func loadScratchpadFrame() -> CGRect {
-        guard let data = UserDefaults.standard.data(forKey: ScratchpadKeys.frame),
-            let dict = try? JSONDecoder().decode([String: Double].self, from: data),
-            let x = dict["x"],
-            let y = dict["y"],
-            let w = dict["width"],
-            let h = dict["height"]
-        else {
-            return CGRect(x: 0, y: 0, width: 320, height: 240)
-        }
-        return CGRect(x: x, y: y, width: w, height: h)
+    public func loadScratchpadDockedWidth() -> CGFloat {
+        let value = UserDefaults.standard.double(forKey: ScratchpadKeys.dockedWidth)
+        guard value > 0 else { return 280 }
+        return CGFloat(min(600, max(200, value)))
     }
 }

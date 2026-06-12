@@ -16,4 +16,17 @@ public enum PanelID: String, Codable, Sendable, CaseIterable, Hashable {
     case markdownHelp
     case htmlHelp
     case grammarHelp
+
+    /// Short label for badge display in column tabs.
+    /// Returns `nil` for panels that should not show a badge (file tree, help panels).
+    public var displayBadge: String? {
+        switch self {
+        case .textEditor: return "TXT"
+        case .markdownPreview: return "MD"
+        case .htmlPreview: return "HTML"
+        case .pdfViewer: return "PDF"
+        case .fileTree: return nil
+        case .asciiArtHelp, .markdownHelp, .htmlHelp, .grammarHelp: return nil
+        }
+    }
 }

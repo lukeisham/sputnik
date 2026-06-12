@@ -150,9 +150,15 @@ public final class AppState {
         set { activeWindow?.scratchpadText = newValue }
     }
 
-    public var scratchpadFrame: CGRect {
-        get { activeWindow?.scratchpadFrame ?? CGRect(x: 0, y: 0, width: 320, height: 240) }
-        set { activeWindow?.scratchpadFrame = newValue }
+    public var scratchpadDockedWidth: CGFloat {
+        get { activeWindow?.scratchpadDockedWidth ?? 280 }
+        set { activeWindow?.scratchpadDockedWidth = newValue }
+    }
+
+    // MARK: - Document lookup
+
+    public func document(for id: UUID) -> DocumentSession? {
+        activeWindow?.document(for: id)
     }
 
     // MARK: - Terminal registry for clean shutdown
@@ -268,14 +274,16 @@ public final class AppState {
         layout.recentFiles.removeAll()
     }
 
-    // MARK: - Panel visibility (delegates to active window)
+    // MARK: - Panel visibility (dynamic layout)
 
-    public func isVisible(_ position: PanelPosition) -> Bool {
-        activeWindow?.isVisible(position) ?? true
+    /// Returns true if a column with the given render mode exists in the active window.
+    public func hasColumn(renderMode: PanelID) -> Bool {
+        activeWindow?.hasColumn(renderMode: renderMode) ?? false
     }
 
-    public func toggleVisibility(_ position: PanelPosition) {
-        activeWindow?.toggleVisibility(position)
+    /// Toggle a column by render mode: remove if present, add if absent.
+    public func toggleColumn(renderMode: PanelID) {
+        activeWindow?.toggleColumn(renderMode: renderMode)
     }
 
     public func toggleTerminal() {
@@ -284,6 +292,23 @@ public final class AppState {
 
     public func restoreDefaultLayout() {
         activeWindow?.restoreDefaultLayout()
+    }
+
+    /// Reconfigure the active window to a focused editor layout (text editor only).
+    public func focusEditor() {
+        activeWindow?.setDynamicLayout(
+            DynamicPanelLayout(columns: [
+                PanelColumn(renderMode: .fileTree, width: 0.20),
+                PanelColumn(renderMode: .textEditor, width: 0.80),
+            ]))
+    }
+
+    /// Reconfigure the active window to a focused reader layout (markdown preview only, no file tree).
+    public func focusReader() {
+        activeWindow?.setDynamicLayout(
+            DynamicPanelLayout(columns: [
+                PanelColumn(renderMode: .markdownPreview, width: 1.0)
+            ]))
     }
 
     // MARK: - Document lifecycle (delegates to active window + updates recent files)

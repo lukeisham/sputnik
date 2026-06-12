@@ -14,17 +14,17 @@ struct ViewMenuGroup: Commands {
     var body: some Commands {
         CommandMenu("View") {
             Button("Toggle File Tree") {
-                appState.toggleVisibility(.left)
+                appState.toggleColumn(renderMode: .fileTree)
             }
             .keyboardShortcut("1", modifiers: [.option, .command])
 
             Button("Toggle Preview") {
-                appState.toggleVisibility(.centerLower)
+                appState.toggleColumn(renderMode: .markdownPreview)
             }
             .keyboardShortcut("2", modifiers: [.option, .command])
 
             Button("Toggle Right Panel") {
-                appState.toggleVisibility(.right)
+                appState.toggleColumn(renderMode: .htmlPreview)
             }
             .keyboardShortcut("3", modifiers: [.option, .command])
 
@@ -45,18 +45,12 @@ struct ViewMenuGroup: Commands {
             .keyboardShortcut("k", modifiers: [.command, .shift])
 
             Button("Focus: Editor") {
-                appState.layout.visibility[.left] = false
-                appState.layout.visibility[.right] = false
-                appState.layout.visibility[.centerUpper] = true
-                appState.layout.visibility[.centerLower] = false
+                appState.focusEditor()
             }
             .keyboardShortcut("e", modifiers: [.control, .command])
 
             Button("Focus: Reader") {
-                appState.layout.visibility[.left] = false
-                appState.layout.visibility[.right] = false
-                appState.layout.visibility[.centerUpper] = false
-                appState.layout.visibility[.centerLower] = true
+                appState.focusReader()
             }
             .keyboardShortcut("r", modifiers: [.control, .command])
 
