@@ -30,6 +30,7 @@ let package = Package(
                 .product(name: "ResourcesModule", package: "9 Resources"),
             ],
             path: "App-Sputnik",
+            exclude: ["Sputnik.entitlements", "Info.plist"],
             resources: [
                 .process("Assets.xcassets")
             ]
