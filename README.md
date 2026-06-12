@@ -25,3 +25,10 @@ In living shapes that move from mind to mind.
 ---
 
 ### RIVAL APPS
+
+App            | Similarity | Key Overlaps with Sputnik                                      | Differences                                                    | Best For
+---------------|------------|----------------------------------------------------------------|----------------------------------------------------------------|--------------------------------------
+Nova (Panic)   | ★★★★★     | Terminal, Markdown preview, file tree/sidebar, flexible split-pane layout, HTML/web preview, extensions | Less emphasis on ASCII art or custom grammar tools; more web/dev focused | Best overall match
+CodeEdit       | ★★★★☆     | Fully native Swift, file tree, terminal/task runner, modern multi-pane UI | Still maturing; less mature preview/AI/ASCII features           | Free open-source native IDE-like experience
+Zed            | ★★★★      | Very fast, integrated terminal, file tree, multi-pane, strong AI features | Not pure AppKit (Rust + GPU), different philosophy              | Performance + AI-heavy workflows
+BBEdit         | ★★★☆      | Excellent native text editing + Markdown preview ("Preview in BBEdit"), rock-solid Mac integration | No built-in terminal or dynamic panels; more traditional single/multi-document approach | Pure text editing power users

@@ -301,6 +301,10 @@ struct PanelColumnView<Content: View>: View {
     // MARK: - Actions
 
     private func removeColumn() {
+        // Subtle haptic to confirm the column-close action.
+        NSHapticFeedbackManager.defaultPerformer.perform(
+            .alignment, performanceTime: .default)
+
         let wasActive = windowState.activeColumnID == column.id
         layout.removeColumn(id: column.id)
         if wasActive {

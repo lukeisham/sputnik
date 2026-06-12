@@ -118,7 +118,12 @@ public struct ContentView: View {
             StatusBarView()
         }
         .frame(minWidth: 900, minHeight: 600)
-        .navigationTitle(windowState.title)
+        .background {
+            WindowProxyView(
+                title: windowState.title,
+                documentURL: windowState.currentlyOpenFile
+            )
+        }
         .onChange(of: appState.activeDocumentID) { _, _ in
             guard appState.activeDocumentID != nil else { return }
             Task {

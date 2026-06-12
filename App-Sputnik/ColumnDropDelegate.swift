@@ -32,6 +32,9 @@ struct ColumnDropDelegate: DropDelegate {
             Task { @MainActor in
                 // Move the dragged column to the target position
                 layout.moveColumn(id: sourceUUID, to: columnIndex)
+                // Subtle haptic feedback to confirm the snap
+                NSHapticFeedbackManager.defaultPerformer.perform(
+                    .alignment, performanceTime: .default)
             }
         }
         return true

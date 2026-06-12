@@ -35,6 +35,9 @@ public struct SputnikApp: App {
         _supportingAIMonitor = State(
             initialValue: SupportingAIMonitor(settingsStore: store, appState: state))
         _mainAIMonitor = State(initialValue: MainAIMonitor(appState: state))
+
+        // Enable native window tabbing so Window → Merge All Windows works.
+        NSWindow.allowsAutomaticWindowTabbing = true
     }
 
     // MARK: - Scenes

@@ -16,6 +16,7 @@ public struct FileTreePanel: View {
     @Environment(WindowState.self) private var windowState
     @State private var viewModel = FileTreeViewModel()
     @State private var showSearch: Bool = false
+    @State private var quickLookController = FileTreeQuickLookController()
 
     private let router: any InterPanelRouter
 
@@ -148,12 +149,34 @@ public struct FileTreePanel: View {
             .background {
                 keyboardShortcutOverlay
             }
+            .background {
+                quickLookShortcut
+            }
         } else {
             emptyState
         }
     }
 
     // MARK: - Keyboard shortcuts
+
+    /// Hidden button that captures Space for Quick Look preview.
+    private var quickLookShortcut: some View {
+        Group {
+            // Space — Toggle Quick Look on the first selected file
+            Button {
+                // Sync selected URLs before toggling
+                quickLookController.selectedURLs = viewModel.selectedNodeIDs.sorted {
+                    $0.path < $1.path
+                }
+                quickLookController.toggleQuickLook()
+            } label: {
+                EmptyView()
+            }
+            .keyboardShortcut(.space, modifiers: [])
+            .frame(width: 0, height: 0)
+        }
+        .accessibilityHidden(true)
+    }
 
     /// Hidden buttons that capture ⌘N, ⌘⇧N, and ⏎ (Enter) keyboard shortcuts.
     private var keyboardShortcutOverlay: some View {
