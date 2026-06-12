@@ -163,12 +163,7 @@ public actor TerminalSession {
             guard let self else { return }
             var partialLine = ""
             while true {
-                let data: Data
-                do {
-                    data = try master.availableData
-                } catch {
-                    break
-                }
+                let data = master.availableData
                 guard !data.isEmpty else { break }
 
                 // Yield raw data to the output stream (existing contract).
@@ -189,7 +184,7 @@ public actor TerminalSession {
                 await self.notifyObserver(
                     line: partialLine.trimmingCharacters(in: .controlCharacters))
             }
-            await self.continuation.finish()
+            self.continuation.finish()
         }
     }
 
