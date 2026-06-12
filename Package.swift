@@ -14,6 +14,7 @@ let package = Package(
         .package(path: "7 Terminal"),
         .package(path: "8 HTML Preview"),
         .package(path: "9 Resources"),
+        .package(path: "SputnikIntents"),
     ],
     targets: [
         .executableTarget(
@@ -28,6 +29,7 @@ let package = Package(
                 .product(name: "TerminalModule", package: "7 Terminal"),
                 .product(name: "HTMLPreviewModule", package: "8 HTML Preview"),
                 .product(name: "ResourcesModule", package: "9 Resources"),
+                .product(name: "SputnikIntents", package: "SputnikIntents"),
             ],
             path: "App-Sputnik",
             exclude: ["Sputnik.entitlements", "Info.plist"],

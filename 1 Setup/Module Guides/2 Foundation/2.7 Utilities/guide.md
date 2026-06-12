@@ -189,6 +189,7 @@ Provide Foundation-specific utilities: AI monitors, menu helpers, slash-command 
     - `MockInterPanelRouter`: conforms to `InterPanelRouter`; records calls to `open(_:)`, `close(_:)`, `syncDirectory(_:)`, `moveActiveTabToNewWindow()` in tracked arrays/counters; `shouldSucceed` controls whether `moveActiveTabToNewWindow()` returns a `UUID` or `nil`; `events` returns a no-op `AsyncStream`
     - `MockAppState`: tracks `isProcessing` via `beginProcessing()`/`endProcessing()`; holds `activeDocument`, `activeWindowID`, `requestedHelpTarget`, and `contextUsageForTesting` for assertions
     - `MockWindowState`: tracks `openDocuments`, `activeDocumentID`, `dynamicLayout`; records `moveDocumentCalls` and `closeDocumentCalls`; `openDocument(_:)` appends and sets `activeDocumentID`; `closeDocument(_:)` removes and returns the session or `nil`
+  - `LocalSemanticSearch` (`enum`, `2 Foundation/2.7 Utilities/LocalSemanticSearch.swift`) — on-device semantic search across open documents using `NLEmbedding`; chunks documents into sentences via `NLTokenizer`, computes sentence embedding vectors, and searches by cosine similarity; `reindex(documents:)` rebuilds the index on a `.utility` task; `search(query:maxResults:)` returns ranked `Hit`s with scores; fully on-device — no network, no API key (SR-5)
 - **Threading model:**
   - `ClosureMenuItem` and `MoreContextMenu` are `@MainActor` — menu construction and activation happen on the main thread
   - `HelpContextResolving.resolve` is `async` — the resolver runs the coordinator lookup (which may be actor-isolated) inside a `Task`; the host's `onRequest` sink writes to `AppState.requestedHelpTarget` on `@MainActor`
@@ -212,6 +213,8 @@ Provide Foundation-specific utilities: AI monitors, menu helpers, slash-command 
 | 2.4 Status Bar (F-5) | `MainAIMonitor` provides `MainAIState` for the Main AI model name + CTX % segment in `StatusBarView` |
 | 7 Terminal | Calls `TerminalAIOutputObserving.observe(line:)` for each decoded output line; depends only on the protocol, not `MainAIMonitor` directly (SR-1) |
 | 3 Text Editor / 4 Markdown Preview / 8 HTML Preview / 9 Resources | Resource-feature code calls `SupportingAIMonitor.recordUsage(inputTokens:outputTokens:contextWindow:)` after each Supporting AI API response |
+| 3.1 Text Editor | `LocalSemanticSearch.reindex` / `.search` for on-device semantic document search across open tabs |
+| 2.7 Utilities | `LocalSemanticSearch` — on-device embedding-based semantic search |
 | All modules | `ErrorReporting.shared.log(...)` / `report(...)` for non-fatal errors; ring buffer for future telemetry |
 | 4 Markdown Preview / 8 HTML Preview | `PreviewImageCache.shared.image(for:loader:)` to avoid redundant image decoding across preview panels |
 | 4 Markdown Preview | `RenderThrottle.throttle(render:)` to coalesce Markdown re-renders during fast typing |
