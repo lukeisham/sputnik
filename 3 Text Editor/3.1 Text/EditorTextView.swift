@@ -234,6 +234,43 @@ public final class EditorTextView: NSTextView {
 
         let selected = (string as NSString).substring(with: selection)
 
+        // ASCII Art uses a level-based submenu; all other kinds use the flat resolver.
+        if kind == .asciiArt {
+            let asciiSubmenu = NSMenu(title: "")
+
+            let basicItem = ClosureMenuItem(title: "Basic") { [weak self] in
+                Task { @MainActor in
+                    let topic = await ASCIIArtHelpCoordinator.shared.bestMatch(
+                        for: selected, level: .basic)
+                    if let topic, let request = self?.onRequestHelp {
+                        request(HelpRequest(kind: .asciiArt, topicID: topic.id))
+                    }
+                }
+            }
+
+            let advancedItem = ClosureMenuItem(title: "Advanced") { [weak self] in
+                Task { @MainActor in
+                    let topic = await ASCIIArtHelpCoordinator.shared.bestMatch(
+                        for: selected, level: .advanced)
+                    if let topic, let request = self?.onRequestHelp {
+                        request(HelpRequest(kind: .asciiArt, topicID: topic.id))
+                    }
+                }
+            }
+
+            asciiSubmenu.addItem(basicItem)
+            asciiSubmenu.addItem(advancedItem)
+
+            let parentItem = NSMenuItem(
+                title: "More Context: ASCII Art",
+                action: nil, keyEquivalent: "")
+            parentItem.submenu = asciiSubmenu
+
+            menu.insertItem(.separator(), at: 0)
+            menu.insertItem(parentItem, at: 0)
+            return menu
+        }
+
         let resolver = helpContextResolver ?? SputnikHelpContextResolver.shared
 
         let moreItems = MoreContextMenu.items(

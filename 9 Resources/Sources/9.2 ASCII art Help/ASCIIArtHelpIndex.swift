@@ -29,12 +29,13 @@ public actor ASCIIArtHelpIndex {
         return seen
     }
 
-    /// Full-text search across title, category, and searchTerms.
-    public func search(query: String) async -> [ASCIIArtHelpContent] {
+    /// Full-text search across title, category, and searchTerms, optionally filtered by level.
+    public func search(query: String, level: ASCIIHelpLevel? = nil) async -> [ASCIIArtHelpContent] {
         await ensureLoaded()
         let q = query.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
-        guard !q.isEmpty else { return topics }
-        return topics.filter { t in
+        let filtered = level.map { l in topics.filter { $0.level == l } } ?? topics
+        guard !q.isEmpty else { return filtered }
+        return filtered.filter { t in
             t.title.lowercased().contains(q)
                 || t.category.lowercased().contains(q)
                 || t.searchTerms.contains { $0.lowercased().contains(q) }

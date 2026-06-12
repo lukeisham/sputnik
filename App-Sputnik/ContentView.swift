@@ -1,3 +1,4 @@
+import ASCIIStudioModule
 import FileTreeModule
 import FoundationModule
 import HTMLPreviewModule
@@ -17,15 +18,21 @@ public struct ContentView: View {
 
     @Environment(WindowState.self) private var windowState
     @Environment(SettingsStore.self) private var settings
+    @Environment(PanelFocusCoordinator.self) private var focusCoordinator
 
     @State private var editorViewModel: EditorViewModel
+
+    /// Per-window `@FocusState` driven by the shared `PanelFocusCoordinator`.
+    /// Synced bidirectionally via `.onChange` below.
+    @FocusState private var focusedPanel: PanelFocusTarget?
 
     private let appState: AppState
     private let router: any InterPanelRouter
 
     public init(
         windowState: WindowState, router: any InterPanelRouter,
-        appState: AppState, persistenceService: any PersistenceService
+        appState: AppState, persistenceService: any PersistenceService,
+        focusCoordinator: PanelFocusCoordinator
     ) {
         self.appState = appState
         self.router = router
@@ -65,7 +72,8 @@ public struct ContentView: View {
                         column: columnBinding,
                         columnIndex: index,
                         layout: layoutBinding,
-                        columnRole: role
+                        columnRole: role,
+                        isFocused: focusedPanel == .column(col.id)
                     ) { panelID, documentID, columnRole in
                         panelContentView(
                             renderMode: panelID,
@@ -73,6 +81,7 @@ public struct ContentView: View {
                             columnRole: columnRole
                         )
                     }
+                    .focused($focusedPanel, equals: .column(col.id))
 
                     if index < windowState.layout.dynamicLayout.columns.count - 1 {
                         ZStack(alignment: .leading) {
@@ -94,6 +103,7 @@ public struct ContentView: View {
             // Terminal strip + docked scratchpad
             HStack(spacing: 0) {
                 TerminalView()
+                    .focused($focusedPanel, equals: .terminal)
                     .frame(maxWidth: .infinity)
                     .frame(height: 200)
 
@@ -118,6 +128,26 @@ public struct ContentView: View {
             StatusBarView()
         }
         .frame(minWidth: 900, minHeight: 600)
+        // Sync @FocusState <-> PanelFocusCoordinator bidirectional
+        .onChange(of: focusedPanel) { _, newValue in
+            focusCoordinator.focusedPanel = newValue
+        }
+        .onChange(of: focusCoordinator.focusedPanel) { _, newValue in
+            focusedPanel = newValue
+        }
+        .onAppear {
+            // Set the initial default first responder to the active editor column
+            // (or the first column if no editor column exists).
+            if focusCoordinator.focusedPanel == nil,
+                let firstFocus = windowState.layout.dynamicLayout.columns.first(where: {
+                    $0.renderMode == .textEditor
+                }) ?? windowState.layout.dynamicLayout.columns.first
+            {
+                let target = PanelFocusTarget.column(firstFocus.id)
+                focusCoordinator.focusedPanel = target
+                focusedPanel = target
+            }
+        }
         .toolbar {
             ToolbarItem(id: "file-tree", placement: .automatic) {
                 toolbarPanelToggle(
@@ -233,6 +263,9 @@ public struct ContentView: View {
 
         case .pdfViewer:
             PDFViewerPanel()
+
+        case .asciiStudio:
+            ASCIIStudioView()
 
         case .asciiArtHelp, .markdownHelp, .htmlHelp, .grammarHelp:
             // Help panels are rendered via helpPanelOverlay, not as columns.

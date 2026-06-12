@@ -32,6 +32,9 @@ public struct MarkdownPreviewPanel: View {
     /// Written by `MarkdownRenderView`'s scroll observer; read back on document switch.
     @State private var scrollOffsets: [UUID: CGFloat] = [:]
 
+    /// Print-action closure, set by `MarkdownRenderView` when the text view is available.
+    @State private var printAction: (() -> Void)? = nil
+
     /// The coordinator for this panel, created once on init and wired into `MarkdownRenderView`.
     private let coordinator: MarkdownPreviewCoordinator
 
@@ -113,8 +116,13 @@ public struct MarkdownPreviewPanel: View {
 
             Spacer()
 
-            // Overflow menu: Reveal in Finder.
+            // Overflow menu: Print…, Reveal in Finder.
             Menu {
+                Button("Print…") { printAction?() }
+                    .disabled(printAction == nil)
+
+                Divider()
+
                 if let url = appState.activeDocument?.url {
                     Button("Reveal in Finder") {
                         NSWorkspace.shared.activateFileViewerSelecting([url])
@@ -220,7 +228,8 @@ public struct MarkdownPreviewPanel: View {
                             fontScale: viewModel.fontScale,
                             coordinator: coordinator,
                             settings: settings,
-                            scrollOffset: scrollBinding(for: appState.activeDocumentID)
+                            scrollOffset: scrollBinding(for: appState.activeDocumentID),
+                            printAction: $printAction
                         )
                         .frame(maxWidth: 720)
                         .frame(maxWidth: .infinity)
@@ -232,7 +241,8 @@ public struct MarkdownPreviewPanel: View {
                             fontScale: viewModel.fontScale,
                             coordinator: coordinator,
                             settings: settings,
-                            scrollOffset: scrollBinding(for: appState.activeDocumentID)
+                            scrollOffset: scrollBinding(for: appState.activeDocumentID),
+                            printAction: $printAction
                         )
                     }
                 }

@@ -11,6 +11,9 @@ public enum PanelID: String, Codable, Sendable, CaseIterable, Hashable {
     case htmlPreview
     case pdfViewer
 
+    // MARK: ASCII Studio (module 10)
+    case asciiStudio
+
     // MARK: Help panels (module 9 Resources)
     case asciiArtHelp
     case markdownHelp
@@ -25,6 +28,7 @@ public enum PanelID: String, Codable, Sendable, CaseIterable, Hashable {
         case .markdownPreview: return "MD"
         case .htmlPreview: return "HTML"
         case .pdfViewer: return "PDF"
+        case .asciiStudio: return "ASCII"
         case .fileTree: return nil
         case .asciiArtHelp, .markdownHelp, .htmlHelp, .grammarHelp: return nil
         }

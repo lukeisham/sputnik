@@ -31,21 +31,29 @@ public final class ASCIIArtHelpCoordinator {
     // MARK: - Public API
 
     /// Searches the ASCII Art Help index for the best-matching topic for the
-    /// given word.
+    /// given word, optionally filtered by skill level.
     ///
     /// The search is case-insensitive and checks against title, category,
     /// search terms, and body text. Returns the most relevant topic, or `nil`
     /// if nothing matches.
     ///
-    /// - Parameter word: The word the user right-clicked in the editor.
+    /// - Parameters:
+    ///   - word: The word the user right-clicked in the editor.
+    ///   - level: Optional skill level filter. When `nil`, searches all levels.
     /// - Returns: The best-matching topic, or `nil`.
-    public func bestMatch(for word: String) async -> ASCIIArtHelpContent? {
-        let index = ASCIIArtHelpIndex.shared
-        let results = await index.search(query: word)
+    public func bestMatch(for word: String, level: ASCIIHelpLevel? = nil) async
+        -> ASCIIArtHelpContent?
+    {
+        var results: [ASCIIArtHelpContent]
+        if let level {
+            results = await ASCIIArtHelpIndex.shared.search(query: word, level: level)
+        } else {
+            results = await ASCIIArtHelpIndex.shared.search(query: word)
+        }
 
         guard !results.isEmpty else { return nil }
 
-        // Prefer exact title matches, then category matches, then fall through.
+        // Prefer exact title matches, then search term matches, then fall through.
         let wordLower = word.lowercased()
 
         if let exactTitle = results.first(where: {
@@ -64,13 +72,17 @@ public final class ASCIIArtHelpCoordinator {
         return results.first
     }
 
-    /// Returns all topics that match the given query.
+    /// Returns all topics that match the given query, optionally filtered by level.
     ///
-    /// - Parameter query: A search string.
+    /// - Parameters:
+    ///   - query: A search string.
+    ///   - level: Optional skill level filter. When `nil`, searches all levels.
     /// - Returns: Matching topics, sorted by relevance.
-    public func search(query: String) async -> [ASCIIArtHelpContent] {
-        let index = ASCIIArtHelpIndex.shared
-        return await index.search(query: query)
+    public func search(query: String, level: ASCIIHelpLevel? = nil) async -> [ASCIIArtHelpContent] {
+        if let level {
+            return await ASCIIArtHelpIndex.shared.search(query: query, level: level)
+        }
+        return await ASCIIArtHelpIndex.shared.search(query: query)
     }
 
     /// Opens the help panel to a specific topic.

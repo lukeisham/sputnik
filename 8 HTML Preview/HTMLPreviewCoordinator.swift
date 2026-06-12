@@ -48,6 +48,9 @@ public final class HTMLPreviewCoordinator: NSObject, WKNavigationDelegate {
     /// Weak reference to the web view, set by `HTMLPreviewView.updateNSView`.
     weak var webView: WKWebView?
 
+    /// Closure that prints the web view content. Set by `HTMLPreviewView.updateNSView`.
+    var printAction: (() -> Void)?
+
     /// Throttles rapid re-renders during fast HTML edits (SR-4).
     let renderThrottle = RenderThrottle()
 

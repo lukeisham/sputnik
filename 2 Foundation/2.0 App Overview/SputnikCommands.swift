@@ -11,11 +11,16 @@ public struct SputnikCommands: Commands {
     private let appState: AppState
     private let settings: SettingsStore
     private let router: AppInterPanelRouter
+    private let focusCoordinator: PanelFocusCoordinator
 
-    public init(appState: AppState, settings: SettingsStore, router: AppInterPanelRouter) {
+    public init(
+        appState: AppState, settings: SettingsStore, router: AppInterPanelRouter,
+        focusCoordinator: PanelFocusCoordinator
+    ) {
         self.appState = appState
         self.settings = settings
         self.router = router
+        self.focusCoordinator = focusCoordinator
     }
 
     public var body: some Commands {
@@ -23,7 +28,7 @@ public struct SputnikCommands: Commands {
         FileMenuGroup(appState: appState)
         EditMenuGroup(settings: settings)
         FormatMenuGroup(appState: appState)
-        ViewMenuGroup(appState: appState, settings: settings)
+        ViewMenuGroup(appState: appState, settings: settings, focusCoordinator: focusCoordinator)
         WindowMenuGroup(appState: appState, router: router)
         HelpMenuGroup(appState: appState)
     }

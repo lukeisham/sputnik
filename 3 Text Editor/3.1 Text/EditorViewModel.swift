@@ -297,11 +297,11 @@ public final class EditorViewModel: EditorCommandHandling {
         await appState.router?.open(url)
     }
 
-    /// Presents the ASCII Studio floating panel (⌘⌥A, Format menu).
-    /// Opens for the active text view; no-op if no editor is active.
+    /// Opens or raises the dockable ASCII Studio panel (⌘⌥A, Format menu).
+    /// Instead of showing the old floating NSPanel, this toggles the .asciiStudio
+    /// column in the dynamic layout.
     public func showASCIIStudio() async throws {
-        guard let textView else { return }
-        ASCIIStudioPanel.shared.open(for: textView)
+        appState.toggleColumn(renderMode: .asciiStudio)
     }
 
     // MARK: - View state persistence

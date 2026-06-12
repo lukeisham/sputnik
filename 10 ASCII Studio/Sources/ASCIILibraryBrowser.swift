@@ -1,4 +1,5 @@
 import AppKit
+import Foundation
 import ResourcesModule
 
 /// Lazily loads bundled ASCII-art clip files from `Resources/ASCIILibrary/<category>/`.
@@ -7,6 +8,11 @@ import ResourcesModule
 /// SR-3: clips are loaded per-category on first access, never all upfront.
 /// Missing categories or files degrade silently (guide failure mode — empty library
 /// folders are expected during development and are non-blocking).
+///
+/// This is the single source of truth for the bundled ASCII library (SR-1).
+/// The `ASCIILibrary` actor in module 9 uses `index.json`; this browser reads
+/// the filesystem directly, which is the authoritative source. The Library tab
+/// in the Studio uses this browser.
 @MainActor
 public final class ASCIILibraryBrowser {
 
@@ -80,7 +86,8 @@ public final class ASCIILibraryBrowser {
         }
 
         return urls.compactMap { url -> Clip? in
-            guard let content = try? String(contentsOf: url, encoding: .utf8),
+            guard
+                let content = try? String(contentsOf: url, encoding: .utf8),
                 !content.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
             else { return nil }
             let name = url.deletingPathExtension().lastPathComponent

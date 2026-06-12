@@ -4,8 +4,16 @@
       "id": "basics/getting-started",
       "title": "Getting Started with ASCII Art",
       "category": "basics",
+      "level": "basic",
       "body": "Learn the fundamentals of creating and inserting ASCII art in Sputnik. This guide covers the editor's monospaced mode, the ASCII Library browser, and how to preview your art before inserting it into a document.",
-      "searchTerms": ["intro", "beginner", "start", "tutorial", "first steps", "overview"],
+      "searchTerms": [
+        "intro",
+        "beginner",
+        "start",
+        "tutorial",
+        "first steps",
+        "overview"
+      ],
       "relatedTopics": ["basics/drawing-shapes", "basics/using-borders"],
       "relatedArtIDs": [],
       "exampleCode": null
@@ -14,9 +22,21 @@
       "id": "basics/drawing-shapes",
       "title": "Drawing Shapes",
       "category": "basics",
+      "level": "basic",
       "body": "Master the art of drawing boxes, triangles, and other geometric shapes using box-drawing characters. Understand how to maintain alignment in a monospaced grid and avoid common spacing pitfalls.",
-      "searchTerms": ["box", "triangle", "rectangle", "geometry", "shape", "outline", "grid"],
-      "relatedTopics": ["basics/getting-started", "techniques/frames-and-boxes"],
+      "searchTerms": [
+        "box",
+        "triangle",
+        "rectangle",
+        "geometry",
+        "shape",
+        "outline",
+        "grid"
+      ],
+      "relatedTopics": [
+        "basics/getting-started",
+        "techniques/frames-and-boxes"
+      ],
       "relatedArtIDs": ["frame-001", "frame-002", "frame-003"],
       "exampleCode": "  ┌─────────┐      ┌─────────┐\n  │  Before  │  →   │  After   │\n  └─────────┘      └─────────┘"
     },
@@ -24,9 +44,13 @@
       "id": "basics/using-borders",
       "title": "Using Borders",
       "category": "basics",
+      "level": "basic",
       "body": "Decorative borders frame your content and add visual hierarchy. Explore single-line, double-line, and rounded borders, and learn when to use each style for maximum impact.",
       "searchTerms": ["border", "outline", "edge", "frame", "surround", "wrap"],
-      "relatedTopics": ["basics/drawing-shapes", "techniques/decorative-patterns"],
+      "relatedTopics": [
+        "basics/drawing-shapes",
+        "techniques/decorative-patterns"
+      ],
       "relatedArtIDs": ["frame-004", "frame-005", "deco-001"],
       "exampleCode": "  ╭─────────╮      ╔═════════╗\n  │  Rounded │  vs  ║  Bold   ║\n  ╰─────────╯      ╚═════════╝"
     },
@@ -34,29 +58,79 @@
       "id": "techniques/arrows-and-direction",
       "title": "Arrows and Direction",
       "category": "techniques",
+      "level": "basic",
       "body": "Use arrow art to indicate flow, direction, and relationships in diagrams. Covers left, right, up, down, and corner arrows from the ASCII Library's Arrows collection.",
-      "searchTerms": ["arrow", "direction", "flow", "pointer", "diagram", "navigation", "up", "down", "left", "right"],
-      "relatedTopics": ["techniques/dividers-and-separators", "examples/header-design"],
-      "relatedArtIDs": ["arrow-001", "arrow-002", "arrow-003", "arrow-004", "arrow-005"],
+      "searchTerms": [
+        "arrow",
+        "direction",
+        "flow",
+        "pointer",
+        "diagram",
+        "navigation",
+        "up",
+        "down",
+        "left",
+        "right"
+      ],
+      "relatedTopics": [
+        "techniques/dividers-and-separators",
+        "examples/header-design"
+      ],
+      "relatedArtIDs": [
+        "arrow-001",
+        "arrow-002",
+        "arrow-003",
+        "arrow-004",
+        "arrow-005"
+      ],
       "exampleCode": "  Start ●───→ ●───→ ●───→ End\n                ↓\n              Branch"
     },
     {
       "id": "techniques/frames-and-boxes",
       "title": "Frames and Boxes",
       "category": "techniques",
+      "level": "basic",
       "body": "Frame your content with single-line, double-line, thick, rounded, and shadow boxes. Learn which frame style communicates the right tone for notes, warnings, and callouts.",
-      "searchTerms": ["frame", "box", "container", "panel", "callout", "note", "warning"],
-      "relatedTopics": ["basics/drawing-shapes", "techniques/symbols-and-icons"],
-      "relatedArtIDs": ["frame-001", "frame-002", "frame-003", "frame-004", "frame-005"],
+      "searchTerms": [
+        "frame",
+        "box",
+        "container",
+        "panel",
+        "callout",
+        "note",
+        "warning"
+      ],
+      "relatedTopics": [
+        "basics/drawing-shapes",
+        "techniques/symbols-and-icons"
+      ],
+      "relatedArtIDs": [
+        "frame-001",
+        "frame-002",
+        "frame-003",
+        "frame-004",
+        "frame-005"
+      ],
       "exampleCode": "  ┌─────────────┐    ╔═════════════╗\n  │ Simple note  │    ║  Important! ║\n  └─────────────┘    ╚═════════════╝"
     },
     {
       "id": "techniques/dividers-and-separators",
       "title": "Dividers and Separators",
       "category": "techniques",
+      "level": "basic",
       "body": "Organise your document into clear sections with ASCII dividers. Choose from single, double, dashed, dotted, and star dividers to match your document's tone.",
-      "searchTerms": ["divider", "separator", "section", "horizontal rule", "line", "break"],
-      "relatedTopics": ["techniques/decorative-patterns", "examples/header-design"],
+      "searchTerms": [
+        "divider",
+        "separator",
+        "section",
+        "horizontal rule",
+        "line",
+        "break"
+      ],
+      "relatedTopics": [
+        "techniques/decorative-patterns",
+        "examples/header-design"
+      ],
       "relatedArtIDs": ["div-001", "div-002", "div-003", "div-004", "div-005"],
       "exampleCode": "  ─────────────────  (single)\n  ═════════════════  (double)\n  ─ ─ ─ ─ ─ ─ ─ ─  (dashed)"
     },
@@ -64,8 +138,18 @@
       "id": "techniques/symbols-and-icons",
       "title": "Symbols and Icons",
       "category": "techniques",
+      "level": "basic",
       "body": "Add visual emphasis with checkmarks, warning triangles, info badges, stars, and hearts. Symbols draw attention to key points without cluttering your layout.",
-      "searchTerms": ["symbol", "icon", "checkmark", "warning", "info", "star", "heart", "badge"],
+      "searchTerms": [
+        "symbol",
+        "icon",
+        "checkmark",
+        "warning",
+        "info",
+        "star",
+        "heart",
+        "badge"
+      ],
       "relatedTopics": ["techniques/frames-and-boxes", "examples/cat-art"],
       "relatedArtIDs": ["sym-001", "sym-002", "sym-003", "sym-004", "sym-005"],
       "exampleCode": "  ✓ Task completed\n  ⚠ Warning: check config\n  ℹ Note: updated daily"
@@ -74,19 +158,50 @@
       "id": "techniques/decorative-patterns",
       "title": "Decorative Patterns",
       "category": "techniques",
+      "level": "basic",
       "body": "Enhance your documents with star borders, wave lines, diamond rows, floral corners, and heart rows. Decorative patterns add personality to headers, footers, and section breaks.",
-      "searchTerms": ["decorative", "pattern", "ornament", "flourish", "wave", "diamond", "floral", "heart"],
-      "relatedTopics": ["basics/using-borders", "techniques/dividers-and-separators"],
-      "relatedArtIDs": ["deco-001", "deco-002", "deco-003", "deco-004", "deco-005"],
+      "searchTerms": [
+        "decorative",
+        "pattern",
+        "ornament",
+        "flourish",
+        "wave",
+        "diamond",
+        "floral",
+        "heart"
+      ],
+      "relatedTopics": [
+        "basics/using-borders",
+        "techniques/dividers-and-separators"
+      ],
+      "relatedArtIDs": [
+        "deco-001",
+        "deco-002",
+        "deco-003",
+        "deco-004",
+        "deco-005"
+      ],
       "exampleCode": "  ✿ ✿ ✿ ✿ ✿ ✿ ✿\n  ♥ ♥ ♥ ♥ ♥ ♥ ♥\n  ◇ ◇ ◇ ◇ ◇ ◇ ◇"
     },
     {
       "id": "examples/cat-art",
       "title": "Example: Cat Art",
       "category": "examples",
+      "level": "basic",
       "body": "Follow a step-by-step example of composing a simple cat using ASCII symbols. Learn how to layer characters, maintain proportions, and build recognisable figures from basic shapes.",
-      "searchTerms": ["cat", "animal", "example", "composition", "figure", "tutorial", "step by step"],
-      "relatedTopics": ["techniques/symbols-and-icons", "examples/header-design"],
+      "searchTerms": [
+        "cat",
+        "animal",
+        "example",
+        "composition",
+        "figure",
+        "tutorial",
+        "step by step"
+      ],
+      "relatedTopics": [
+        "techniques/symbols-and-icons",
+        "examples/header-design"
+      ],
       "relatedArtIDs": ["sym-004", "sym-005"],
       "exampleCode": "  /\\___/\\\n (  o o  )\n (  =^=  )\n  (______)"
     },
@@ -94,11 +209,217 @@
       "id": "examples/header-design",
       "title": "Example: Header Design",
       "category": "examples",
+      "level": "basic",
       "body": "Design an eye-catching section header by combining dividers, text, and decorative elements. This example demonstrates how to layer multiple art pieces into a cohesive header block.",
-      "searchTerms": ["header", "title", "section", "design", "banner", "heading", "layout"],
-      "relatedTopics": ["techniques/dividers-and-separators", "techniques/decorative-patterns"],
+      "searchTerms": [
+        "header",
+        "title",
+        "section",
+        "design",
+        "banner",
+        "heading",
+        "layout"
+      ],
+      "relatedTopics": [
+        "techniques/dividers-and-separators",
+        "techniques/decorative-patterns"
+      ],
       "relatedArtIDs": ["div-001", "div-005", "deco-001"],
       "exampleCode": "  ╔══════════════════╗\n  ║  SECTION TITLE   ║\n  ╚══════════════════╝\n  ────────────────────"
+    },
+    {
+      "id": "advanced/image-to-ascii",
+      "title": "Image to ASCII Conversion",
+      "category": "advanced",
+      "level": "advanced",
+      "body": "Sputnik's ASCII Studio can convert any image into ASCII art using a character density ramp. This lets you turn photos, logos, and illustrations into text-based art that you can edit further in the editor.",
+      "searchTerms": [
+        "convert",
+        "image",
+        "photo",
+        "import",
+        "density ramp",
+        "pixel",
+        "resolution"
+      ],
+      "relatedTopics": [
+        "advanced/density-ramps",
+        "advanced/brightness-contrast",
+        "advanced/editing-tools"
+      ],
+      "relatedArtIDs": [],
+      "exampleCode": null
+    },
+    {
+      "id": "advanced/density-ramps",
+      "title": "Density Ramps",
+      "category": "advanced",
+      "level": "advanced",
+      "body": "A density ramp is the set of characters used to represent brightness levels when converting an image to ASCII. The ramp is ordered from darkest (most ink coverage) to lightest (least ink coverage).",
+      "searchTerms": [
+        "ramp",
+        "density",
+        "character set",
+        "palette",
+        "gradient",
+        "shading",
+        "standard",
+        "block",
+        "minimal",
+        "detailed"
+      ],
+      "relatedTopics": [
+        "advanced/image-to-ascii",
+        "advanced/dithering",
+        "advanced/brightness-contrast"
+      ],
+      "relatedArtIDs": [],
+      "exampleCode": null
+    },
+    {
+      "id": "advanced/dithering",
+      "title": "Dithering",
+      "category": "advanced",
+      "level": "advanced",
+      "body": "Dithering is a technique that simulates smooth gradients by placing characters in a patterned arrangement. Instead of mapping each pixel to a single character by brightness, dithering uses a matrix to distribute error across neighbouring pixels, producing the illusion of more colours or shades than the character set actually provides.",
+      "searchTerms": [
+        "dither",
+        "floyd",
+        "steinberg",
+        "atkinson",
+        "noise",
+        "gradient",
+        "smooth",
+        "error diffusion"
+      ],
+      "relatedTopics": [
+        "advanced/density-ramps",
+        "advanced/image-to-ascii",
+        "advanced/brightness-contrast"
+      ],
+      "relatedArtIDs": [],
+      "exampleCode": null
+    },
+    {
+      "id": "advanced/brightness-contrast",
+      "title": "Brightness and Contrast",
+      "category": "advanced",
+      "level": "advanced",
+      "body": "Before converting an image to ASCII, you can adjust its brightness and contrast to improve the tonal distribution of the output. These adjustments are applied to the image before the density ramp mapping, giving you control over which parts of the image produce visible characters.",
+      "searchTerms": [
+        "brightness",
+        "contrast",
+        "tone",
+        "exposure",
+        "lighten",
+        "darken",
+        "adjust",
+        "levels"
+      ],
+      "relatedTopics": [
+        "advanced/image-to-ascii",
+        "advanced/density-ramps",
+        "advanced/dithering"
+      ],
+      "relatedArtIDs": [],
+      "exampleCode": null
+    },
+    {
+      "id": "advanced/line-art-edge-detection",
+      "title": "Line Art & Edge Detection",
+      "category": "advanced",
+      "level": "advanced",
+      "body": "Edge detection identifies the boundaries between objects in an image and renders only those boundaries as ASCII characters. This produces a line-art style output that resembles a pencil sketch or engraving.",
+      "searchTerms": [
+        "edge",
+        "detection",
+        "sobel",
+        "outline",
+        "line art",
+        "sketch",
+        "silhouette",
+        "contour",
+        "border"
+      ],
+      "relatedTopics": [
+        "advanced/image-to-ascii",
+        "advanced/brightness-contrast"
+      ],
+      "relatedArtIDs": [],
+      "exampleCode": null
+    },
+    {
+      "id": "advanced/editing-tools",
+      "title": "Editing Tools",
+      "category": "advanced",
+      "level": "advanced",
+      "body": "The ASCII Studio provides a set of editing tools for touching up and refining your ASCII art after conversion. These tools work on the character grid directly, letting you adjust the output without leaving the Studio.",
+      "searchTerms": [
+        "tool",
+        "paint",
+        "eraser",
+        "fill",
+        "select",
+        "eyedropper",
+        "move",
+        "zoom",
+        "undo",
+        "redo",
+        "edit"
+      ],
+      "relatedTopics": [
+        "advanced/image-to-ascii",
+        "advanced/opening-existing-art"
+      ],
+      "relatedArtIDs": [],
+      "exampleCode": null
+    },
+    {
+      "id": "advanced/opening-existing-art",
+      "title": "Opening Existing Art",
+      "category": "advanced",
+      "level": "advanced",
+      "body": "You can open existing ASCII art in the ASCII Studio for editing, re-conversion, or export. Sputnik supports several ways to bring art into the Studio.",
+      "searchTerms": [
+        "open",
+        "import",
+        "load",
+        "library",
+        "drag",
+        "paste",
+        "file"
+      ],
+      "relatedTopics": [
+        "advanced/image-to-ascii",
+        "advanced/editing-tools",
+        "advanced/saving-exporting"
+      ],
+      "relatedArtIDs": [],
+      "exampleCode": null
+    },
+    {
+      "id": "advanced/saving-exporting",
+      "title": "Saving & Exporting",
+      "category": "advanced",
+      "level": "advanced",
+      "body": "Once you've created or edited ASCII art in the Studio, you can save it to a document or export it in several formats.",
+      "searchTerms": [
+        "save",
+        "export",
+        "insert",
+        "download",
+        "png",
+        "svg",
+        "html",
+        "text",
+        "file"
+      ],
+      "relatedTopics": [
+        "advanced/editing-tools",
+        "advanced/opening-existing-art"
+      ],
+      "relatedArtIDs": [],
+      "exampleCode": null
     }
   ]
 }

@@ -23,6 +23,7 @@ public struct SputnikApp: App {
     @State private var router = AppInterPanelRouter()
     @State private var supportingAIMonitor: SupportingAIMonitor
     @State private var mainAIMonitor: MainAIMonitor
+    @State private var focusCoordinator = PanelFocusCoordinator()
 
     // MARK: - Init
 
@@ -54,12 +55,13 @@ public struct SputnikApp: App {
             }()
             ContentView(
                 windowState: windowState, router: router, appState: appState,
-                persistenceService: persistence
+                persistenceService: persistence, focusCoordinator: focusCoordinator
             )
             .environment(appState)
             .environment(windowState)
             .environment(settingsStore)
             .environment(processMonitor)  // F-5
+            .environment(focusCoordinator)
             .environment(supportingAIMonitor)
             .environment(mainAIMonitor)
             .onAppear {
@@ -86,7 +88,12 @@ public struct SputnikApp: App {
                 WindowRestorerView(appState: appState)
             }
         }
-        .commands { SputnikCommands(appState: appState, settings: settingsStore, router: router) }
+        .commands {
+            SputnikCommands(
+                appState: appState, settings: settingsStore, router: router,
+                focusCoordinator: focusCoordinator
+            )
+        }
         // No .handlesExternalEvents(matching: []) — multi-window is intentional.
 
         // F-2: About window — fixed size, single instance, no toolbar.

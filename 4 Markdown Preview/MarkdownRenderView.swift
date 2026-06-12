@@ -1,6 +1,6 @@
 import AppKit
-import SwiftUI
 import FoundationModule
+import SwiftUI
 
 /// AppKit bridge for the Markdown Preview — wraps an `NSTextView` in an
 /// `NSViewRepresentable` for read-only, selectable, link-interactive display.
@@ -34,6 +34,10 @@ public struct MarkdownRenderView: NSViewRepresentable {
     /// it whenever the user scrolls.
     let scrollOffset: Binding<CGFloat>
 
+    /// Binding to a print-action closure. The view sets this in `updateNSView` so the
+    /// parent panel can trigger a print of the Markdown content via `NSTextView`.
+    @Binding var printAction: (() -> Void)?
+
     // MARK: - Init
 
     /// Creates the render view.
@@ -43,18 +47,22 @@ public struct MarkdownRenderView: NSViewRepresentable {
     ///   - fontScale:      Font zoom factor (1.0 = default).
     ///   - coordinator:    The link-click coordinator.
     ///   - settings:       The app settings store (for per-panel font/background).
+    ///   - scrollOffset:   Binding for per-document scroll offset.
+    ///   - printAction:    Binding set by the view with the print closure.
     public init(
         renderedString: NSAttributedString,
         fontScale: CGFloat,
         coordinator: MarkdownPreviewCoordinator,
         settings: SettingsStore,
-        scrollOffset: Binding<CGFloat> = .constant(0)
+        scrollOffset: Binding<CGFloat> = .constant(0),
+        printAction: Binding<(() -> Void)?> = .constant(nil)
     ) {
         self.renderedString = renderedString
         self.fontScale = fontScale
         self.coordinator = coordinator
         self.settings = settings
         self.scrollOffset = scrollOffset
+        _printAction = printAction
     }
 
     // MARK: - NSViewRepresentable
@@ -108,7 +116,8 @@ public struct MarkdownRenderView: NSViewRepresentable {
         // Re-registration is needed when fitWidth toggles rebuild the view tree and
         // the hosting NSScrollView changes.
         if let clipView = textView.enclosingScrollView?.contentView as? NSClipView,
-           clipView !== context.coordinator.observedClipView {
+            clipView !== context.coordinator.observedClipView
+        {
             if let token = context.coordinator.scrollObserverToken {
                 NotificationCenter.default.removeObserver(token)
             }
@@ -125,6 +134,13 @@ public struct MarkdownRenderView: NSViewRepresentable {
                 }
                 weakCoordinator?.scrollOffsetBinding?.wrappedValue = y
             }
+        }
+
+        // Wire the print action so the panel's overflow menu can trigger printing.
+        printAction = { [weak textView] in
+            guard let textView, let window = textView.window else { return }
+            let printOp = NSPrintOperation(view: textView, printInfo: .shared)
+            printOp.runModal(for: window, delegate: nil, didRun: nil, contextInfo: nil)
         }
 
         // Only update the text storage when the content has actually changed,

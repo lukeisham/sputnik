@@ -24,6 +24,7 @@ public struct HTMLPreviewPanel: View {
     @State private var isFitWidth: Bool = true
     @State private var isLinkNavigationEnabled: Bool = true
     @State private var loadError: String? = nil
+    @State private var printAction: (() -> Void)? = nil
 
     // MARK: - Dependencies
 
@@ -98,8 +99,13 @@ public struct HTMLPreviewPanel: View {
 
             Spacer()
 
-            // Overflow menu: Reveal in Finder, Reload Preview.
+            // Overflow menu: Print…, Reveal in Finder, Reload Preview.
             Menu {
+                Button("Print…") { printAction?() }
+                    .disabled(printAction == nil)
+
+                Divider()
+
                 if let url = appState.activeDocument?.url {
                     Button("Reveal in Finder") {
                         NSWorkspace.shared.activateFileViewerSelecting([url])
@@ -176,7 +182,8 @@ public struct HTMLPreviewPanel: View {
                     isLinkNavigationEnabled: isLinkNavigationEnabled,
                     onLoadError: { message in loadError = message },
                     helpContextResolver: helpContextResolver,
-                    settings: settings
+                    settings: settings,
+                    printAction: $printAction
                 )
                 // Fit Width: centre the preview with a max width of 960 pt.
                 // When disabled, the web view fills the entire panel width.

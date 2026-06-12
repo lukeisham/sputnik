@@ -5,10 +5,12 @@ struct ViewMenuGroup: Commands {
 
     private let appState: AppState
     private let settings: SettingsStore
+    private let focusCoordinator: PanelFocusCoordinator
 
-    init(appState: AppState, settings: SettingsStore) {
+    init(appState: AppState, settings: SettingsStore, focusCoordinator: PanelFocusCoordinator) {
         self.appState = appState
         self.settings = settings
+        self.focusCoordinator = focusCoordinator
     }
 
     var body: some Commands {
@@ -44,6 +46,8 @@ struct ViewMenuGroup: Commands {
             )
             .keyboardShortcut("k", modifiers: [.command, .shift])
 
+            Divider()
+
             Button("Focus: Editor") {
                 appState.focusEditor()
             }
@@ -53,6 +57,48 @@ struct ViewMenuGroup: Commands {
                 appState.focusReader()
             }
             .keyboardShortcut("r", modifiers: [.control, .command])
+
+            Divider()
+
+            Section("Focus Navigation") {
+                Button("Focus Next Panel") {
+                    if let ws = appState.activeWindow {
+                        focusCoordinator.focusNext(
+                            from: ws.layout.dynamicLayout,
+                            terminalVisible: ws.layout.terminalVisible
+                        )
+                    }
+                }
+                .keyboardShortcut(.tab, modifiers: [.control])
+
+                Button("Focus Previous Panel") {
+                    if let ws = appState.activeWindow {
+                        focusCoordinator.focusPrevious(
+                            from: ws.layout.dynamicLayout,
+                            terminalVisible: ws.layout.terminalVisible
+                        )
+                    }
+                }
+                .keyboardShortcut(.tab, modifiers: [.control, .shift])
+
+                Button("Focus: Editor Panel") {
+                    if let ws = appState.activeWindow {
+                        focusCoordinator.focusEditor(from: ws.layout.dynamicLayout)
+                    }
+                }
+
+                Button("Focus: Terminal") {
+                    focusCoordinator.focusTerminal()
+                }
+                .keyboardShortcut("t", modifiers: [.control, .command])
+
+                Button("Focus: File Tree Panel") {
+                    if let ws = appState.activeWindow {
+                        focusCoordinator.focusFileTree(from: ws.layout.dynamicLayout)
+                    }
+                }
+                .keyboardShortcut("f", modifiers: [.control, .command])
+            }
 
             Button("Restore Default Layout") {
                 appState.restoreDefaultLayout()

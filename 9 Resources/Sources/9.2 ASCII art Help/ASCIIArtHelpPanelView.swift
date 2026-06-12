@@ -1,13 +1,14 @@
-import SwiftUI
 import FoundationModule
+import SwiftUI
 
 // MARK: - ASCII Art Help Panel View
 
 /// A SwiftUI view that wraps `SputnikHelpPanel` with ASCII Art Help–specific
-/// topic-content rendering.
+/// topic-content rendering and a basic/advanced level filter.
 ///
 /// Responsibilities:
 /// - Loads topics and categories from `ASCIIArtHelpIndex.shared`.
+/// - Provides a segmented control to filter topics by skill level (All / Basic / Advanced).
 /// - Loads full `.md` body content per topic from the bundle (lazily, on display).
 /// - Resolves `@{art:ID}` placeholders by calling `ASCIILibrary.shared.art(id:)`
 ///   and renders the result in a monospaced code block.
@@ -19,29 +20,80 @@ import FoundationModule
 @MainActor
 public struct ASCIIArtHelpPanelView: View {
 
+    // MARK: - Level Filter
+
+    /// Controls which skill-level topics are shown in the panel.
+    private enum LevelFilter: String, CaseIterable {
+        case all
+        case basic
+        case advanced
+
+        var displayName: String {
+            switch self {
+            case .all: return "All"
+            case .basic: return "Basic"
+            case .advanced: return "Advanced"
+            }
+        }
+    }
+
     // MARK: - State
 
     @State private var allTopics: [ASCIIArtHelpContent] = []
-    @State private var categories: [String] = []
     @State private var hasLoaded: Bool = false
+    @State private var selectedLevel: LevelFilter = .all
+
+    // MARK: - Computed Properties
+
+    /// Topics filtered by the selected level.
+    private var filteredTopics: [ASCIIArtHelpContent] {
+        switch selectedLevel {
+        case .all:
+            return allTopics
+        case .basic:
+            return allTopics.filter { $0.level == .basic }
+        case .advanced:
+            return allTopics.filter { $0.level == .advanced }
+        }
+    }
+
+    /// Unique category names from the filtered topics, preserving order of first appearance.
+    private var filteredCategories: [String] {
+        var seen: [String] = []
+        for t in filteredTopics where !seen.contains(t.category) {
+            seen.append(t.category)
+        }
+        return seen
+    }
 
     // MARK: - Body
 
     public var body: some View {
-        SputnikHelpPanel(
-            allTopics: allTopics,
-            categories: categories,
-            persistenceKey: "asciiArtHelp",
-            helpKind: .asciiArt
-        ) { topic in
-            ASCIIArtTopicContentView(topic: topic)
+        VStack(spacing: 0) {
+            // Level filter bar
+            Picker("Level", selection: $selectedLevel) {
+                ForEach(LevelFilter.allCases, id: \.self) { level in
+                    Text(level.displayName).tag(level)
+                }
+            }
+            .pickerStyle(.segmented)
+            .padding(.horizontal, SputnikSpacing.sm)
+            .padding(.vertical, SputnikSpacing.xs)
+
+            SputnikHelpPanel(
+                allTopics: filteredTopics,
+                categories: filteredCategories,
+                persistenceKey: "asciiArtHelp",
+                helpKind: .asciiArt
+            ) { topic in
+                ASCIIArtTopicContentView(topic: topic)
+            }
         }
         .task {
             guard !hasLoaded else { return }
             hasLoaded = true
             let index = ASCIIArtHelpIndex.shared
             allTopics = await index.allTopics()
-            categories = await index.categories()
         }
     }
 

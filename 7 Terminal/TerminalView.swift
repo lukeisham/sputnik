@@ -1,5 +1,5 @@
-import SwiftUI
 import FoundationModule
+import SwiftUI
 
 /// The SwiftUI panel view for the terminal module.
 ///
@@ -15,6 +15,7 @@ public struct TerminalView: View {
     @Environment(AppState.self) private var appState
     @Environment(SettingsStore.self) private var settings
     @Environment(MainAIMonitor.self) private var mainAIMonitor
+    @Environment(PanelFocusCoordinator.self) private var focusCoordinator
 
     /// Drops the chrome's translucency for an opaque surface under *Reduce Transparency*.
     @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
@@ -44,6 +45,7 @@ public struct TerminalView: View {
             terminalBody
         }
         .background(profile.swiftUIBackground)
+        .overlay { focusIndicator }
         .onAppear {
             manager.aiOutputObserver = mainAIMonitor
             // Register this TerminalManager on the per-window state so AppDelegate
@@ -141,6 +143,24 @@ public struct TerminalView: View {
                 onKeyInput: { data in manager.send(data) },
                 onResize: { cols, rows in manager.resize(cols: cols, rows: rows) }
             )
+        }
+    }
+
+    // MARK: - Focus indicator
+
+    /// A visible focus ring overlay matching the column focus indicator style.
+    @ViewBuilder
+    private var focusIndicator: some View {
+        let isFocused = focusCoordinator.focusedPanel == .terminal
+        if isFocused {
+            RoundedRectangle(cornerRadius: 2)
+                .stroke(
+                    SputnikColor.accentPrimary.opacity(0.55),
+                    lineWidth: 2
+                )
+                .padding(1)
+                .allowsHitTesting(false)
+                .accessibleAnimation(.easeInOut(duration: 0.12), value: isFocused)
         }
     }
 

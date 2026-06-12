@@ -14,6 +14,7 @@ let package = Package(
         .package(path: "7 Terminal"),
         .package(path: "8 HTML Preview"),
         .package(path: "9 Resources"),
+        .package(path: "10 ASCII Studio"),
         .package(path: "SputnikIntents"),
         // DocC documentation generation plugin
         .package(url: "https://github.com/apple/swift-docc-plugin", from: "1.4.0"),
@@ -31,6 +32,7 @@ let package = Package(
                 .product(name: "TerminalModule", package: "7 Terminal"),
                 .product(name: "HTMLPreviewModule", package: "8 HTML Preview"),
                 .product(name: "ResourcesModule", package: "9 Resources"),
+                .product(name: "ASCIIStudioModule", package: "10 ASCII Studio"),
                 .product(name: "SputnikIntents", package: "SputnikIntents"),
             ],
             path: "App-Sputnik",

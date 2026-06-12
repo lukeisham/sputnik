@@ -9,12 +9,16 @@ import UniformTypeIdentifiers
 ///
 /// The column role (active / activePair / viewOnly) drives the border style and
 /// whether the content closure receives an editable or view-only configuration.
+///
+/// **Focus:** The `isFocused` flag drives a visible focus ring overlay. It is set
+/// by `ContentView` based on `@FocusState`, which is synced to `PanelFocusCoordinator`.
 struct PanelColumnView<Content: View>: View {
 
     @Binding var column: PanelColumn
     let columnIndex: Int
     @Binding var layout: DynamicPanelLayout
     let columnRole: DynamicPanelLayout.ColumnRole
+    let isFocused: Bool
     let content: (PanelID, UUID?, DynamicPanelLayout.ColumnRole) -> Content
 
     @Environment(WindowState.self) private var windowState
@@ -25,12 +29,14 @@ struct PanelColumnView<Content: View>: View {
         columnIndex: Int,
         layout: Binding<DynamicPanelLayout>,
         columnRole: DynamicPanelLayout.ColumnRole,
+        isFocused: Bool = false,
         @ViewBuilder content: @escaping (PanelID, UUID?, DynamicPanelLayout.ColumnRole) -> Content
     ) {
         self._column = column
         self.columnIndex = columnIndex
         self._layout = layout
         self.columnRole = columnRole
+        self.isFocused = isFocused
         self.content = content
     }
 
@@ -55,6 +61,7 @@ struct PanelColumnView<Content: View>: View {
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(SputnikColor.background)
         .overlay(alignment: .top) { roleBorder }
+        .overlay { focusIndicator }
         .contentShape(Rectangle())
         .onTapGesture {
             layout.revertToggleIfNeeded(forColumnID: column.id)
@@ -272,6 +279,31 @@ struct PanelColumnView<Content: View>: View {
     }
 
     // MARK: - Column role border
+
+    // MARK: - Focus indicator
+
+    /// A visible focus ring overlay shown when this column is the keyboard focus target.
+    ///
+    /// Distinguishable from the column-role border (active/pair/viewOnly):
+    /// - The role border is a thin top-edge accent line.
+    /// - The focus indicator is a full inset ring using the system accent colour at
+    ///   moderate opacity, so the two concepts never visually collide.
+    ///
+    /// Works with Differentiate Without Color because it uses shape (full ring vs
+    /// top-edge line) and position, not colour alone, as the distinguishing cue.
+    @ViewBuilder
+    private var focusIndicator: some View {
+        if isFocused {
+            RoundedRectangle(cornerRadius: 2)
+                .stroke(
+                    SputnikColor.accentPrimary.opacity(0.55),
+                    lineWidth: 2
+                )
+                .padding(1)
+                .allowsHitTesting(false)
+                .accessibleAnimation(.easeInOut(duration: 0.12), value: isFocused)
+        }
+    }
 
     /// Animated border overlay based on column role.
     @ViewBuilder

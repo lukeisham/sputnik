@@ -89,6 +89,10 @@ public struct HTMLPreviewView: NSViewRepresentable {
     /// The settings store, read for per-panel font and background (F-4).
     private let settings: SettingsStore
 
+    /// Binding to a print-action closure. The view sets this in `updateNSView` so the
+    /// parent panel can trigger a print of the `WKWebView` content.
+    @Binding private var printAction: (() -> Void)?
+
     // MARK: - Init
 
     /// Creates the HTML preview view.
@@ -99,19 +103,22 @@ public struct HTMLPreviewView: NSViewRepresentable {
     ///   - helpContextResolver:     Resolver for "More Context" right-click help. Defaults to
     ///                              `SputnikHelpContextResolver.shared`.
     ///   - settings:                The app settings store (for per-panel font/background).
+    ///   - printAction:             Binding set by the view with the print closure.
     @MainActor
     public init(
         router: (any InterPanelRouter)? = nil,
         isLinkNavigationEnabled: Bool = true,
         onLoadError: ((String) -> Void)? = nil,
         helpContextResolver: HelpContextResolving? = nil,
-        settings: SettingsStore
+        settings: SettingsStore,
+        printAction: Binding<(() -> Void)?> = .constant(nil)
     ) {
         self.router = router
         self.isLinkNavigationEnabled = isLinkNavigationEnabled
         self.onLoadError = onLoadError
         self.helpContextResolver = helpContextResolver ?? SputnikHelpContextResolver.shared
         self.settings = settings
+        _printAction = printAction
     }
 
     // MARK: - NSViewRepresentable
@@ -181,6 +188,14 @@ public struct HTMLPreviewView: NSViewRepresentable {
         context.coordinator.onLoadError = onLoadError
         context.coordinator.fullSessionText = session.text
         context.coordinator.webView = webView
+
+        // Wire the print action so the panel's overflow menu can trigger printing.
+        context.coordinator.printAction = { [weak webView] in
+            guard let webView, let window = webView.window else { return }
+            let printOp = NSPrintOperation(view: webView, printInfo: .shared)
+            printOp.runModal(for: window, delegate: nil, didRun: nil, contextInfo: nil)
+        }
+        printAction = context.coordinator.printAction
 
         // Inject per-panel font and background CSS (F-4), then load (throttled — SR-4).
         let styled = htmlByInjectingOverrides(session.text, settings: settings)
