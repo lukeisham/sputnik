@@ -11,9 +11,15 @@ import Observation
 /// - All "current document / layout" reads delegate to `activeWindow`.
 ///
 /// **Threading:** `@MainActor` — all reads and writes happen on the main thread.
+///
+/// **Sendable:** This class does not conform to `Sendable`. It is `@MainActor`-isolated,
+/// so all property access is confined to the main actor. Callers that need to read
+/// `AppState` from outside the main actor must use `Task { @MainActor in … }` or
+/// explicitly isolate themselves. Do **not** add `@unchecked Sendable` — it would
+/// suppress data-race detection without providing any safety benefit.
 @Observable
 @MainActor
-public final class AppState: @unchecked Sendable {
+public final class AppState {
 
     // MARK: - Window registry
 

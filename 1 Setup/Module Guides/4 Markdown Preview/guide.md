@@ -4,7 +4,7 @@ status: active
 last_updated: 2026-06-12
 last_verified: 2026-06-12
 plan: 1 Setup/Plans Completed/2026-06-08 4 Markdown Preview Implement Markdown Preview module.md
-open_issues: ISS-054, ISS-055, ISS-060, ISS-061
+open_issues: ISS-061
 ---
 
 ## Purpose
@@ -88,7 +88,9 @@ MARKDOWN PREVIEW PANEL  (occupies centre lower slot; see module 2.0 overview)
 | File | Responsibility |
 |---|---|
 | `MarkdownPreviewPanel.swift` | Top-level SwiftUI view; header bar, toolbar, content area; wires `MarkdownPreviewViewModel` and `MarkdownPreviewCoordinator`; owns render trigger via `.onChange` |
-| `MarkdownPreviewViewModel.swift` | `@Observable @MainActor` class; owns `renderedString`, `fontScale`, `isRendering`, `renderError`; generation counter for stale-render guard; contains `PresentationIntent` styling pipeline, `buildNSAttributedString`, `parseMarkdownSegment`, `resolveImageAttachment` |
+| `MarkdownPreviewViewModel.swift` | `@Observable @MainActor` class; owns `renderedString`, `fontScale`, `isRendering`, `renderError`; generation counter for stale-render guard; delegates rendering to `MarkdownPreviewRenderer` |
+| `MarkdownPreviewRenderer.swift` | Rendering pipeline: `buildNSAttributedString`, `parseMarkdownSegment`, `resolveImageAttachment`, `applyPresentationIntentStyling`, `parseIntentKind`, `applyKindAttributes`, `SendableAttributedString` |
+| `MarkdownPreview+ParsedIntentKind.swift` | `ParsedIntentKind` enum and `headingFontSizes` constant |
 | `MarkdownRenderView.swift` | `NSViewRepresentable` wrapping `NSTextView`; receives coordinator externally; applies per-panel font and background (F-4) |
 | `MarkdownPreviewCoordinator.swift` | `NSObject, NSTextViewDelegate @MainActor`; routes link clicks and injects right-click "More Context" menu items |
 
@@ -102,7 +104,7 @@ MARKDOWN PREVIEW PANEL  (occupies centre lower slot; see module 2.0 overview)
   - `MarkdownPreviewViewModel` — `@Observable @MainActor` class; owns `renderedString: NSAttributedString`, `scrollOffset: CGFloat` (tracked, not yet wired to scroll view — ISS-061), `fontScale: CGFloat` (0.5–2.0), `isRendering: Bool`, `renderError: String?`; uses a monotonically-increasing `renderGeneration: UInt64` as a stale-render guard; delegates render throttling to `RenderThrottle` (Foundation 2.7)
   - `buildNSAttributedString(markdown:baseDir:)` — nonisolated file-scope async function; splits Markdown source around `![alt](path)` image references using `NSRegularExpression`; delegates text segments to `parseMarkdownSegment` and image references to `resolveImageAttachment`
   - `parseMarkdownSegment(_:)` — calls `AttributedString(markdown:options:)` with `.full` interpretedSyntax, then `applyPresentationIntentStyling`; falls back to plain text on parse error
-  - `applyPresentationIntentStyling(_:)` — walks `AttributedString.runs` for `PresentationIntent` metadata, bridges to `NSMutableAttributedString`, calls `applyKindAttributes`; **currently a partial no-op because `parseIntentKind` always returns `nil` (ISS-060)**; the visual attributes for headings, code blocks, blockquotes, and list items are implemented in `applyKindAttributes` but never invoked
+  - `applyPresentationIntentStyling(_:)` — walks `AttributedString.runs` for `PresentationIntent` metadata, bridges to `NSMutableAttributedString`, calls `applyKindAttributes`; uses ObjC runtime `NSPresentationIntent` identity (via `perform(NSSelectorFromString("identity"))`) to extract the intent kind and header level (ISS-055: private API dependency; degrades to plain text on future OS changes without crashing)
   - `resolveImageAttachment(path:alt:baseDir:resolver:)` — remote `http(s)` refs render as `[label]` text (no network fetch); local refs resolved via `PreviewImageResolver` (module 9) and cached via `PreviewImageCache` (Foundation 2.7); result inserted as `NSTextAttachment`; oversized/missing files render as placeholder labels
 
 - **Threading model:**
@@ -129,7 +131,7 @@ MARKDOWN PREVIEW PANEL  (occupies centre lower slot; see module 2.0 overview)
   - Active document is not `.markdown` or `.ascii` → panel clears `renderedString` and shows placeholder: "Plain text file selected — open a Markdown file to preview" (or "ASCII file selected…" for `.ascii` type)
   - No active document → "No file open" empty-state placeholder
   - Markdown parse failure → `parseMarkdownSegment` catches the thrown error, returns plain text, sets `viewModel.renderError` → subtle yellow warning banner shown above the content; never a crash
-  - `parseIntentKind` always returns `nil` (ISS-060) → headings, code blocks, blockquotes, list items render as unstyled plain text
+  - `parseIntentKind` cannot extract `NSPresentationIntent` identity (future OS removes or changes the private ObjC SPI) → silently degrades to unstyled plain text; no crash
   - Local image reference (`![alt](path.png)`) → `PreviewImageResolver` resolves and downsamples (2000 px max, 20 MB cap); `PreviewImageCache` caches by URL; missing/oversized images render as `[label]` placeholder text
   - Remote `http(s)` image reference → rendered as `[label]` text, no network fetch
   - Link to local file that no longer exists → `InterPanelRouter.open(_:)` surfaces a `SputnikAlert` (2.4); preview unchanged

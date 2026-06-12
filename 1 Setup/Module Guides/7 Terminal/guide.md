@@ -1,7 +1,7 @@
 ---
 module: 7 Terminal
 status: active
-last_updated: 2026-06-10
+last_updated: 2026-06-12
 ---
 
 ## Purpose
@@ -96,12 +96,14 @@ fields. This replaces the misleading hardcoded `"Profile: Default"` label.
   - `KeyEncoder` — translates special keys (arrows, Backspace, Delete, Ctrl-C, etc.) into the ANSI byte sequences Zsh expects (spec 7.6)
   - `ScrollbackBuffer` — fixed-capacity ring buffer of rendered lines; drops the oldest line on overflow to cap RAM (SR-3)
   - `TerminalProfile` — `Sendable` value type for customisation (font, colours, scrollback line limit); sourced from Settings (2.3)
+  - `CellPosition` — `Hashable`, `Sendable` struct representing a `(row, col)` position in the terminal grid; used by the selection model in `TerminalTextView`
 - **Per-window terminal:** Each window gets its own `TerminalManager`, stored on `WindowState.terminalManager`. `TerminalView` reads `windowState.activeWorkspaceDirectory` (not `AppState`) for the `cd` sync, and registers itself via `windowState.terminalManager = manager` on appear. This ensures each window's shell runs in its own project directory with no terminal state leaking between windows.
 - **`SputnikMenuBarController`** (`@MainActor`) — observes `AppState.isProcessing` (computed, ORs all windows). Its `observation` closure captures `[weak self]`. Uses `NSStatusItem` buttons' `layer` (AppKit-only, annotated).
 - **Threading model:** PTY reads are consumed as an `AsyncStream<Data>` on a long-lived `Task(priority: .utility)` captured with `[weak self]` so the session deallocates (SW-2 — this is the canonical infinite-loop leak risk). ANSI parsing runs off the main thread inside the emulator; only the final cell-grid hand-off and all `NSView` drawing occur on `@MainActor`. `cd` synchronisation observes `WindowState.activeWorkspaceDirectory` (2.2) on the main actor and writes to the PTY through the session actor.
 - **Data flow:** `TerminalSession.start()` opens the PTY (`PTYHandle`), launches Zsh via `Process` with `standardInput/Output/Error` bound to the PTY slave `FileHandle` (MR-4 — never a `Pipe`) → Zsh output arrives on the master fd as `AsyncStream<Data>` → `TerminalEmulator` parses bytes into cells + scrollback → `TerminalRenderer` draws on `@MainActor`. Inbound: keystroke → `KeyEncoder` → `TerminalSession.send(_:)` → PTY master write → Zsh stdin. Directory: `windowState.activeWorkspaceDirectory` change → session writes `cd <url>`.
 - **Clean shutdown:** `AppDelegate.applicationShouldTerminate` collects all `TerminalManager` instances via `AppState.allTerminalManagers` (a computed property that iterates all `WindowState.terminalManager` references). Each manager's `killAllPTYs()` is called concurrently in a `TaskGroup`. Only when all PTYs have exited does `NSApp.replyToApplicationShouldTerminate(true)` fire.
-- **State owned:** the PTY master `FileHandle`, the Zsh `Process` handle, the emulator screen grid, the `ScrollbackBuffer`, the cursor position, and the active `TerminalProfile`. Owns no file content and does not write `AppState` (read-only consumer of the window's workspace directory).
+- **State owned:** the PTY master `FileHandle`, the Zsh `Process` handle, the emulator screen grid, the `ScrollbackBuffer`, the cursor position, the active `TerminalProfile`, and the selection model (`selectionStart`/`selectionEnd` cell positions). Owns no file content and does not write `AppState` (read-only consumer of the window's workspace directory).
+- **Text selection (ISS-059):** `TerminalTextView` tracks a drag-based selection via `mouseDown`/`mouseDragged` overrides. Selected cells are highlighted with `NSColor.selectedTextBackgroundColor` at 40% alpha. `⌘C` copies selected cells (row-joined with `\n`) to `NSPasteboard.general`. `⌘V` reads plain text from the pasteboard and forwards it as UTF-8 data to `onKeyInput`. Selection is cleared on new snapshot output and when the user presses Escape.
 - **Dependencies:** Foundation 2.2 Global State (`WindowState` for per-window workspace directory + terminal manager registration); 2.3 Settings (`TerminalProfile`: font, colours, scrollback cap); 2.4 UI/UX (panel chrome, pinned-bottom slot, error dialogs); 2.6 App Lifecycle (terminate sessions on app quit via `AppState.allTerminalManagers`). The terminal never calls another panel directly.
 - **Failure modes:**
   - `posix_openpt`/`grantpt`/`unlockpt` fails → throw `SputnikError.hardwareAccessDenied`; surface via 2.4 error dialog; panel shows a disabled placeholder; no crash, no force-unwrap (SR-2).

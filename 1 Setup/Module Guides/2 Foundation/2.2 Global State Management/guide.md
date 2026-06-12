@@ -1,7 +1,7 @@
 ---
 module: 2.2 Foundation – Global State Management
 status: active
-last_updated: 2026-06-09
+last_updated: 2026-06-12
 ---
 
 ## Purpose
@@ -75,6 +75,10 @@ Provide per-window state containers and a top-level coordinator so that each Spu
 - **Threading model:** Both `AppState` and `WindowState` are `@MainActor` — all reads and
   writes are on the main thread. Background file-system events must hop via
   `Task { @MainActor in … }` before mutating state (SW-1, SR-4).
+  Neither class conforms to `Sendable` — `@MainActor` isolation provides the safety.
+  Do **not** add `@unchecked Sendable`; it would suppress data-race detection without
+  providing any safety benefit.
+  (Resolves ISS-052.)
 - **Data flow:**
   - Each `ContentView` receives its `WindowState` via `.environment(windowState)`.
   - Panels read from `@Environment(WindowState.self)` for per-window state (workspace directory,

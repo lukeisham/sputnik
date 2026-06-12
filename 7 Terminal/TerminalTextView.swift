@@ -44,6 +44,46 @@ public final class TerminalTextView: NSView {
     private var lastReportedCols: UInt16 = 0
     private var lastReportedRows: UInt16 = 0
 
+    // MARK: - Selection state
+
+    /// The cell position where the selection drag started (anchor).
+    private var selectionStart: CellPosition?
+    /// The current cell position of the selection drag (active end).
+    private var selectionEnd: CellPosition?
+
+    /// The set of cell positions currently selected, computed from `selectionStart` and `selectionEnd`.
+    private var selectedCells: Set<CellPosition>? {
+        guard let start = selectionStart, let end = selectionEnd else { return nil }
+        let rowStart = min(start.row, end.row)
+        let rowEnd = max(start.row, end.row)
+        var cells = Set<CellPosition>()
+        for row in rowStart...rowEnd {
+            let colStart: Int
+            let colEnd: Int
+            if row == rowStart && row == rowEnd {
+                // Single row: clamp to the dragged column range.
+                colStart = min(start.col, end.col)
+                colEnd = max(start.col, end.col)
+            } else if row == rowStart {
+                // First row: from the start column to the right edge.
+                colStart = min(start.col, end.col)
+                colEnd = Int(lastReportedCols) - 1
+            } else if row == rowEnd {
+                // Last row: from the left edge to the end column.
+                colStart = 0
+                colEnd = max(start.col, end.col)
+            } else {
+                // Full intermediate row.
+                colStart = 0
+                colEnd = Int(lastReportedCols) - 1
+            }
+            for col in colStart...colEnd {
+                cells.insert(CellPosition(row: row, col: col))
+            }
+        }
+        return cells
+    }
+
     // MARK: - Frame observation
 
     private var frameObserver: NSObjectProtocol?
@@ -83,6 +123,11 @@ public final class TerminalTextView: NSView {
             guard let self else { return }
             await MainActor.run {
                 let profileChanged = (capturedProfile != self.profile)
+                if self.snapshot != nil {
+                    // Clear selection on new output — the grid has scrolled.
+                    self.selectionStart = nil
+                    self.selectionEnd = nil
+                }
                 self.snapshot = capturedSnapshot
                 self.profile = capturedProfile
                 if profileChanged {
@@ -124,12 +169,45 @@ public final class TerminalTextView: NSView {
 
     public override func mouseDown(with event: NSEvent) {
         window?.makeFirstResponder(self)
-        super.mouseDown(with: event)
+        let pos = cellPosition(for: event)
+        selectionStart = pos
+        selectionEnd = pos
+        needsDisplay = true
+    }
+
+    public override func mouseDragged(with event: NSEvent) {
+        let pos = cellPosition(for: event)
+        selectionEnd = pos
+        needsDisplay = true
     }
 
     // MARK: - Key handling
 
     public override func keyDown(with event: NSEvent) {
+        // Intercept Command+C for copy before KeyEncoder.
+        if event.modifierFlags.contains(.command),
+            event.charactersIgnoringModifiers == "c"
+        {
+            copySelectionToPasteboard()
+            return
+        }
+
+        // Intercept Command+V for paste before KeyEncoder.
+        if event.modifierFlags.contains(.command),
+            event.charactersIgnoringModifiers == "v"
+        {
+            pasteFromPasteboard()
+            return
+        }
+
+        // Escape clears the selection but still forwards to the shell.
+        if event.keyCode == 53 {
+            selectionStart = nil
+            selectionEnd = nil
+            needsDisplay = true
+            // Fall through — still send Escape to Zsh.
+        }
+
         // Convert NSEvent to platform-independent TerminalKeyEvent so KeyEncoder
         // remains AppKit-free (SW-3 / SR-6).
         var mods = TerminalModifiers()
@@ -192,6 +270,12 @@ public final class TerminalTextView: NSView {
                 bgColor.setFill()
                 ctx.fill(cellRect)
 
+                // Selection highlight
+                if selectedCells?.contains(CellPosition(row: lineIdx, col: colIdx)) == true {
+                    NSColor.selectedTextBackgroundColor.withAlphaComponent(0.4).setFill()
+                    ctx.fill(cellRect)
+                }
+
                 // Glyph
                 guard cell.character != " " else { continue }
                 let fgColor = resolveColor(
@@ -242,6 +326,68 @@ public final class TerminalTextView: NSView {
     }
 
     // MARK: - Helpers
+
+    // MARK: - Selection helpers
+
+    /// Converts an `NSEvent` location to cell coordinates in the grid.
+    private func cellPosition(for event: NSEvent) -> CellPosition {
+        let point = convert(event.locationInWindow, from: nil)
+        let col = Int(max(0, min(point.x / cellWidth, CGFloat(lastReportedCols) - 1)))
+        let row = Int(max(0, min((bounds.height - point.y) / cellHeight, totalLines - 1)))
+        return CellPosition(row: row, col: col)
+    }
+
+    /// Total lines in the current snapshot (scrollback + active grid).
+    private var totalLines: CGFloat {
+        guard let snap = snapshot else { return 0 }
+        return CGFloat(snap.scrollback.count + snap.grid.count)
+    }
+
+    /// Copies the currently selected cell range to the system pasteboard as plain text.
+    private func copySelectionToPasteboard() {
+        guard let selected = selectedCells,
+            let snap = snapshot,
+            !selected.isEmpty
+        else { return }
+
+        let grid = snap.scrollback + snap.grid
+        let sorted = selected.sorted { $0.row != $1.row ? $0.row < $1.row : $0.col < $1.col }
+
+        var lines: [String] = []
+        var currentRow = -1
+        var currentLine = ""
+
+        for pos in sorted {
+            if pos.row != currentRow {
+                if !currentLine.isEmpty {
+                    lines.append(currentLine)
+                }
+                currentRow = pos.row
+                currentLine = ""
+            }
+            if pos.row < grid.count, pos.col < grid[pos.row].count {
+                let cell = grid[pos.row][pos.col]
+                currentLine.append(cell.character)
+            }
+        }
+        if !currentLine.isEmpty {
+            lines.append(currentLine)
+        }
+
+        let text = lines.joined(separator: "\n")
+        NSPasteboard.general.clearContents()
+        NSPasteboard.general.setString(text, forType: .string)
+    }
+
+    /// Reads plain text from the system pasteboard and forwards it to the shell.
+    private func pasteFromPasteboard() {
+        guard let text = NSPasteboard.general.string(forType: .string),
+            let data = text.data(using: .utf8)
+        else { return }
+        onKeyInput?(data)
+    }
+
+    // MARK: - Metric helpers
 
     private func updateMetrics(for profile: TerminalProfile) {
         let f =
