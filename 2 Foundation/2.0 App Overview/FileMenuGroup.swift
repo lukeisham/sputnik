@@ -109,7 +109,11 @@ struct FileMenuGroup: Commands {
                 Divider()
 
                 Button("Print…") {
-                    NSApp.sendAction(#selector(NSDocument.printDocument(_:)), to: nil, from: nil)
+                    if let renderedAction = appState.pairedPreviewPrintAction {
+                        presentPrintFormatChoice(renderedAction: renderedAction)
+                    } else {
+                        NSApp.sendAction(#selector(NSDocument.printDocument(_:)), to: nil, from: nil)
+                    }
                 }
                 .keyboardShortcut("p", modifiers: .command)
             }

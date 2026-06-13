@@ -106,8 +106,18 @@ public struct MarkdownPreviewPanel: View {
         .onChange(of: appState.activeDocumentID) { _, _ in
             handleActiveDocumentChange()
         }
+        .onChange(of: printAction) { _, newValue in
+            updatePairedPreviewActions()
+        }
+        .onChange(of: saveAsPDFAction) { _, newValue in
+            updatePairedPreviewActions()
+        }
         .onAppear {
             handleActiveDocumentChange()
+        }
+        .onDisappear {
+            appState.pairedPreviewPrintAction = nil
+            appState.pairedPreviewSaveAsPDFAction = nil
         }
     }
 
@@ -397,6 +407,23 @@ public struct MarkdownPreviewPanel: View {
         )
     }
 
+    // MARK: - Paired preview action registration
+
+    /// Writes the panel's print and save-as-PDF closures into `AppState` when a
+    /// Markdown or ASCII document is active, so the editor overflow menu and File menu
+    /// can offer a "Plain Text / Rendered" choice. Clears both fields otherwise.
+    private func updatePairedPreviewActions() {
+        guard let session = appState.activeDocument,
+            session.fileType == .markdown || session.fileType == .ascii
+        else {
+            appState.pairedPreviewPrintAction = nil
+            appState.pairedPreviewSaveAsPDFAction = nil
+            return
+        }
+        appState.pairedPreviewPrintAction = printAction
+        appState.pairedPreviewSaveAsPDFAction = saveAsPDFAction
+    }
+
     // MARK: - Render trigger
 
     /// Initiates a Markdown render when the active session's text changes.
@@ -420,6 +447,8 @@ public struct MarkdownPreviewPanel: View {
         guard let session = appState.activeDocument else {
             viewModel.renderedString = NSAttributedString()
             viewModel.renderError = nil
+            appState.pairedPreviewPrintAction = nil
+            appState.pairedPreviewSaveAsPDFAction = nil
             return
         }
 
@@ -432,6 +461,8 @@ public struct MarkdownPreviewPanel: View {
         } else {
             viewModel.renderedString = NSAttributedString()
             viewModel.renderError = nil
+            appState.pairedPreviewPrintAction = nil
+            appState.pairedPreviewSaveAsPDFAction = nil
         }
     }
 }

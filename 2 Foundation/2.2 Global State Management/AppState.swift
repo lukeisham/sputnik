@@ -175,6 +175,18 @@ public final class AppState {
     /// Set by the text editor module at launch via `registerEditorCommandHandler(_:)`.
     public private(set) var editorCommandHandler: EditorCommandHandling?
 
+    // MARK: - Paired preview actions (SR-1)
+
+    /// Print closure supplied by the active Markdown or HTML preview panel.
+    /// Non-nil only while a preview panel is open and rendering the active document.
+    /// Cleared by the panel on document type mismatch, disappearance, or document switch.
+    public var pairedPreviewPrintAction: (() -> Void)?
+
+    /// Save-as-PDF closure supplied by the active Markdown or HTML preview panel.
+    /// Non-nil only while a preview panel is open and rendering the active document.
+    /// Cleared by the panel on document type mismatch, disappearance, or document switch.
+    public var pairedPreviewSaveAsPDFAction: (() -> Void)?
+
     /// The inter-panel router used by the editor to open files in other panels.
     /// Set by the app at launch; required for Render as HTML and other routing operations.
     public weak var router: (any InterPanelRouter)?

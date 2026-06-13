@@ -1,3 +1,4 @@
+import AppKit
 import FoundationModule
 import SwiftUI
 
@@ -62,6 +63,28 @@ public struct TextEditorPanel: View {
         }
     }
 
+    /// Presents a two-button alert asking the user whether to save as plain text or
+    /// rendered PDF. Called only when a preview panel is open and paired.
+    private func presentSaveAsPDFFormatChoice(
+        plainTextAction: (() -> Void)?,
+        renderedAction: @escaping () -> Void
+    ) {
+        guard let window = NSApp.keyWindow else { return }
+        let alert = NSAlert()
+        alert.messageText = "Save as PDF"
+        alert.informativeText = "Save the document as plain text or as the rendered preview?"
+        alert.addButton(withTitle: "Rendered")
+        alert.addButton(withTitle: "Plain Text")
+        alert.alertStyle = .informational
+        alert.beginSheetModal(for: window) { response in
+            if response == .alertFirstButtonReturn {
+                renderedAction()
+            } else {
+                plainTextAction?()
+            }
+        }
+    }
+
     public var body: some View {
         VStack(spacing: 0) {
             // Toolbar: mode picker + overflow menu
@@ -81,9 +104,19 @@ public struct TextEditorPanel: View {
                 Spacer()
 
                 // Overflow menu: Save as PDF…
+                // When a preview panel is paired, offer a Plain Text / Rendered choice.
                 Menu {
-                    Button("Save as PDF…") { saveAsPDFAction?() }
-                        .disabled(viewModel.textView == nil)
+                    Button("Save as PDF…") {
+                        if let renderedAction = appState.pairedPreviewSaveAsPDFAction {
+                            presentSaveAsPDFFormatChoice(
+                                plainTextAction: saveAsPDFAction,
+                                renderedAction: renderedAction
+                            )
+                        } else {
+                            saveAsPDFAction?()
+                        }
+                    }
+                    .disabled(viewModel.textView == nil)
                 } label: {
                     Image(systemName: "ellipsis")
                         .font(.system(size: SputnikFont.caption))

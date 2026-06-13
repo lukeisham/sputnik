@@ -81,7 +81,33 @@ public struct HTMLPreviewPanel: View {
         .background(SputnikColor.editorBackground)
         .onChange(of: appState.activeDocumentID) { _, _ in
             loadError = nil
+            updatePairedPreviewActions()
         }
+        .onChange(of: printAction) { _, _ in
+            updatePairedPreviewActions()
+        }
+        .onChange(of: saveAsPDFAction) { _, _ in
+            updatePairedPreviewActions()
+        }
+        .onDisappear {
+            appState.pairedPreviewPrintAction = nil
+            appState.pairedPreviewSaveAsPDFAction = nil
+        }
+    }
+
+    // MARK: - Paired preview action registration
+
+    /// Writes the panel's print and save-as-PDF closures into `AppState` when an HTML
+    /// document is active, so the editor overflow menu and File menu can offer a
+    /// "Plain Text / Rendered" choice. Clears both fields otherwise.
+    private func updatePairedPreviewActions() {
+        guard let session = appState.activeDocument, session.fileType == .html else {
+            appState.pairedPreviewPrintAction = nil
+            appState.pairedPreviewSaveAsPDFAction = nil
+            return
+        }
+        appState.pairedPreviewPrintAction = printAction
+        appState.pairedPreviewSaveAsPDFAction = saveAsPDFAction
     }
 
     // MARK: - Header bar

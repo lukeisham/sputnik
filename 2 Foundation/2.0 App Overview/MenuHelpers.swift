@@ -41,3 +41,26 @@ func presentAlert(_ alert: SputnikAlert) {
     panel.addButton(withTitle: "OK")
     panel.runModal()
 }
+
+/// Presents a two-button alert asking whether to print as plain text or rendered preview.
+/// Called by FileMenuGroup when a preview panel is paired with the active document.
+@MainActor
+func presentPrintFormatChoice(renderedAction: @escaping () -> Void) {
+    guard let window = NSApp.keyWindow else {
+        renderedAction()
+        return
+    }
+    let alert = NSAlert()
+    alert.messageText = "Print"
+    alert.informativeText = "Print the document as plain text or as the rendered preview?"
+    alert.addButton(withTitle: "Rendered")
+    alert.addButton(withTitle: "Plain Text")
+    alert.alertStyle = .informational
+    alert.beginSheetModal(for: window) { response in
+        if response == .alertFirstButtonReturn {
+            renderedAction()
+        } else {
+            NSApp.sendAction(#selector(NSDocument.printDocument(_:)), to: nil, from: nil)
+        }
+    }
+}
