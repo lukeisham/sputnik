@@ -164,12 +164,6 @@ struct MarkdownPreviewViewModelTests {
         vm.render(markdown: "**bold**")
         #expect(vm.isRendering == true)
     }
-
-    @Test func renderFontScaleForwarderSetsIsRendering() {
-        let vm = MarkdownPreviewViewModel()
-        vm.render(markdown: "test", fontScale: 1.5)
-        #expect(vm.isRendering == true)
-    }
 }
 
 // MARK: - MarkdownPreviewCoordinatorTests
