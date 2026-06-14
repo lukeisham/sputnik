@@ -1,87 +1,91 @@
-import AppKit
 import Foundation
 import FoundationModule
 
-/// Watches the open file for external changes using `NSFilePresenter` (MR-2).
+/// Watches the open file for external changes using a `DispatchSource` file-object source.
 ///
-/// When the file changes on disk, the user is prompted via a native `NSAlert` to
-/// reload from disk or keep their local version. The prompt routes through `SputnikAlert`
-/// for consistent error presentation.
+/// Opens the file with `O_EVTONLY` so it can be watched without preventing unmounts,
+/// then registers for `.write`, `.delete`, `.rename`, and `.extend` events. All events
+/// are delivered on the main queue.
 ///
-/// SW-2: `FileWatcher` is a long-lived observer — all closures and presenter callbacks
-/// capture `[weak self]` to prevent retain cycles.
-// @unchecked Sendable is required: NSFilePresenter requires NSObject, and Sendable
-// conformance cannot be compiler-verified for ObjC-bridged types. All mutable state
-// (onReload, suppressNextChange) is accessed from @MainActor callbacks, making this safe.
-public final class FileWatcher: NSObject, NSFilePresenter, @unchecked Sendable {
-
-    // MARK: - NSFilePresenter
-
-    public let presentedItemURL: URL?
-    public let presentedItemOperationQueue: OperationQueue = .main
+/// - `onChanged`: fires when the file content is modified externally.
+/// - `onDeleted`: fires when the file is deleted or moved away.
+///
+/// Call `suppressOnce()` immediately before each programmatic save so the kernel-level
+/// notification from that write consumes a suppression credit rather than triggering a
+/// spurious reload prompt (ISS-113).
+///
+/// @unchecked Sendable: all mutable state (`onChanged`, `onDeleted`, `suppressCount`)
+/// is only written and read from `@MainActor`-isolated call sites and the main-queue
+/// event handler — no concurrent access.
+public final class FileWatcher: @unchecked Sendable {
 
     // MARK: - Callbacks
 
-    /// Called after the user confirms they want to reload from disk.
-    public var onReload: (() -> Void)?
+    /// Called when the file is modified externally (write / extend event).
+    public var onChanged: (() -> Void)?
 
-    /// Temporarily suppress reload prompts (e.g. when saving locally).
-    /// Reset after the notification fires.
-    private var suppressNextChange = false
+    /// Called when the file is deleted or moved away (delete / rename event).
+    public var onDeleted: (() -> Void)?
+
+    // MARK: - Private state
+
+    private var source: DispatchSourceFileSystemObject?
+    private let fd: Int32
+    private var suppressCount = 0
 
     // MARK: - Init
 
     public init(url: URL) {
-        self.presentedItemURL = url
-        super.init()
-        NSFileCoordinator.addFilePresenter(self)
+        fd = open(url.path, O_EVTONLY)
+        guard fd >= 0 else { return }
+
+        let src = DispatchSource.makeFileSystemObjectSource(
+            fileDescriptor: fd,
+            eventMask: [.write, .delete, .rename, .extend],
+            queue: .main
+        )
+        let capturedFD = fd
+        src.setEventHandler { [weak self] in self?.handleEvent() }
+        src.setCancelHandler { close(capturedFD) }
+        src.resume()
+        source = src
     }
+
+    // MARK: - Deinit
 
     deinit {
-        NSFileCoordinator.removeFilePresenter(self)
+        source?.cancel()   // triggers cancelHandler which closes the fd
     }
 
-    /// Suppress the next file-change notification (used when saving locally).
-    public func setSuppressNextChange() {
-        suppressNextChange = true
-    }
+    // MARK: - API
 
-    // MARK: - NSFilePresenter callbacks
-
-    /// Called by the file system when the file has been externally modified.
-    public func presentedItemDidChange() {
-        // Hop to @MainActor; the presenter callback may arrive on any queue (SW-2).
-        Task { @MainActor [weak self] in
-            guard let self else { return }
-            if self.suppressNextChange {
-                self.suppressNextChange = false
-                return
-            }
-            self.promptReload()
-        }
+    /// Consume one suppression credit before each programmatic write (ISS-113).
+    ///
+    /// Each credit suppresses exactly one kernel notification. An atomic save that
+    /// produces two notifications (write + rename) requires two calls — one for each.
+    /// A POSIX rename that produces zero notifications lets the credit drain harmlessly
+    /// on the next real external change (one spurious suppression at most).
+    public func suppressOnce() {
+        suppressCount += 1
     }
 
     // MARK: - Private
 
-    @MainActor
-    private func promptReload() {
-        guard let url = presentedItemURL else { return }
+    private func handleEvent() {
+        guard let source else { return }
 
-        let alert = NSAlert()
-        alert.messageText =
-            SputnikAlert.custom(
-                title: "File Changed",
-                message: ""
-            ).title
-        alert.informativeText = """
-            "\(url.lastPathComponent)" was modified by another process. \
-            Reload from disk, or keep your local version?
-            """
-        alert.addButton(withTitle: "Reload")
-        alert.addButton(withTitle: "Keep My Version")
+        // Consume a suppression credit before categorising the event so that
+        // an atomic-save rename does not reach onDeleted.
+        if suppressCount > 0 {
+            suppressCount -= 1
+            return
+        }
 
-        if alert.runModal() == .alertFirstButtonReturn {
-            onReload?()
+        let data = source.data
+        if data.contains(.delete) || data.contains(.rename) {
+            onDeleted?()
+        } else {
+            onChanged?()
         }
     }
 }

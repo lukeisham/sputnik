@@ -63,6 +63,14 @@ public final class EditorViewModel: EditorCommandHandling {
     // nonisolated(unsafe): required for deinit access; written only from @MainActor and deinit (no concurrent access).
     private nonisolated(unsafe) var fileWatcher: FileWatcher?
 
+    /// `true` when the open file has been deleted or moved away externally.
+    /// Views can observe this to disable save and show a "file gone" state.
+    public var fileDeletedExternally: Bool = false
+
+    /// Set when a background watcher operation fails and needs to surface a dialog.
+    /// Views observe this to present the alert (e.g. `.alert` modifier keyed on this property).
+    public var pendingAlert: SputnikAlert? = nil
+
     // MARK: - Dependencies (injected via init)
 
     private let appState: AppState
@@ -189,6 +197,8 @@ public final class EditorViewModel: EditorCommandHandling {
         resignUserActivity()
         fileURL = url
         isDirty = false
+        fileDeletedExternally = false
+        pendingAlert = nil
         htmlModeActive = false
         spellCheckActive = false
         mode = .plainText
@@ -205,13 +215,30 @@ public final class EditorViewModel: EditorCommandHandling {
         }
     }
 
-    /// Starts watching the file at the given URL for external changes (ISS-033).
+    /// Starts watching the file at the given URL for external changes (ISS-033, ISS-111b).
     private func startWatchingFile(url: URL) {
         let watcher = FileWatcher(url: url)
         // Weak capture to avoid retain cycle (SW-2).
-        watcher.onReload = { [weak self] in
+        watcher.onChanged = { [weak self] in
             Task { @MainActor [weak self] in
-                try? await self?.openDocument(url)
+                guard let self else { return }
+                do {
+                    try await self.openDocument(url)
+                } catch {
+                    SputnikLogger.editor.error("Reload failed for \(url.lastPathComponent): \(error)")
+                    self.pendingAlert = SputnikAlert.custom(
+                        title: "Reload Failed",
+                        message: error.localizedDescription
+                    )
+                    self.promptReloadFailed(url: url, error: error)
+                }
+            }
+        }
+        watcher.onDeleted = { [weak self] in
+            Task { @MainActor [weak self] in
+                guard let self else { return }
+                self.fileDeletedExternally = true
+                self.promptFileDeleted(url: url)
             }
         }
         fileWatcher = watcher
@@ -220,7 +247,34 @@ public final class EditorViewModel: EditorCommandHandling {
     /// Stops watching the current file.
     /// nonisolated so it can be called safely from deinit (ISS-082).
     nonisolated private func stopWatchingFile() {
-        fileWatcher = nil  // FileWatcher.deinit calls NSFileCoordinator.removeFilePresenter — thread-safe.
+        fileWatcher = nil  // FileWatcher.deinit cancels the DispatchSource and closes the fd.
+    }
+
+    /// Shows an alert when a background reload fails (ISS-112).
+    @MainActor
+    private func promptReloadFailed(url: URL, error: Error) {
+        let alert = NSAlert()
+        alert.messageText = "Reload Failed"
+        alert.informativeText = "\"\(url.lastPathComponent)\" could not be reloaded.\n\n\(error.localizedDescription)"
+        alert.addButton(withTitle: "OK")
+        alert.alertStyle = .warning
+        alert.runModal()
+    }
+
+    /// Shows an alert when the open file is deleted or moved away externally (ISS-112).
+    @MainActor
+    private func promptFileDeleted(url: URL) {
+        let alert = NSAlert()
+        alert.messageText = "File Deleted"
+        alert.informativeText = "\"\(url.lastPathComponent)\" was deleted or moved. Your unsaved buffer is still available — save it to a new location."
+        alert.addButton(withTitle: "Save As…")
+        alert.addButton(withTitle: "Discard")
+        alert.alertStyle = .warning
+
+        if alert.runModal() == .alertFirstButtonReturn {
+            // Route Save As through the menu handler's NSSavePanel flow.
+            NSApp.sendAction(#selector(NSDocument.saveAs(_:)), to: nil, from: nil)
+        }
     }
 
     /// Schedules a debounced recovery write for the current document and text.
@@ -258,8 +312,8 @@ public final class EditorViewModel: EditorCommandHandling {
             throw SputnikAlert.custom(title: "No File", message: "No file is open.")
         }
 
-        // Suppress the watcher's notification of our own write (ISS-035).
-        fileWatcher?.setSuppressNextChange()
+        // Suppress the watcher's notification of our own write (ISS-035, ISS-113).
+        fileWatcher?.suppressOnce()
 
         // Snapshot @MainActor properties before entering the detached task (ISS-081).
         let text = loadedText
@@ -278,13 +332,15 @@ public final class EditorViewModel: EditorCommandHandling {
 
         // Back on @MainActor after awaiting — no MainActor.run needed.
         isDirty = false
+        fileDeletedExternally = false
         clearRecoveryCache()
+        // Restart watcher so the fd tracks the new inode placed by replaceItemAt (ISS-111b).
+        stopWatchingFile()
+        startWatchingFile(url: url)
     }
 
     /// Saves the buffer to a user-selected file location.
     public func saveAs(to newURL: URL) async throws {
-        // Suppress the old watcher's notification of the file deletion (ISS-035).
-        fileWatcher?.setSuppressNextChange()
 
         // Snapshot @MainActor properties before entering the detached task (ISS-081).
         let text = loadedText
