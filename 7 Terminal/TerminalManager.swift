@@ -31,10 +31,11 @@ public final class TerminalManager: ObservableObject, TerminalLifecycle, Termina
     // MARK: - AI output observer
 
     /// Weak reference to the Main AI output observer (Foundation 2.7).
-    /// Set by `TerminalView` from the environment; forwarded to each new
-    /// `TerminalSession` so Foundation can detect AI sessions without
-    /// Terminal importing the monitor directly (SR-1).
-    public nonisolated(unsafe) weak var aiOutputObserver: TerminalAIOutputObserving?
+    /// Set by `TerminalView` from the environment; handed to each new
+    /// `TerminalSession` at `start()` so Foundation can detect AI sessions without
+    /// Terminal importing the monitor directly (SR-1). MainActor-isolated — both the
+    /// `TerminalView` setter and the `startSession` read run on the main actor.
+    public weak var aiOutputObserver: TerminalAIOutputObserving?
 
     /// Weak reference to the TerminalTextView for selection queries.
     /// Set by `TerminalView` via `TerminalRenderer.onTextViewCreated`.
@@ -50,12 +51,22 @@ public final class TerminalManager: ObservableObject, TerminalLifecycle, Termina
     private var lastCols: UInt16 = 80
     private var lastRows: UInt16 = 24
 
+    // MARK: - Resize coalescing (ISS-078)
+
+    /// The single in-flight resize loop, if any. A burst of `resize` calls during a
+    /// live drag updates `lastCols`/`lastRows` and sets `resizePending`; the running
+    /// loop always re-reads the *latest* dimensions, so the final applied size matches
+    /// the last resize even though each apply has async `await` suspension points.
+    private var resizeLoop: Task<Void, Never>?
+    private var resizePending = false
+
     // MARK: - Init / deinit
 
     public init() {}
 
     deinit {
         pumpTask?.cancel()
+        resizeLoop?.cancel()
     }
 
     // MARK: - Session lifecycle
@@ -68,7 +79,6 @@ public final class TerminalManager: ObservableObject, TerminalLifecycle, Termina
         await stopSession()
 
         let sess = TerminalSession()
-        sess.aiOutputObserver = self.aiOutputObserver
         let emu = TerminalEmulator(
             cols: 80, rows: 24,
             profile: profile
@@ -77,7 +87,7 @@ public final class TerminalManager: ObservableObject, TerminalLifecycle, Termina
         self.emulator = emu
 
         do {
-            try await sess.start(workingDirectory: directory)
+            try await sess.start(workingDirectory: directory, observer: aiOutputObserver)
         } catch let err as SputnikError {
             pendingAlert = SputnikAlert.custom(
                 title: "Terminal Error",
@@ -128,6 +138,9 @@ public final class TerminalManager: ObservableObject, TerminalLifecycle, Termina
     public func stopSession() async {
         pumpTask?.cancel()
         pumpTask = nil
+        resizeLoop?.cancel()
+        resizeLoop = nil
+        resizePending = false
         await session?.terminate()
         session = nil
         emulator = nil
@@ -182,18 +195,33 @@ public final class TerminalManager: ObservableObject, TerminalLifecycle, Termina
     /// Notifies the PTY and emulator of a terminal resize.
     ///
     /// Stores the last-known dimensions so they can be re-applied when a new
-    /// session starts (step 5). Resizes both the PTY (`TIOCSWINSZ`) and the
-    /// emulator grid, then refreshes the published snapshot.
+    /// session starts. Resizes both the PTY (`TIOCSWINSZ`) and the emulator grid,
+    /// then refreshes the published snapshot.
+    ///
+    /// Resizes are **coalesced** (ISS-078): a rapid drag spawns many `resize` calls,
+    /// but only one apply loop runs at a time, and it always applies the most recent
+    /// `lastCols`/`lastRows`. This guarantees the grid never settles at a stale size,
+    /// which an unordered detached `Task` per call could not (the tasks could complete
+    /// out of order). Flags are mutated only on the main actor, so there is no race.
     public func resize(cols: UInt16, rows: UInt16) {
         lastCols = cols
         lastRows = rows
-        guard let sess = session else { return }
-        Task {
-            await sess.resize(cols: cols, rows: rows)
-            await emulator?.resize(cols: Int(cols), rows: Int(rows))
-            if let snap = await emulator?.snapshot() {
-                self.snapshot = snap
+        guard session != nil else { return }
+        resizePending = true
+        guard resizeLoop == nil else { return }  // a loop is already draining
+        resizeLoop = Task { [weak self] in
+            guard let self else { return }
+            while self.resizePending {
+                self.resizePending = false
+                let cols = self.lastCols
+                let rows = self.lastRows
+                await self.session?.resize(cols: cols, rows: rows)
+                await self.emulator?.resize(cols: Int(cols), rows: Int(rows))
+                if let snap = await self.emulator?.snapshot() {
+                    self.snapshot = snap
+                }
             }
+            self.resizeLoop = nil
         }
     }
 

@@ -42,11 +42,6 @@ public actor TerminalSession {
 
     private(set) public var state: SessionState = .idle
 
-    /// Optional observer for AI-detection output line monitoring.
-    /// Set by `SputnikApp` at launch. Weak reference prevents retain cycles (SW-2).
-    /// Nonisolated because actors cannot hold weak references to non-sendable types.
-    public nonisolated(unsafe) weak var aiOutputObserver: TerminalAIOutputObserving?
-
     // MARK: - Private storage
 
     private var masterFD: Int32?
@@ -88,11 +83,20 @@ public actor TerminalSession {
 
     /// Opens the PTY and launches Zsh with `workingDirectory` as its CWD.
     ///
-    /// - Parameter workingDirectory: The folder to `cd` into on launch. Uses the
-    ///   user's home directory if `nil`.
+    /// - Parameters:
+    ///   - workingDirectory: The folder to `cd` into on launch. Uses the user's
+    ///     home directory if `nil`.
+    ///   - observer: Optional AI-detection line observer. Captured **weakly** in the
+    ///     PTY-channel line callback rather than stored in a shared mutable property,
+    ///     so the reference is never read/written across threads (ISS-076). The
+    ///     protocol is `Sendable`, so the weak capture is race-free without an
+    ///     `unsafe` annotation; conformers make `observe(line:)` thread-safe.
     /// - Throws: `SputnikError.hardwareAccessDenied` if the PTY cannot be opened;
     ///   `SputnikError.processLaunchFailed` if Zsh cannot be started.
-    public func start(workingDirectory: URL? = nil) async throws {
+    public func start(
+        workingDirectory: URL? = nil,
+        observer: TerminalAIOutputObserving? = nil
+    ) async throws {
         guard case .idle = state else { return }
 
         // 1. Spawn Zsh on a fresh PTY with the slave as its controlling terminal
@@ -141,11 +145,12 @@ public actor TerminalSession {
             onData: { [continuation] data in
                 continuation.yield(data)
             },
-            onLine: { [weak self] line in
-                guard let self else { return }
-                // The observer is MainActor-isolated; main is serial so lines stay
-                // ordered. aiOutputObserver is nonisolated(unsafe) weak.
-                DispatchQueue.main.async { self.aiOutputObserver?.observe(line: line) }
+            onLine: { [weak observer] line in
+                // Captured weakly so the observer never keeps the session alive and
+                // is never stored in shared mutable state (ISS-076). The callback runs
+                // on the channel's serial queue, so lines arrive in order; `observe`
+                // is `Sendable`/thread-safe (it yields into an AsyncStream).
+                observer?.observe(line: line)
             },
             onEOF: { [continuation] in
                 // Slave closed → the shell is exiting. Finishing the stream ends the

@@ -32,7 +32,9 @@ final class PTYChannel: @unchecked Sendable {
     private var readSource: DispatchSourceRead?
     private var writeSource: DispatchSourceWrite?
     private var pendingWrite = Data()
-    private var partialLine = ""
+    /// Decodes the raw byte stream into UTF-8 lines for the observer, carrying a
+    /// partial multi-byte code point and a partial line across reads (ISS-079).
+    private var lineDecoder = IncrementalLineDecoder()
     private var torndown = false
 
     /// Bytes read per readability event — one PTY buffer's worth. The read source
@@ -146,26 +148,18 @@ final class PTYChannel: @unchecked Sendable {
         source.resume()
     }
 
-    /// Splits raw output into complete lines for the AI output observer, holding a
-    /// partial trailing line across reads. Runs on the serial `queue`, so the
-    /// `onLine` callbacks are delivered in order.
+    /// Splits raw output into complete lines for the AI output observer. Runs on the
+    /// serial `queue`, so the `onLine` callbacks are delivered in order. The decoder
+    /// carries a partial multi-byte code point and a partial line across reads, so a
+    /// UTF-8 character split across two PTY reads is never dropped (ISS-079).
     private func splitLines(_ data: Data) {
-        guard let text = String(data: data, encoding: .utf8) else { return }
-        let combined = partialLine + text
-        let parts = combined.components(separatedBy: "\n")
-        partialLine = parts.last ?? ""
-        for line in parts.dropLast() {
-            onLine(line.trimmingCharacters(in: .controlCharacters))
-        }
+        for line in lineDecoder.feed(data) { onLine(line) }
     }
 
     private func finishEOF() {
         guard !torndown else { return }
         torndown = true
-        if !partialLine.isEmpty {
-            onLine(partialLine.trimmingCharacters(in: .controlCharacters))
-            partialLine = ""
-        }
+        if let last = lineDecoder.flush() { onLine(last) }
         onEOF()
         shutdownSources()
     }
@@ -181,5 +175,90 @@ final class PTYChannel: @unchecked Sendable {
         } else {
             Darwin.close(fd)
         }
+    }
+}
+
+/// Decodes a chunked byte stream into UTF-8 lines, carrying both a partial trailing
+/// multi-byte code point and a partial trailing line across `feed` calls (ISS-079).
+///
+/// PTY reads land on arbitrary byte boundaries, so a single emoji or accented
+/// character — or a single output line — can straddle two reads. Decoding each chunk
+/// independently with `String(data:)` would fail on the split code point and silently
+/// drop that chunk's lines. This decoder instead holds the incomplete tail until its
+/// remaining bytes arrive. It is a plain value type with no fd or concurrency, so it
+/// is unit-testable in isolation.
+struct IncrementalLineDecoder {
+
+    /// Bytes that did not yet form a complete UTF-8 sequence. At most three trailing
+    /// bytes are ever held (the maximum continuation count in UTF-8).
+    private var pendingBytes: [UInt8] = []
+
+    /// The trailing text since the last newline, carried until a newline arrives.
+    private var partialLine = ""
+
+    /// Feeds a chunk and returns any newly completed lines, each with its trailing
+    /// newline removed and control characters trimmed (matching the observer's
+    /// expectation of clean, single lines).
+    mutating func feed(_ data: Data) -> [String] {
+        pendingBytes.append(contentsOf: data)
+
+        // Hold back any trailing bytes that form an incomplete UTF-8 sequence.
+        let holdBack = Self.incompleteTrailingByteCount(pendingBytes)
+        let completeCount = pendingBytes.count - holdBack
+        guard completeCount > 0 else { return [] }
+
+        let decodable = pendingBytes[0..<completeCount]
+        guard let text = String(bytes: decodable, encoding: .utf8) else {
+            // Genuinely malformed (not merely incomplete) — drop the decoded span to
+            // resync rather than wedge on bytes that will never decode.
+            pendingBytes.removeFirst(completeCount)
+            return []
+        }
+        pendingBytes.removeFirst(completeCount)
+
+        let combined = partialLine + text
+        let parts = combined.components(separatedBy: "\n")
+        partialLine = parts.last ?? ""
+        return parts.dropLast().map { $0.trimmingCharacters(in: .controlCharacters) }
+    }
+
+    /// Returns and clears any held partial line (text after the last newline). Call at
+    /// EOF so a final unterminated line still reaches the observer. Incomplete trailing
+    /// bytes (a code point cut off by EOF) are intentionally discarded — they can never
+    /// decode.
+    mutating func flush() -> String? {
+        pendingBytes.removeAll()
+        guard !partialLine.isEmpty else { return nil }
+        let line = partialLine.trimmingCharacters(in: .controlCharacters)
+        partialLine = ""
+        return line
+    }
+
+    /// Returns how many trailing bytes of `bytes` form an **incomplete** UTF-8
+    /// sequence — a lead byte plus fewer continuation bytes than its length requires.
+    /// Those bytes must be carried to the next read. Returns `0` when the buffer ends
+    /// on a complete code point (or on bytes that will simply fail to decode, which
+    /// `feed` resyncs).
+    static func incompleteTrailingByteCount(_ bytes: [UInt8]) -> Int {
+        // Walk back over continuation bytes (0b10xxxxxx); a UTF-8 sequence has at
+        // most three of them.
+        var continuationCount = 0
+        var index = bytes.count - 1
+        while index >= 0, (bytes[index] & 0xC0) == 0x80, continuationCount < 3 {
+            continuationCount += 1
+            index -= 1
+        }
+        guard index >= 0 else { return continuationCount }  // all continuation: hold
+
+        let lead = bytes[index]
+        let expectedLength: Int
+        if lead & 0x80 == 0x00 { expectedLength = 1 }        // 0xxxxxxx ASCII
+        else if lead & 0xE0 == 0xC0 { expectedLength = 2 }   // 110xxxxx
+        else if lead & 0xF0 == 0xE0 { expectedLength = 3 }   // 1110xxxx
+        else if lead & 0xF8 == 0xF0 { expectedLength = 4 }   // 11110xxx
+        else { return 0 }  // stray continuation / invalid lead — let decode resync
+
+        let have = continuationCount + 1
+        return have < expectedLength ? have : 0
     }
 }

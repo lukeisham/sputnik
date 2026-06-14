@@ -8,7 +8,12 @@ import SputnikShared
 /// detect AI sessions without Terminal importing Foundation's monitor directly.
 ///
 /// Owned by Foundation (2.7). Terminal depends only on this protocol (SR-1).
-public protocol TerminalAIOutputObserving: AnyObject {
+///
+/// `Sendable` so a session can capture a weak reference to the observer inside the
+/// `@Sendable` PTY-channel line callback without an `unsafe` escape hatch (ISS-076).
+/// Conformers must make `observe(line:)` safe to call from any thread —
+/// `MainAIMonitor` does so by yielding into a thread-safe `AsyncStream` continuation.
+public protocol TerminalAIOutputObserving: AnyObject, Sendable {
     /// Called by `TerminalSession` for each decoded line of terminal output.
     /// - Parameter line: A single line of terminal output, without the trailing newline.
     func observe(line: String)

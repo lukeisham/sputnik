@@ -865,3 +865,102 @@ struct PTYSpawnTests {
         await session.terminate()
     }
 }
+
+// MARK: - IncrementalLineDecoderTests (plan 7c, ISS-079)
+// The observer line splitter must carry a partial multi-byte UTF-8 code point and a
+// partial line across reads, so output split on arbitrary byte boundaries never drops
+// characters or whole lines (the bug ISS-079 describes).
+
+struct IncrementalLineDecoderTests {
+
+    // MARK: incompleteTrailingByteCount
+
+    @Test func decoderTreatsPureASCIIAsComplete() {
+        let bytes = Array("hello".utf8)
+        #expect(IncrementalLineDecoder.incompleteTrailingByteCount(bytes) == 0)
+    }
+
+    @Test func decoderHoldsLoneTwoByteLead() {
+        // 0xC3 is the lead byte of 'é' (C3 A9); alone it is incomplete.
+        #expect(IncrementalLineDecoder.incompleteTrailingByteCount([0xC3]) == 1)
+    }
+
+    @Test func decoderCompletesTwoByteSequence() {
+        // Full 'é' — nothing to hold back.
+        #expect(IncrementalLineDecoder.incompleteTrailingByteCount([0xC3, 0xA9]) == 0)
+    }
+
+    @Test func decoderHoldsPartialFourByteEmoji() {
+        // '😀' is F0 9F 98 80; with only three of four bytes, hold all three.
+        #expect(IncrementalLineDecoder.incompleteTrailingByteCount([0xF0, 0x9F, 0x98]) == 3)
+    }
+
+    @Test func decoderCompletesFourByteEmoji() {
+        #expect(IncrementalLineDecoder.incompleteTrailingByteCount([0xF0, 0x9F, 0x98, 0x80]) == 0)
+    }
+
+    @Test func decoderHoldsOnlyTrailingPartialAfterCompleteCharacter() {
+        // 'A' (complete) followed by a lone two-byte lead — hold just the last byte.
+        #expect(IncrementalLineDecoder.incompleteTrailingByteCount([0x41, 0xC3]) == 1)
+    }
+
+    // MARK: feed / flush
+
+    @Test func decoderEmitsLineOnNewline() {
+        var decoder = IncrementalLineDecoder()
+        let lines = decoder.feed(Data("hello\n".utf8))
+        #expect(lines == ["hello"])
+    }
+
+    @Test func decoderHoldsLineUntilNewlineArrives() {
+        var decoder = IncrementalLineDecoder()
+        #expect(decoder.feed(Data("par".utf8)).isEmpty)
+        let lines = decoder.feed(Data("tial\n".utf8))
+        #expect(lines == ["partial"])
+    }
+
+    @Test func decoderReassemblesUTF8SplitAcrossReads() {
+        // 'café\n' with the 'é' (C3 A9) split: first read ends mid-character.
+        let full = Array("café\n".utf8)
+        let splitAt = full.count - 2  // between C3 and A9
+        var decoder = IncrementalLineDecoder()
+        let first = decoder.feed(Data(full[0..<splitAt]))
+        #expect(first.isEmpty)  // incomplete code point → no line yet
+        let second = decoder.feed(Data(full[splitAt...]))
+        #expect(second == ["café"])
+    }
+
+    @Test func decoderReassemblesEmojiSplitAcrossThreeReads() {
+        let full = Array("hi 😀\n".utf8)  // emoji is 4 bytes
+        var decoder = IncrementalLineDecoder()
+        var out: [String] = []
+        // Feed one byte at a time — the worst-case fragmentation.
+        for byte in full { out += decoder.feed(Data([byte])) }
+        #expect(out == ["hi 😀"])
+    }
+
+    @Test func decoderEmitsMultipleLinesInOneChunk() {
+        var decoder = IncrementalLineDecoder()
+        let lines = decoder.feed(Data("a\nb\nc\n".utf8))
+        #expect(lines == ["a", "b", "c"])
+    }
+
+    @Test func decoderFlushReturnsTrailingPartialLine() {
+        var decoder = IncrementalLineDecoder()
+        _ = decoder.feed(Data("no newline".utf8))
+        #expect(decoder.flush() == "no newline")
+    }
+
+    @Test func decoderFlushReturnsNilWhenNothingHeld() {
+        var decoder = IncrementalLineDecoder()
+        _ = decoder.feed(Data("line\n".utf8))
+        #expect(decoder.flush() == nil)
+    }
+
+    @Test func decoderTrimsControlCharactersFromLines() {
+        var decoder = IncrementalLineDecoder()
+        // Carriage return before the newline should be trimmed off.
+        let lines = decoder.feed(Data("text\r\n".utf8))
+        #expect(lines == ["text"])
+    }
+}
