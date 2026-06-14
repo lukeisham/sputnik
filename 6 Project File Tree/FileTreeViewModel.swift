@@ -1,7 +1,6 @@
 import AppKit
 import Foundation
 import FoundationModule
-import SputnikShared
 import Observation
 import UniformTypeIdentifiers
 
@@ -100,7 +99,9 @@ public final class FileTreeViewModel {
     public func expandNode(_ id: URL) async {
         expandedNodeIDs.insert(id)
         guard needsLoad(id) else { return }
-        let children = await Task(priority: .background) { FileTreeViewModel.loadLevel(id) }.value
+        let children = await Task.detached(priority: .background) {
+            FileTreeViewModel.loadLevel(id)
+        }.value
         applyChildren(children, toNodeID: id, in: &rootNode)
     }
 
@@ -267,11 +268,11 @@ public final class FileTreeViewModel {
     // MARK: - Private: scanning
 
     private func scanLevel(_ url: URL) async -> [FileTreeNode] {
-        await Task(priority: .userInitiated) { FileTreeViewModel.loadLevel(url) }.value
+        await Task.detached(priority: .userInitiated) { FileTreeViewModel.loadLevel(url) }.value
     }
 
     /// Non-isolated helper invoked from background `Task`s; never captures `self`.
-    private static func loadLevel(_ url: URL) -> [FileTreeNode] {
+    nonisolated private static func loadLevel(_ url: URL) -> [FileTreeNode] {
         let keys: Set<URLResourceKey> = [
             .isDirectoryKey, .contentModificationDateKey, .isReadableKey,
         ]

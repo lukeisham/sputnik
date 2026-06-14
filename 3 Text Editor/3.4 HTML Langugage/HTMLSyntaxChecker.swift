@@ -1,6 +1,5 @@
 import AppKit
 import FoundationModule
-import SputnikShared
 
 /// Lightweight, real-time HTML structural checker.
 ///

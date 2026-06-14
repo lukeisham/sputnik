@@ -196,6 +196,17 @@ public final class AppState {
         editorCommandHandler = handler
     }
 
+    // MARK: - Crash recovery (ISS-108)
+
+    /// Names of crash-recovery files awaiting user action. Set at launch by AppDelegate;
+    /// cleared when the user accepts or dismisses each entry.
+    public var pendingRecoveryNames: [String] = []
+
+    /// Removes a single recovery entry after the user accepts or discards it.
+    public func clearRecovery(name: String) {
+        pendingRecoveryNames.removeAll { $0 == name }
+    }
+
     // MARK: - Multi-window persistence (step 9)
 
     /// Window IDs that still need their SwiftUI scene opened after launch.

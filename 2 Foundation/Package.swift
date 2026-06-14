@@ -8,13 +8,11 @@ let package = Package(
         .library(name: "FoundationModule", targets: ["FoundationModule"]),
         .library(name: "TestingSupport", targets: ["TestingSupport"]),
     ],
-    dependencies: [
-        .package(name: "SputnikShared", path: "../SputnikShared"),
-    ],
+    dependencies: [],
     targets: [
         .target(
             name: "FoundationModule",
-            dependencies: ["SputnikShared"],
+            dependencies: [],
             path: ".",
             exclude: ["Tests", "2.7 Utilities/TestingSupport.swift"],
             sources: [
@@ -26,6 +24,8 @@ let package = Package(
                 "2.5 Persistence",
                 "2.6 App Lifecycle",
                 "2.7 Utilities",
+                "2.8 Apple Intent",
+                "2.9 Shared",
             ]
         ),
         .target(

@@ -1,7 +1,6 @@
 import AppKit
 import Foundation
 import FoundationModule
-import SputnikShared
 import Observation
 import ResourcesModule
 
@@ -72,8 +71,9 @@ public final class MarkdownPreviewViewModel {
     private let renderThrottle = RenderThrottle()
 
     /// Per-block render cache keyed by block text hash.
+    /// Stores source text alongside the rendered string to detect hash collisions (ISS-091).
     /// Text-only blocks are cached synchronously; image blocks always re-render.
-    private var blockCache: [Int: SendableAttributedString] = [:]
+    private var blockCache: [Int: (text: String, rendered: SendableAttributedString)] = [:]
 
     // MARK: - AppState observation
 
@@ -151,10 +151,10 @@ public final class MarkdownPreviewViewModel {
     /// Small files render immediately; large files coalesce more aggressively (Step 1).
     private func adaptiveDelay(for text: String) -> TimeInterval {
         switch text.utf16.count {
-        case ..<2_000:           return 0.05
-        case 2_000..<20_000:     return 0.10
-        case 20_000..<80_000:    return 0.20
-        default:                 return 0.30
+        case ..<2_000: return 0.05
+        case 2_000..<20_000: return 0.10
+        case 20_000..<80_000: return 0.20
+        default: return 0.30
         }
     }
 
@@ -164,7 +164,7 @@ public final class MarkdownPreviewViewModel {
     private func applyRenderedResult(
         _ string: NSAttributedString,
         sourceMap: [MarkdownSourceBlock],
-        newCacheEntries: [Int: SendableAttributedString],
+        newCacheEntries: [Int: (text: String, rendered: SendableAttributedString)],
         generation: UInt64
     ) {
         guard generation == renderGeneration else { return }
@@ -172,12 +172,14 @@ public final class MarkdownPreviewViewModel {
         renderError = nil
         renderedString = string
         self.sourceMap = sourceMap
-        // Merge new entries; evict the whole cache when it grows too large.
+        // Merge new entries; half-evict when the cache grows too large (ISS-091).
         for (key, value) in newCacheEntries {
             blockCache[key] = value
         }
         if blockCache.count > 500 {
-            blockCache.removeAll()
+            let half = blockCache.count / 2
+            blockCache = Dictionary(
+                uniqueKeysWithValues: blockCache.dropFirst(half).map { ($0.key, $0.value) })
         }
     }
 }

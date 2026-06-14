@@ -19,7 +19,9 @@ public final class FileTreeQuickLookController: NSObject {
 
     /// The URLs of currently selected files. The Quick Look panel previews the
     /// first URL (index 0). Updated by `FileTreePanel` when selection changes.
-    public var selectedURLs: [URL] = []
+    // nonisolated(unsafe): written only from @MainActor context; QLPreviewPanel callbacks
+    // read it from nonisolated protocol methods that assert Thread.isMainThread (ISS-082).
+    public nonisolated(unsafe) var selectedURLs: [URL] = []
 
     private weak var panel: QLPreviewPanel?
 
@@ -49,15 +51,17 @@ public final class FileTreeQuickLookController: NSObject {
 extension FileTreeQuickLookController: QLPreviewPanelDataSource {
 
     public nonisolated func numberOfPreviewItems(in panel: QLPreviewPanel) -> Int {
-        // Safe to read selectedURLs here because QLPreviewPanel only calls
-        // this from the main thread in practice.
-        MainActor.assumeIsolated { self.selectedURLs.count }
+        // QLPreviewPanel always calls datasource methods on the main thread.
+        // precondition gives a clear crash message instead of assumeIsolated's opaque trap (ISS-082).
+        precondition(Thread.isMainThread, "QLPreviewPanel datasource callback must arrive on the main thread")
+        return selectedURLs.count
     }
 
     public nonisolated func previewPanel(_ panel: QLPreviewPanel, previewItemAt index: Int)
         -> QLPreviewItem
     {
-        MainActor.assumeIsolated { self.selectedURLs[index] as NSURL }
+        precondition(Thread.isMainThread, "QLPreviewPanel datasource callback must arrive on the main thread")
+        return selectedURLs[index] as NSURL
     }
 }
 

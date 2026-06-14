@@ -1,7 +1,6 @@
 import AppKit
 import FoundationModule
 import ResourcesModule
-import SputnikShared
 import SwiftUI
 
 /// SwiftUI wrapper for the Sputnik text-editing surface.

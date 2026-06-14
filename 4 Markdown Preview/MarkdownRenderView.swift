@@ -52,6 +52,11 @@ public struct MarkdownRenderView: NSViewRepresentable {
     /// changes by more than 0.005 from the last applied value, to suppress feedback loops.
     let syncScrollFraction: Double?
 
+    /// `true` when the active document is in large-file degraded mode (>80k chars).
+    /// Scroll restore uses `asyncAfter` instead of `ensureLayout` to avoid blocking
+    /// the main thread on large documents (ISS-090).
+    let isLargeFile: Bool
+
     // MARK: - Init
 
     /// Creates the render view.
@@ -72,6 +77,7 @@ public struct MarkdownRenderView: NSViewRepresentable {
         settings: SettingsStore,
         scrollOffset: Binding<CGFloat> = .constant(0),
         syncScrollFraction: Double? = nil,
+        isLargeFile: Bool = false,
         printAction: Binding<(() -> Void)?> = .constant(nil),
         saveAsPDFAction: Binding<(() -> Void)?> = .constant(nil),
         saveAsMarkdownAction: Binding<(() -> Void)?> = .constant(nil)
@@ -82,6 +88,7 @@ public struct MarkdownRenderView: NSViewRepresentable {
         self.settings = settings
         self.scrollOffset = scrollOffset
         self.syncScrollFraction = syncScrollFraction
+        self.isLargeFile = isLargeFile
         _printAction = printAction
         _saveAsPDFAction = saveAsPDFAction
         _saveAsMarkdownAction = saveAsMarkdownAction
@@ -151,9 +158,10 @@ public struct MarkdownRenderView: NSViewRepresentable {
         if let fraction = syncScrollFraction,
             abs(fraction - context.coordinator.lastSyncScrollFraction) > 0.005
         {
-            context.coordinator.lastSyncScrollFraction = fraction
+            let coordinator = context.coordinator
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.02) { [weak textView] in
                 guard let scrollView = textView?.enclosingScrollView else { return }
+                coordinator.lastSyncScrollFraction = fraction
                 let docH = scrollView.documentView?.frame.height ?? 0
                 let viewH = scrollView.contentView.bounds.height
                 guard docH > viewH else { return }
@@ -282,19 +290,36 @@ public struct MarkdownRenderView: NSViewRepresentable {
             textStorage.endEditing()
         }
 
-        // Restore scroll position after the layout pass completes.
-        // A short defer (50ms) gives NSLayoutManager time to finish relayout so the
-        // document height is accurate before we scroll.
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) { [weak textView] in
-            guard let scrollView = textView?.enclosingScrollView else { return }
-            let maxY = max(
-                0,
-                (scrollView.documentView?.frame.height ?? 0)
-                    - scrollView.contentView.bounds.height
-            )
-            let clampedY = max(0, min(targetOffset, maxY))
-            scrollView.contentView.scroll(to: NSPoint(x: 0, y: clampedY))
-            scrollView.reflectScrolledClipView(scrollView.contentView)
+        // Restore scroll position after the layout pass completes (ISS-090).
+        // For normal-size documents, ensureLayout forces a synchronous layout pass so
+        // document height is accurate immediately, eliminating the fixed-timer race.
+        // For large files, keep the asyncAfter fallback to avoid blocking the main thread.
+        if !isLargeFile {
+            if let container = textView.textContainer {
+                textView.layoutManager?.ensureLayout(for: container)
+            }
+            if let scrollView = textView.enclosingScrollView {
+                let maxY = max(
+                    0,
+                    (scrollView.documentView?.frame.height ?? 0)
+                        - scrollView.contentView.bounds.height
+                )
+                let clampedY = max(0, min(targetOffset, maxY))
+                scrollView.contentView.scroll(to: NSPoint(x: 0, y: clampedY))
+                scrollView.reflectScrolledClipView(scrollView.contentView)
+            }
+        } else {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) { [weak textView] in
+                guard let scrollView = textView?.enclosingScrollView else { return }
+                let maxY = max(
+                    0,
+                    (scrollView.documentView?.frame.height ?? 0)
+                        - scrollView.contentView.bounds.height
+                )
+                let clampedY = max(0, min(targetOffset, maxY))
+                scrollView.contentView.scroll(to: NSPoint(x: 0, y: clampedY))
+                scrollView.reflectScrolledClipView(scrollView.contentView)
+            }
         }
     }
 }

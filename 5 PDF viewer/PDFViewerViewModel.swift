@@ -3,7 +3,6 @@ import FoundationModule
 import Observation
 import PDFKit
 import ResourcesModule
-import SputnikShared
 
 /// Observable view model that owns the loaded `PDFDocument` and all UI state for the
 /// PDF Viewer panel. All mutations are `@MainActor`-isolated; heavy file I/O runs on
@@ -66,7 +65,8 @@ public final class PDFViewerViewModel {
     // MARK: - Thumbnail cache
 
     /// Cached thumbnails keyed by zero-based page index. Cleared on document change.
-    public var thumbnailCache: [Int: NSImage] = [:]
+    /// Bounded at 200 entries (~40 MB peak); auto-evicts under memory pressure.
+    public let thumbnailCache = NSCache<NSNumber, NSImage>()
 
     // MARK: - PDFView action bindings
     //
@@ -81,7 +81,9 @@ public final class PDFViewerViewModel {
 
     // MARK: - Init
 
-    public init() {}
+    public init() {
+        thumbnailCache.countLimit = 200  // ~200 × ≈200 KB ≈ 40 MB peak
+    }
 
     // MARK: - Load
 
@@ -92,7 +94,7 @@ public final class PDFViewerViewModel {
         lastURL = url
         isLoading = true
         errorMessage = nil
-        thumbnailCache.removeAll()
+        thumbnailCache.removeAllObjects()
         currentPageIndex = 0
         rotation = 0
 
@@ -144,7 +146,7 @@ public final class PDFViewerViewModel {
         lastURL = url
         isLoading = true
         errorMessage = nil
-        thumbnailCache.removeAll()
+        thumbnailCache.removeAllObjects()
         currentPageIndex = 0
         rotation = 0
 
@@ -259,7 +261,7 @@ public final class PDFViewerViewModel {
         isThumbnailsVisible = false
         isLoading = false
         errorMessage = nil
-        thumbnailCache.removeAll()
+        thumbnailCache.removeAllObjects()
         lastURL = nil
     }
 
@@ -268,15 +270,17 @@ public final class PDFViewerViewModel {
     /// Generates and caches the thumbnail for `pageIndex` if not already cached.
     /// Runs on a background task; no-ops silently on failure.
     public func generateThumbnail(for pageIndex: Int) {
-        guard thumbnailCache[pageIndex] == nil,
+        guard thumbnailCache.object(forKey: pageIndex as NSNumber) == nil,
             let page = document?.page(at: pageIndex)
         else { return }
 
-        Task(priority: .background) { [weak self] in
+        let capturedPage = page
+        let cache = thumbnailCache  // capture the NSCache reference; NSCache is thread-safe
+        Task.detached(priority: .background) {
             let size = CGSize(width: 120, height: 160)
-            let image = page.thumbnail(of: size, for: .mediaBox)
+            let image = capturedPage.thumbnail(of: size, for: .mediaBox)
             await MainActor.run {
-                self?.thumbnailCache[pageIndex] = image
+                cache.setObject(image, forKey: pageIndex as NSNumber)
             }
         }
     }

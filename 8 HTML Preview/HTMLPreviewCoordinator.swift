@@ -1,6 +1,5 @@
 import AppKit
 import FoundationModule
-import SputnikShared
 import WebKit
 
 /// The `NSViewRepresentable.Coordinator` for `HTMLPreviewView`.
@@ -89,24 +88,23 @@ public final class HTMLPreviewCoordinator: NSObject, WKNavigationDelegate {
     /// when structure changes (different CSS settings, new baseURL, or first load).
     func throttledLoad(html: String, baseURL: URL?) {
         currentBaseURL = baseURL
+        // throttle's render closure executes on @MainActor — no inner Task hop needed (ISS-084).
         renderThrottle.throttle { [weak self] in
-            Task { @MainActor in
-                guard let self else { return }
-                let (head, bodyContent) = Self.splitHTML(html)
-                if self.isBaseLoaded,
-                    head == self.lastFullLoadHead,
-                    baseURL == self.lastFullLoadBaseURL
-                {
-                    // Content-only change — update body in place (Step 2).
-                    await self.updateBodyInPlace(bodyContent)
-                } else {
-                    // Structural change or first load — full reload.
-                    self.lastFullLoadHead = head
-                    self.lastFullLoadBaseURL = baseURL
-                    self.isBaseLoaded = false
-                    self.lastSyncScrollFraction = -1
-                    self.webView?.loadHTMLString(html, baseURL: baseURL)
-                }
+            guard let self else { return }
+            let (head, bodyContent) = Self.splitHTML(html)
+            if self.isBaseLoaded,
+                head == self.lastFullLoadHead,
+                baseURL == self.lastFullLoadBaseURL
+            {
+                // Content-only change — update body in place (Step 2).
+                await self.updateBodyInPlace(bodyContent)
+            } else {
+                // Structural change or first load — full reload.
+                self.lastFullLoadHead = head
+                self.lastFullLoadBaseURL = baseURL
+                self.isBaseLoaded = false
+                self.lastSyncScrollFraction = -1
+                self.webView?.loadHTMLString(html, baseURL: baseURL)
             }
         }
     }

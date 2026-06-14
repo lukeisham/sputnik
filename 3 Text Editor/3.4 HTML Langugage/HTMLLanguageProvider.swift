@@ -1,6 +1,5 @@
 import AppKit
 import FoundationModule
-import SputnikShared
 
 /// Generates HTML tag and attribute completions at the cursor using ghost text.
 ///

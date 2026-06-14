@@ -1,6 +1,5 @@
 import AppKit
 import FoundationModule
-import SputnikShared
 
 /// Detects Markdown context at the cursor and pushes a ghost-text suggestion.
 ///

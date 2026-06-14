@@ -60,7 +60,8 @@ public final class EditorViewModel: EditorCommandHandling {
     // MARK: - External file watching
 
     /// Watches the open file for external changes. Instantiated per document; cleared on close.
-    private var fileWatcher: FileWatcher?
+    // nonisolated(unsafe): required for deinit access; written only from @MainActor and deinit (no concurrent access).
+    private nonisolated(unsafe) var fileWatcher: FileWatcher?
 
     // MARK: - Dependencies (injected via init)
 
@@ -71,11 +72,13 @@ public final class EditorViewModel: EditorCommandHandling {
     private let recoveryStore: CrashRecoveryStore?
 
     /// Task for debouncing recovery writes (cancelled when a new write is scheduled).
-    private var recoveryDebounceTask: Task<Void, Never>?
+    // nonisolated(unsafe): required for deinit access; written only from @MainActor and deinit (no concurrent access).
+    private nonisolated(unsafe) var recoveryDebounceTask: Task<Void, Never>?
 
     /// The current user activity for the open document (Spotlight, Siri, Apple Intelligence context).
     /// Created when a file is opened; resigned when the document closes.
-    private var userActivity: NSUserActivity?
+    // nonisolated(unsafe): required for deinit access; written only from @MainActor and deinit (no concurrent access).
+    private nonisolated(unsafe) var userActivity: NSUserActivity?
 
     /// The inter-panel router, exposed for drag-and-drop and other actions.
     /// Read from the shared AppState.
@@ -95,12 +98,11 @@ public final class EditorViewModel: EditorCommandHandling {
     // MARK: - Deinit
 
     deinit {
-        // Clean up resources on app teardown or view model deallocation (Step 12).
-        MainActor.assumeIsolated {
-            stopWatchingFile()
-            stopRecoveryWrite()
-            resignUserActivity()
-        }
+        // nonisolated helpers — safe to call here because the three stored properties
+        // they touch are nonisolated(unsafe) and deinit guarantees no concurrent access.
+        stopWatchingFile()
+        stopRecoveryWrite()
+        resignUserActivity()
     }
 
     // MARK: - Document loading
@@ -123,13 +125,13 @@ public final class EditorViewModel: EditorCommandHandling {
             return
         }
 
-        // Validate file size and encoding on background task.
-        let encoding = try await Task(priority: .userInitiated) { () -> String.Encoding in
-            try EncodingGuard.validate(url)
+        // Validate encoding and read file content off the main thread (ISS-081).
+        // Both operations are pure I/O; Task.detached breaks @MainActor inheritance.
+        let (_, text) = try await Task.detached(priority: .userInitiated) {
+            let enc = try EncodingGuard.validate(url)
+            let txt = try String(contentsOf: url, encoding: enc)
+            return (enc, txt)
         }.value
-
-        // Read file content with the detected encoding.
-        let text = try String(contentsOf: url, encoding: encoding)
 
         // Reset state and load the text.
         resetForNewFile(url: url)
@@ -156,7 +158,8 @@ public final class EditorViewModel: EditorCommandHandling {
     // MARK: - Helpers
 
     /// Resigns the current user activity and clears it.
-    private func resignUserActivity() {
+    /// nonisolated so it can be called safely from deinit (ISS-082).
+    nonisolated private func resignUserActivity() {
         userActivity?.resignCurrent()
         userActivity = nil
     }
@@ -215,8 +218,9 @@ public final class EditorViewModel: EditorCommandHandling {
     }
 
     /// Stops watching the current file.
-    private func stopWatchingFile() {
-        fileWatcher = nil  // Deinit removes the presenter from the coordinator.
+    /// nonisolated so it can be called safely from deinit (ISS-082).
+    nonisolated private func stopWatchingFile() {
+        fileWatcher = nil  // FileWatcher.deinit calls NSFileCoordinator.removeFilePresenter — thread-safe.
     }
 
     /// Schedules a debounced recovery write for the current document and text.
@@ -233,7 +237,8 @@ public final class EditorViewModel: EditorCommandHandling {
     }
 
     /// Cancels any pending recovery write.
-    private func stopRecoveryWrite() {
+    /// nonisolated so it can be called safely from deinit; Task.cancel() is concurrency-safe (ISS-082).
+    nonisolated private func stopRecoveryWrite() {
         recoveryDebounceTask?.cancel()
         recoveryDebounceTask = nil
     }
@@ -256,21 +261,24 @@ public final class EditorViewModel: EditorCommandHandling {
         // Suppress the watcher's notification of our own write (ISS-035).
         fileWatcher?.setSuppressNextChange()
 
-        // Atomic write on background task to keep UI thread clear (SR-4).
-        try await Task(priority: .userInitiated) { [weak self] () -> Void in
-            guard let self else { return }
-            // Write atomically: write to temp file, then swap.
-            let tempURL = fileURL.appendingPathExtension("tmp")
-            try self.loadedText.write(to: tempURL, atomically: true, encoding: .utf8)
-            try FileManager.default.removeItem(at: fileURL)
-            try FileManager.default.moveItem(at: tempURL, to: fileURL)
+        // Snapshot @MainActor properties before entering the detached task (ISS-081).
+        let text = loadedText
+        let url = fileURL
+
+        // Write off the main thread; Task.detached breaks @MainActor inheritance (ISS-081).
+        // Safe-save: write to a sidecar temp file, then use replaceItemAt for an atomic
+        // swap — if the process crashes between steps the original is never absent (ISS-083).
+        try await Task.detached(priority: .userInitiated) {
+            let tempURL = url.deletingLastPathComponent()
+                .appendingPathComponent(url.lastPathComponent + ".sputnik-tmp")
+            try text.write(to: tempURL, atomically: false, encoding: .utf8)
+            _ = try FileManager.default.replaceItemAt(url, withItemAt: tempURL,
+                                                       backupItemName: nil, options: [])
         }.value
 
-        // Return to main thread for state updates.
-        await MainActor.run {
-            isDirty = false
-            clearRecoveryCache()
-        }
+        // Back on @MainActor after awaiting — no MainActor.run needed.
+        isDirty = false
+        clearRecoveryCache()
     }
 
     /// Saves the buffer to a user-selected file location.
@@ -278,20 +286,20 @@ public final class EditorViewModel: EditorCommandHandling {
         // Suppress the old watcher's notification of the file deletion (ISS-035).
         fileWatcher?.setSuppressNextChange()
 
-        // Atomic write on background task (SR-4).
-        try await Task(priority: .userInitiated) { [weak self] () -> Void in
-            guard let self else { return }
-            try self.loadedText.write(to: newURL, atomically: true, encoding: .utf8)
+        // Snapshot @MainActor properties before entering the detached task (ISS-081).
+        let text = loadedText
+
+        // Write off the main thread; atomically:true uses rename(2) — already safe (ISS-081).
+        try await Task.detached(priority: .userInitiated) {
+            try text.write(to: newURL, atomically: true, encoding: .utf8)
         }.value
 
-        // Update the editor state to the new file.
-        await MainActor.run {
-            isDirty = false
-            stopWatchingFile()
-            fileURL = newURL
-            clearRecoveryCache()
-            startWatchingFile(url: newURL)
-        }
+        // Back on @MainActor after awaiting — no MainActor.run needed.
+        isDirty = false
+        stopWatchingFile()
+        fileURL = newURL
+        clearRecoveryCache()
+        startWatchingFile(url: newURL)
     }
 
     // MARK: - EditorCommandHandling protocol (steps 10–11)

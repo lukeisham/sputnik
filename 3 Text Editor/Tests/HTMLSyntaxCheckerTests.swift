@@ -20,8 +20,10 @@ import Testing
 private final class HTMLMockPersistence: PersistenceService {
     func restore() async -> LayoutState { .default }
     func flushLayout(_: LayoutState) {}
+    func flushLayoutSync(_: LayoutState) {}
     func restoreWindows() async -> [WindowDescriptor] { [] }
     func saveWindows(_: [WindowDescriptor]) {}
+    func saveWindowsSync(_: [WindowDescriptor]) {}
     func writeRecovery(for: URL, content: String) {}
     func clearRecovery(for: URL) {}
     func pendingRecoveryNames() -> [String] { [] }

@@ -311,6 +311,7 @@ public struct MarkdownPreviewPanel: View {
                             settings: settings,
                             scrollOffset: scrollBinding(for: appState.activeDocumentID),
                             syncScrollFraction: syncFraction,
+                            isLargeFile: viewModel.isLargeFile,
                             printAction: $printAction,
                             saveAsPDFAction: $saveAsPDFAction,
                             saveAsMarkdownAction: $saveAsMarkdownAction
@@ -327,6 +328,7 @@ public struct MarkdownPreviewPanel: View {
                             settings: settings,
                             scrollOffset: scrollBinding(for: appState.activeDocumentID),
                             syncScrollFraction: syncFraction,
+                            isLargeFile: viewModel.isLargeFile,
                             printAction: $printAction,
                             saveAsPDFAction: $saveAsPDFAction,
                             saveAsMarkdownAction: $saveAsMarkdownAction

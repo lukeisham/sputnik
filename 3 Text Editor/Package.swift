@@ -10,12 +10,11 @@ let package = Package(
     dependencies: [
         .package(name: "FoundationModule", path: "../2 Foundation"),
         .package(name: "ResourcesModule", path: "../9 Resources"),
-        .package(name: "SputnikShared", path: "../SputnikShared"),
     ],
     targets: [
         .target(
             name: "TextEditorModule",
-            dependencies: ["FoundationModule", "ResourcesModule", "SputnikShared"],
+            dependencies: ["FoundationModule", "ResourcesModule"],
             path: ".",
             exclude: ["Tests"]
         ),

@@ -66,9 +66,8 @@ public final class AppDelegate: NSObject, NSApplicationDelegate {
             appState?.restoreWindows(from: descriptors)
 
             let pendingNames = persistence.pendingRecoveryNames()
-            for name in pendingNames {
-                let alert = SputnikAlert.recoveryAvailable(filename: name)
-                presentAlert(alert)
+            if !pendingNames.isEmpty {
+                appState?.pendingRecoveryNames = pendingNames
             }
         }
     }
@@ -113,14 +112,4 @@ public final class AppDelegate: NSObject, NSApplicationDelegate {
         }
     }
 
-    // MARK: - Private helpers
-
-    private func presentAlert(_ alert: SputnikAlert) {
-        let panel = NSAlert()
-        panel.messageText = alert.title
-        panel.informativeText = alert.message
-        panel.alertStyle = .warning
-        panel.addButton(withTitle: "OK")
-        panel.runModal()
-    }
 }

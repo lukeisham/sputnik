@@ -44,8 +44,11 @@ public final class RenderThrottle {
     /// cancelled and this one is queued. Renders after the debounce are executed
     /// sequentially (one at a time).
     ///
+    /// The `render` closure is invoked on `@MainActor` — call sites may access
+    /// `@MainActor`-isolated state directly without an inner `Task { @MainActor in }` hop (ISS-084).
+    ///
     /// - Parameter render: Async closure that performs the render.
-    public func throttle(render: @Sendable @escaping () async -> Void) {
+    public func throttle(render: @MainActor @Sendable @escaping () async -> Void) {
         generation &+= 1
         let targetGeneration = generation
 

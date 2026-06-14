@@ -109,7 +109,7 @@ private struct ThumbnailCell: View {
 
     @ViewBuilder
     private var thumbnailImage: some View {
-        if let nsImage = viewModel.thumbnailCache[index] {
+        if let nsImage = viewModel.thumbnailCache.object(forKey: index as NSNumber) {
             Image(nsImage: nsImage)
                 .resizable()
                 .aspectRatio(contentMode: .fit)

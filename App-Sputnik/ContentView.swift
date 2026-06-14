@@ -144,7 +144,11 @@ public struct ContentView: View {
 
             Divider()
 
-            // Terminal strip + docked scratchpad
+            // Terminal strip + docked scratchpad.
+            // TerminalView is always in the hierarchy (not gated on terminalVisible here).
+            // The PTY spawn is therefore deferred inside TerminalView itself: onAppear
+            // checks terminalVisible before calling addTab(), and onChange(terminalVisible)
+            // triggers the first spawn if the strip was hidden at launch (ISS-107).
             HStack(spacing: 0) {
                 TerminalView()
                     .focused($focusedPanel, equals: .terminal)
@@ -248,6 +252,23 @@ public struct ContentView: View {
                 title: windowState.title,
                 documentURL: windowState.currentlyOpenFile
             )
+        }
+        // Non-blocking crash-recovery notification (ISS-108). SwiftUI presents this
+        // after the first frame renders, so the window is interactive immediately.
+        .alert(
+            "Unsaved Changes Recovered",
+            isPresented: Binding(
+                get: { !appState.pendingRecoveryNames.isEmpty },
+                set: { if !$0 { appState.pendingRecoveryNames = [] } }
+            )
+        ) {
+            Button("Review") {}
+            Button("Dismiss", role: .cancel) {
+                appState.pendingRecoveryNames = []
+            }
+        } message: {
+            let names = appState.pendingRecoveryNames.joined(separator: "\n")
+            Text("The following files have unsaved changes from a previous session:\n\(names)")
         }
         .onChange(of: appState.activeDocumentID) { _, _ in
             guard appState.activeDocumentID != nil else { return }

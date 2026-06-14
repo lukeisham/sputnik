@@ -1,6 +1,5 @@
 import AppKit
 import FoundationModule
-import SputnikShared
 
 /// Real-time spelling and grammar checker wrapping `NSSpellChecker`.
 ///

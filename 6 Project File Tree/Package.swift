@@ -8,13 +8,12 @@ let package = Package(
         .library(name: "FileTreeModule", targets: ["FileTreeModule"])
     ],
     dependencies: [
-        .package(name: "FoundationModule", path: "../2 Foundation"),
-        .package(name: "SputnikShared", path: "../SputnikShared"),
+        .package(name: "FoundationModule", path: "../2 Foundation")
     ],
     targets: [
         .target(
             name: "FileTreeModule",
-            dependencies: ["FoundationModule", "SputnikShared"],
+            dependencies: ["FoundationModule"],
             path: ".",
             exclude: ["Tests"]
         ),
@@ -22,6 +21,6 @@ let package = Package(
             name: "FileTreeModuleTests",
             dependencies: ["FileTreeModule", "FoundationModule"],
             path: "Tests"
-        )
+        ),
     ]
 )

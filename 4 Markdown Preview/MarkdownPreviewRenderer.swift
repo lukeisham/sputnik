@@ -2,7 +2,6 @@ import AppKit
 import Foundation
 import FoundationModule
 import ResourcesModule
-import SputnikShared
 
 // MARK: - PresentationIntent styling
 
@@ -169,7 +168,7 @@ internal struct SendableAttributedString: @unchecked Sendable {
 internal struct MarkdownBlock: Sendable {
     let text: String
     let startLine: Int  // 0-based source line
-    let endLine: Int    // 0-based source line, inclusive
+    let endLine: Int  // 0-based source line, inclusive
     var hasImages: Bool { text.contains("![") }
 }
 
@@ -183,7 +182,9 @@ public struct MarkdownSourceBlock: Sendable {
     /// Character count of this block in the rendered `NSAttributedString`.
     public let renderedLength: Int
 
-    public init(sourceStartLine: Int, sourceEndLine: Int, renderedLocation: Int, renderedLength: Int) {
+    public init(
+        sourceStartLine: Int, sourceEndLine: Int, renderedLocation: Int, renderedLength: Int
+    ) {
         self.sourceStartLine = sourceStartLine
         self.sourceEndLine = sourceEndLine
         self.renderedLocation = renderedLocation
@@ -213,10 +214,11 @@ internal func splitMarkdownBlocks(_ markdown: String) -> [MarkdownBlock] {
             inFence.toggle()
         }
         if !inFence && stripped.isEmpty && !blockLines.isEmpty {
-            blocks.append(MarkdownBlock(
-                text: blockLines.joined(separator: "\n"),
-                startLine: blockStartLine,
-                endLine: currentLine - 1))
+            blocks.append(
+                MarkdownBlock(
+                    text: blockLines.joined(separator: "\n"),
+                    startLine: blockStartLine,
+                    endLine: currentLine - 1))
             blockLines = []
             blockStartLine = currentLine + 1
         } else {
@@ -225,10 +227,11 @@ internal func splitMarkdownBlocks(_ markdown: String) -> [MarkdownBlock] {
         currentLine += 1
     }
     if !blockLines.isEmpty {
-        blocks.append(MarkdownBlock(
-            text: blockLines.joined(separator: "\n"),
-            startLine: blockStartLine,
-            endLine: currentLine - 1))
+        blocks.append(
+            MarkdownBlock(
+                text: blockLines.joined(separator: "\n"),
+                startLine: blockStartLine,
+                endLine: currentLine - 1))
     }
     return blocks.isEmpty
         ? [MarkdownBlock(text: markdown, startLine: 0, endLine: max(0, currentLine - 1))]
@@ -249,38 +252,45 @@ internal func splitMarkdownBlocks(_ markdown: String) -> [MarkdownBlock] {
 internal func buildBlockCachedAttributedString(
     markdown: String,
     baseDir: URL?,
-    cache: [Int: SendableAttributedString]
-) async -> (NSAttributedString, [MarkdownSourceBlock], [Int: SendableAttributedString]) {
+    cache: [Int: (text: String, rendered: SendableAttributedString)]
+) async -> (
+    NSAttributedString, [MarkdownSourceBlock],
+    [Int: (text: String, rendered: SendableAttributedString)]
+) {
     let blocks = splitMarkdownBlocks(markdown)
     guard !blocks.isEmpty else { return (NSAttributedString(), [], [:]) }
 
     let assembled = NSMutableAttributedString()
     var sourceMap: [MarkdownSourceBlock] = []
-    var newEntries: [Int: SendableAttributedString] = [:]
+    var newEntries: [Int: (text: String, rendered: SendableAttributedString)] = [:]
 
     for (i, block) in blocks.enumerated() {
         let start = assembled.length
         let rendered: NSAttributedString
         let hashKey = block.text.hashValue
 
-        if !block.hasImages, let cached = cache[hashKey] {
-            rendered = cached.value
+        if !block.hasImages, let cached = cache[hashKey], cached.text == block.text {
+            // Cache hit with collision guard: verify source text matches before reusing.
+            rendered = cached.rendered.value
         } else if block.hasImages {
             rendered = await buildNSAttributedString(markdown: block.text, baseDir: baseDir)
         } else {
             rendered = parseMarkdownSegment(block.text)
-            newEntries[hashKey] = SendableAttributedString(value: rendered)
+            newEntries[hashKey] = (
+                text: block.text, rendered: SendableAttributedString(value: rendered)
+            )
         }
 
         assembled.append(rendered)
         if i < blocks.count - 1 {
             assembled.append(NSAttributedString(string: "\n"))
         }
-        sourceMap.append(MarkdownSourceBlock(
-            sourceStartLine: block.startLine,
-            sourceEndLine: block.endLine,
-            renderedLocation: start,
-            renderedLength: assembled.length - start))
+        sourceMap.append(
+            MarkdownSourceBlock(
+                sourceStartLine: block.startLine,
+                sourceEndLine: block.endLine,
+                renderedLocation: start,
+                renderedLength: assembled.length - start))
     }
     return (assembled, sourceMap, newEntries)
 }
