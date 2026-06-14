@@ -278,4 +278,42 @@ struct HTMLPreviewCoordinatorTests {
         c.onLoadError?("connection refused")
         #expect(received == "connection refused")
     }
+
+    @Test func isShowingPlaceholderDefaultsToFalse() {
+        let c = HTMLPreviewCoordinator(router: nil)
+        #expect(c.isShowingPlaceholder == false)
+    }
+}
+
+// MARK: - splitHTML
+
+@MainActor
+struct SplitHTMLTests {
+
+    /// ISS-086: a closed-range subscript trapped when `</head>` ended the string.
+    /// The half-open form must split head-only HTML without crashing.
+    @Test func headOnlyHTMLDoesNotCrash() {
+        let (head, body) = HTMLPreviewCoordinator.splitHTML("<html><head></head>")
+        #expect(head == "<html><head></head>")
+        #expect(body.isEmpty)
+    }
+
+    @Test func headAndEmptyBodySplitsCorrectly() {
+        let (head, body) = HTMLPreviewCoordinator.splitHTML("<html><head></head><body></body>")
+        #expect(head == "<html><head></head>")
+        #expect(body.isEmpty)
+    }
+
+    @Test func headAndBodyContentSplitsCorrectly() {
+        let (head, body) = HTMLPreviewCoordinator.splitHTML(
+            "<html><head><title>x</title></head><body><p>hi</p></body></html>")
+        #expect(head == "<html><head><title>x</title></head>")
+        #expect(body == "<p>hi</p>")
+    }
+
+    @Test func noHeadReturnsWholeStringAsBody() {
+        let (head, body) = HTMLPreviewCoordinator.splitHTML("<p>no head here</p>")
+        #expect(head.isEmpty)
+        #expect(body == "<p>no head here</p>")
+    }
 }

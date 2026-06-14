@@ -194,10 +194,18 @@ public struct HTMLPreviewView: NSViewRepresentable {
 
         guard let session, session.fileType == FileType.html else {
             // No active session or wrong type — load a blank placeholder.
+            // Guard against reloading on every AppState change (e.g. focus switches),
+            // which reflashes the placeholder (ISS-092).
+            guard !context.coordinator.isShowingPlaceholder else { return }
             webView.loadHTMLString(placeholderHTML, baseURL: nil)
+            context.coordinator.isShowingPlaceholder = true
             context.coordinator.currentBaseURL = nil
             return
         }
+
+        // A real HTML session is active — clear the placeholder guard so a later
+        // switch back to no-document reloads the placeholder once (ISS-092).
+        context.coordinator.isShowingPlaceholder = false
 
         // Resolve the baseURL to the file's directory so relative `src`/`href` resolve.
         let baseURL: URL? = session.url.map { $0.deletingLastPathComponent() }
@@ -282,7 +290,26 @@ public struct HTMLPreviewView: NSViewRepresentable {
         saveAsHTMLAction = context.coordinator.saveAsHTMLAction
 
         // Inject per-panel font and background CSS (F-4), then load (throttled — SR-4).
-        let styled = htmlByInjectingOverrides(session.text, settings: settings)
+        // Cache the styled output keyed by the inputs that affect it so scroll-sync
+        // re-invocations of updateNSView skip the O(n) CSS injection (ISS-085).
+        // NOTE: keep this hash in sync with every SettingsStore property read by
+        // htmlByInjectingOverrides — currently resolvedHtmlPreviewFont (postscript
+        // name + point size) and htmlPreviewBackground.
+        let font = settings.resolvedHtmlPreviewFont
+        var settingsHasher = Hasher()
+        settingsHasher.combine(font.postScriptName)
+        settingsHasher.combine(font.pointSize)
+        settingsHasher.combine(settings.htmlPreviewBackground)
+        let inputHash = session.text.hashValue ^ settingsHasher.finalize()
+
+        let styled: String
+        if inputHash != context.coordinator.lastStyledInputHash {
+            styled = htmlByInjectingOverrides(session.text, settings: settings)
+            context.coordinator.lastStyledHTML = styled
+            context.coordinator.lastStyledInputHash = inputHash
+        } else {
+            styled = context.coordinator.lastStyledHTML
+        }
         context.coordinator.throttledLoad(html: styled, baseURL: baseURL)
 
         // Apply editor→preview scroll sync (ISS-063, Steps 3 & 5).
@@ -305,6 +332,11 @@ public struct HTMLPreviewView: NSViewRepresentable {
     ///   - settings: The settings store (read for `resolvedHtmlPreviewFont` and
     ///               `htmlPreviewBackground`).
     /// - Returns: Modified HTML string with injected style overrides and rewritten img src.
+    ///
+    /// **CSS-injection cache inputs (ISS-085):** every SettingsStore property read here
+    /// must be represented in the `inputHash` computed in `updateNSView`. Currently:
+    /// `resolvedHtmlPreviewFont` (postscript name + point size) and `htmlPreviewBackground`.
+    /// If a new setting is added below, update that hash too or the cache will go stale.
     private func htmlByInjectingOverrides(_ html: String, settings: SettingsStore) -> String {
         let bg = NSColor(settings.htmlPreviewBackground)
         let font = settings.resolvedHtmlPreviewFont

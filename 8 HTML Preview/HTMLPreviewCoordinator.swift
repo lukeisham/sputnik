@@ -73,6 +73,24 @@ public final class HTMLPreviewCoordinator: NSObject, WKNavigationDelegate {
     /// body HTML before a document exists (which would silently fail).
     var isBaseLoaded: Bool = false
 
+    // MARK: - Placeholder reload guard (ISS-092)
+
+    /// `true` while the blank placeholder web view is the current content. Guards
+    /// `HTMLPreviewView.updateNSView` against reloading the placeholder on every
+    /// AppState change (which caused a visible reflash on focus switches). Reset to
+    /// `false` whenever a real HTML session is loaded.
+    var isShowingPlaceholder: Bool = false
+
+    // MARK: - CSS-injection cache (ISS-085)
+
+    /// The last result of `htmlByInjectingOverrides`, reused on the scroll-sync hot path.
+    var lastStyledHTML: String = ""
+
+    /// Hash of the inputs that produced `lastStyledHTML` (session text + CSS-affecting
+    /// settings). When unchanged, the O(n) CSS injection is skipped and `lastStyledHTML`
+    /// is reused — reducing the per-scroll cost to a single integer comparison.
+    var lastStyledInputHash: Int = 0
+
     // MARK: - Preview scroll sync (ISS-063, Steps 3 & 5)
 
     /// Last fractional scroll position applied by editor→preview sync.
@@ -135,7 +153,10 @@ public final class HTMLPreviewCoordinator: NSObject, WKNavigationDelegate {
         guard let headEndRange = html.range(of: "</head>", options: .caseInsensitive) else {
             return ("", html)
         }
-        let head = String(html[html.startIndex...headEndRange.upperBound])
+        // Half-open range: a closed `...upperBound` traps when `upperBound == endIndex`
+        // (head-only HTML with no body — ISS-086). The half-open form yields the head
+        // including `</head>` and is safe at the end of the string.
+        let head = String(html[html.startIndex..<headEndRange.upperBound])
         let afterHead = String(html[headEndRange.upperBound...])
 
         let bodyTagPattern = #"<body[^>]*>"#
