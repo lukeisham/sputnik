@@ -256,11 +256,13 @@ public struct MarkdownRenderView: NSViewRepresentable {
             }
         }
 
-        // Only update the text storage when the content has actually changed,
+        // Only update the text storage when the content or font size has actually changed,
         // to avoid unnecessary layout invalidation.
-        guard textView.textStorage?.string != renderedString.string else {
-            return
-        }
+        let desiredFontSize = settings.resolvedMarkdownPreviewFont.pointSize * fontScale
+        let currentFontSize = textView.font?.pointSize ?? 0
+        guard textView.textStorage?.string != renderedString.string
+            || abs(currentFontSize - desiredFontSize) > 0.5
+        else { return }
 
         // Capture the desired scroll offset before rewriting the text storage.
         let targetOffset = scrollOffset.wrappedValue

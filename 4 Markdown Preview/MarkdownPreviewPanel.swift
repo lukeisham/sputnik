@@ -434,7 +434,8 @@ public struct MarkdownPreviewPanel: View {
         else { return }
         coordinator.currentSourceText = session.text
         coordinator.currentDocumentName = session.url?.lastPathComponent ?? "Untitled.md"
-        viewModel.render(markdown: markdown, fontScale: viewModel.fontScale)
+        let baseDir = appState.activeDocument?.url?.deletingLastPathComponent()
+        viewModel.render(markdown: markdown, baseDir: baseDir)
     }
 
     /// Handles a change in the active document — clears stale state and triggers
@@ -445,6 +446,7 @@ public struct MarkdownPreviewPanel: View {
         viewModel.scrollOffset = scrollOffsets[appState.activeDocumentID ?? UUID(), default: 0]
 
         guard let session = appState.activeDocument else {
+            viewModel.cancel()
             viewModel.renderedString = NSAttributedString()
             viewModel.renderError = nil
             appState.pairedPreviewPrintAction = nil
@@ -457,8 +459,10 @@ public struct MarkdownPreviewPanel: View {
         coordinator.currentDocumentName = session.url?.lastPathComponent ?? "Untitled.md"
 
         if session.fileType == .markdown || session.fileType == .ascii {
-            viewModel.render(markdown: session.text, fontScale: viewModel.fontScale)
+            let baseDir = session.url?.deletingLastPathComponent()
+            viewModel.render(markdown: session.text, baseDir: baseDir)
         } else {
+            viewModel.cancel()
             viewModel.renderedString = NSAttributedString()
             viewModel.renderError = nil
             appState.pairedPreviewPrintAction = nil

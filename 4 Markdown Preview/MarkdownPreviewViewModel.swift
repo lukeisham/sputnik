@@ -129,16 +129,20 @@ public final class MarkdownPreviewViewModel {
         }
     }
 
-    /// Backward-compatible forwarder: renders Markdown without a base directory.
+    /// Renders Markdown without a base directory (images render as placeholders).
     public func render(markdown: String) {
         render(markdown: markdown, baseDir: nil)
     }
 
-    /// Backward-compatible forwarder: renders Markdown at the given font scale.
-    /// The scale is applied downstream in `MarkdownRenderView`; this method shares
-    /// the parse path with `render(markdown:baseDir:)`.
-    public func render(markdown: String, fontScale: CGFloat) {
-        render(markdown: markdown, baseDir: nil)
+    // MARK: - Cancel
+
+    /// Invalidates any pending render and clears the rendering flag.
+    /// Call before clearing `renderedString` on document close or switch so that a
+    /// debounced render cannot land stale content after the state has been reset.
+    public func cancel() {
+        renderGeneration &+= 1
+        renderThrottle.cancel()
+        isRendering = false
     }
 
     // MARK: - Private helpers
