@@ -60,8 +60,7 @@ public final class EditorViewModel: EditorCommandHandling {
     // MARK: - External file watching
 
     /// Watches the open file for external changes. Instantiated per document; cleared on close.
-    // nonisolated(unsafe): required for deinit access; written only from @MainActor and deinit (no concurrent access).
-    private nonisolated(unsafe) var fileWatcher: FileWatcher?
+    private var fileWatcher: FileWatcher?
 
     /// `true` when the open file has been deleted or moved away externally.
     /// Views can observe this to disable save and show a "file gone" state.
@@ -80,13 +79,11 @@ public final class EditorViewModel: EditorCommandHandling {
     private let recoveryStore: CrashRecoveryStore?
 
     /// Task for debouncing recovery writes (cancelled when a new write is scheduled).
-    // nonisolated(unsafe): required for deinit access; written only from @MainActor and deinit (no concurrent access).
-    private nonisolated(unsafe) var recoveryDebounceTask: Task<Void, Never>?
+    private var recoveryDebounceTask: Task<Void, Never>?
 
     /// The current user activity for the open document (Spotlight, Siri, Apple Intelligence context).
     /// Created when a file is opened; resigned when the document closes.
-    // nonisolated(unsafe): required for deinit access; written only from @MainActor and deinit (no concurrent access).
-    private nonisolated(unsafe) var userActivity: NSUserActivity?
+    private var userActivity: NSUserActivity?
 
     /// The inter-panel router, exposed for drag-and-drop and other actions.
     /// Read from the shared AppState.
@@ -105,9 +102,11 @@ public final class EditorViewModel: EditorCommandHandling {
 
     // MARK: - Deinit
 
+    // @MainActor deinit: guarantees cleanup runs on the main actor (same pattern as ISS-025,
+    // MainAIMonitor). Eliminates the need for nonisolated(unsafe) on the three backing properties
+    // and the nonisolated helpers that touch them (ISS-082).
+    @MainActor
     deinit {
-        // nonisolated helpers — safe to call here because the three stored properties
-        // they touch are nonisolated(unsafe) and deinit guarantees no concurrent access.
         stopWatchingFile()
         stopRecoveryWrite()
         resignUserActivity()
@@ -166,8 +165,7 @@ public final class EditorViewModel: EditorCommandHandling {
     // MARK: - Helpers
 
     /// Resigns the current user activity and clears it.
-    /// nonisolated so it can be called safely from deinit (ISS-082).
-    nonisolated private func resignUserActivity() {
+    private func resignUserActivity() {
         userActivity?.resignCurrent()
         userActivity = nil
     }
@@ -245,8 +243,7 @@ public final class EditorViewModel: EditorCommandHandling {
     }
 
     /// Stops watching the current file.
-    /// nonisolated so it can be called safely from deinit (ISS-082).
-    nonisolated private func stopWatchingFile() {
+    private func stopWatchingFile() {
         fileWatcher = nil  // FileWatcher.deinit cancels the DispatchSource and closes the fd.
     }
 
@@ -291,8 +288,7 @@ public final class EditorViewModel: EditorCommandHandling {
     }
 
     /// Cancels any pending recovery write.
-    /// nonisolated so it can be called safely from deinit; Task.cancel() is concurrency-safe (ISS-082).
-    nonisolated private func stopRecoveryWrite() {
+    private func stopRecoveryWrite() {
         recoveryDebounceTask?.cancel()
         recoveryDebounceTask = nil
     }
