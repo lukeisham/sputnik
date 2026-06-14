@@ -36,7 +36,11 @@ public final class MarkdownPreviewViewModel {
     /// User-adjustable zoom factor. Range 0.5 … 2.0; default 1.0.
     public var fontScale: CGFloat = 1.0 {
         didSet {
-            fontScale = min(2.0, max(0.5, fontScale))
+            // Reassign only when out of range. Under `@Observable`, `fontScale` is a
+            // computed wrapper, so an unconditional self-assignment in `didSet` re-enters
+            // the setter forever (stack overflow). The guard bounds re-entry to depth 1.
+            let clamped = min(2.0, max(0.5, fontScale))
+            if fontScale != clamped { fontScale = clamped }
         }
     }
 

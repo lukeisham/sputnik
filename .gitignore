@@ -25,6 +25,10 @@ Package.resolved
 # Crash-recovery cache files written by the editor (module 3.1) must never be committed
 *.sputnik-recovery
 
+# Stale package directories from absorbed packages (SwiftPM recreates .build/ here)
+SputnikIntents/
+SputnikShared/
+
 # Swift compiler build artifacts (may appear outside .build/ in multi-module setups)
 *.d
 *.dia

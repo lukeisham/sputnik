@@ -1,5 +1,4 @@
 import Foundation
-import os
 
 /// Concrete `PersistenceService` backed by `UserDefaults` and
 /// `~/Library/Application Support/Sputnik/`.
@@ -29,7 +28,7 @@ public final class FilePersistenceService: PersistenceService {
     private let supportDirectory: URL
 
     private let writer = PersistenceWriter()
-    private let logger = Logger(subsystem: "com.sputnik", category: "Persistence")
+    private let logger = SputnikLogger.foundation
 
     public init() {
         let base =

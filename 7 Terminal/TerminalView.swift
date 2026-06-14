@@ -275,16 +275,10 @@ public struct TerminalView: View {
                     }
                 }
             } else {
-                TerminalRenderer(
-                    snapshot: mgr.snapshot,
+                TerminalContent(
+                    manager: mgr,
                     profile: profile,
-                    onKeyInput: { data in mgr.send(data) },
-                    onResize: { cols, rows in
-                        mgr.resize(cols: cols, rows: rows)
-                    },
-                    onTextViewCreated: { textView in
-                        mgr.terminalTextView = textView
-                    }
+                    workspaceDirectory: windowState.activeWorkspaceDirectory
                 )
             }
         } else {
@@ -384,4 +378,73 @@ public struct TerminalView: View {
     // MARK: - Init
 
     public init() {}
+}
+
+// MARK: - TerminalContent
+
+/// Inner view that properly `@ObservedObject`-observes the active `TerminalManager` so
+/// that `@Published` changes (snapshot, sessionEndedMessage, isRunning) immediately
+/// drive re-renders without requiring the outer `TerminalView` to hold the manager as
+/// an `@StateObject`. Owns the `TerminalRenderer` + dead-session banner overlay.
+private struct TerminalContent: View {
+
+    @ObservedObject var manager: TerminalManager
+    let profile: TerminalProfile
+    let workspaceDirectory: URL?
+
+    var body: some View {
+        TerminalRenderer(
+            snapshot: manager.snapshot,
+            profile: profile,
+            onKeyInput: { data in
+                // When the session has ended, swallow all keystrokes and restart on Return.
+                guard manager.sessionEndedMessage == nil else {
+                    if data.count == 1, data[0] == 0x0D {
+                        Task {
+                            await manager.startSession(
+                                directory: workspaceDirectory,
+                                profile: profile
+                            )
+                        }
+                    }
+                    return
+                }
+                manager.send(data)
+            },
+            onResize: { cols, rows in
+                manager.resize(cols: cols, rows: rows)
+            },
+            onTextViewCreated: { textView in
+                manager.terminalTextView = textView
+            }
+        )
+        .overlay {
+            if let message = manager.sessionEndedMessage {
+                deadSessionBanner(message: message)
+            }
+        }
+    }
+
+    private func deadSessionBanner(message: String) -> some View {
+        ZStack {
+            Color.black.opacity(0.55)
+            VStack(spacing: 10) {
+                Text(message)
+                    .font(.system(size: 13, weight: .medium))
+                    .foregroundStyle(.white)
+                Button("Restart") {
+                    Task {
+                        await manager.startSession(
+                            directory: workspaceDirectory,
+                            profile: profile
+                        )
+                    }
+                }
+                .buttonStyle(.borderedProminent)
+                .controlSize(.small)
+            }
+            .padding(16)
+            .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 10))
+        }
+    }
 }

@@ -24,6 +24,10 @@ public final class FileTreeViewModel {
     public var searchText: String = ""
     public private(set) var isScanning: Bool = false
     public private(set) var errorMessage: String?
+    /// `true` when the watched root disappeared while the watcher was running (ISS-114).
+    /// Distinct from `errorMessage` so the UI can differentiate "root lost" from a
+    /// normal scan error or a fresh empty state.
+    public private(set) var rootUnavailable: Bool = false
 
     // MARK: - Dependencies (wired after init via configure)
 
@@ -56,6 +60,7 @@ public final class FileTreeViewModel {
         guard activeDirectory != url else { return }
         activeDirectory = url
         errorMessage = nil
+        rootUnavailable = false
         expandedNodeIDs = []
         selectedNodeIDs = []
         // Notify the router so Terminal (module 7) can cd to the new directory
@@ -304,6 +309,7 @@ public final class FileTreeViewModel {
                 return lhs.name.localizedCaseInsensitiveCompare(rhs.name) == .orderedAscending
             }
         } catch {
+            SputnikLogger.fileTree.error("[FileTreeViewModel] loadLevel failed: \(error)")
             return []
         }
     }
@@ -316,8 +322,15 @@ public final class FileTreeViewModel {
         let newWatcher = FileSystemWatcher(url: url)
         watcher = newWatcher
         watchTask = Task { [weak self] in
-            for await _ in newWatcher.changeStream {
+            for await changedURL in newWatcher.changeStream {
                 guard let self else { break }
+
+                // Root-loss sentinel (ISS-114)
+                if changedURL.scheme == "sputnik" && changedURL.host == "watchedRootLost" {
+                    await MainActor.run { self.handleRootLost() }
+                    break
+                }
+
                 self.debounce.schedule(delay: 0.3) {
                     Task { @MainActor [weak self] in
                         await self?.refreshTree()
@@ -325,6 +338,18 @@ public final class FileTreeViewModel {
                 }
             }
         }
+    }
+
+    @MainActor
+    private func handleRootLost() {
+        SputnikLogger.fileTree.warning("[FileTreeViewModel] Root lost: \(self.activeDirectory?.path ?? "unknown")")
+        rootUnavailable = true
+        rootNode = nil
+        errorMessage = "Folder no longer available."
+        watcher?.stop()
+        watcher = nil
+        watchTask?.cancel()
+        watchTask = nil
     }
 
     // MARK: - Private: tree helpers

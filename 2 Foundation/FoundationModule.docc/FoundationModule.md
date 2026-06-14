@@ -18,6 +18,8 @@ Foundation provides the primitives that every other module depends on — but it
 | `2.5 Persistence`` | ``PersistenceService`` protocol + ``FilePersistenceService`` + ``SettingsLoader`` |
 | `2.6 App Lifecycle` | ``AppDelegate``, ``SputnikMenuBarController`` |
 | `2.7 Utilities` | Keychain, AI monitors, process monitor, semantic search, testing mocks |
+| `2.8 Apple Intent` | ``NewDocumentIntent``, ``OpenFileIntent``, ``SwitchPanelIntent`` — Siri/Shortcuts/Spotlight automation |
+| `2.9 Shared` | ``DebounceTimer``, ``ErrorReporting``, ``PreviewImageCache``, ``RenderThrottle`` — reusable primitives |
 
 ## Topics
 
@@ -60,3 +62,18 @@ Foundation provides the primitives that every other module depends on — but it
 - ``ClosureMenuItem`` — Closure-backed NSMenuItem
 - ``CompletionProviding`` — Protocol for text completions
 - ``HelpContextResolving`` — Protocol for help-topic resolution
+
+### Apple Intents
+
+- ``NewDocumentIntent`` — Create a new untitled document
+- ``OpenFileIntent`` — Open a file in the editor
+- ``SwitchPanelIntent`` — Switch to a specific panel
+- ``DocumentType`` — Document file type enum
+- ``PanelType`` — UI panel enum
+
+### Shared Utilities
+
+- ``DebounceTimer`` — Async debounce via Task.sleep
+- ``ErrorReporting`` — Centralized non-fatal error logger
+- ``PreviewImageCache`` — Thread-safe image cache with downsampling
+- ``RenderThrottle`` — Generation-based render coalescing

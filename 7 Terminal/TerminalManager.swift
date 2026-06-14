@@ -28,6 +28,11 @@ public final class TerminalManager: ObservableObject, TerminalLifecycle, Termina
     /// Whether the session is currently running.
     @Published public private(set) var isRunning: Bool = false
 
+    /// Non-nil when the session has exited and the user should be prompted to restart.
+    /// Set by the pump-stream finish path and by PTY write failures; cleared when a
+    /// new session starts. `TerminalView` shows a banner overlay when this is non-nil.
+    @Published public private(set) var sessionEndedMessage: String? = nil
+
     // MARK: - AI output observer
 
     /// Weak reference to the Main AI output observer (Foundation 2.7).
@@ -76,6 +81,7 @@ public final class TerminalManager: ObservableObject, TerminalLifecycle, Termina
     /// Cleans up any previous session first. On PTY or launch failure, sets
     /// `pendingAlert` for `TerminalView` to present via `SputnikAlert`.
     public func startSession(directory: URL? = nil, profile: TerminalProfile = .default) async {
+        sessionEndedMessage = nil
         await stopSession()
 
         let sess = TerminalSession()
@@ -131,6 +137,8 @@ public final class TerminalManager: ObservableObject, TerminalLifecycle, Termina
             let finalSnap = await emu.snapshot()
             self.isRunning = false
             self.snapshot = finalSnap
+            self.sessionEndedMessage = "Session ended — press ↵ to restart"
+            SputnikLogger.terminal.info("[TerminalManager] pump stream finished — shell exited")
         }
     }
 
@@ -170,7 +178,11 @@ public final class TerminalManager: ObservableObject, TerminalLifecycle, Termina
                 try await sess.send(bytes)
             } catch {
                 // PTY write failed (slave closed) — discard keystroke, mark for restart.
-                await MainActor.run { self.isRunning = false }
+                await MainActor.run {
+                    SputnikLogger.terminal.warning("[TerminalManager] PTY write failed: \(error)")
+                    self.isRunning = false
+                    self.sessionEndedMessage = "Session ended — press ↵ to restart"
+                }
             }
         }
     }

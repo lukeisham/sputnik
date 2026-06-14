@@ -1,45 +1,51 @@
+import CoreServices
 import Foundation
+import FoundationModule
 
-/// Observes a directory for external filesystem changes via `NSFilePresenter`
+/// Sentinel emitted by `FileSystemWatcher` when the watched root is removed or
+/// becomes inaccessible. Observers should stop the watcher and surface an error.
+private let rootLostURL = URL(string: "sputnik://watchedRootLost")!
+
+/// Observes a directory for external filesystem changes via `FSEventStream`
 /// and emits the affected URL through an `AsyncStream`.
 ///
-/// Callbacks arrive on an arbitrary `OperationQueue` from the file coordinator;
-/// they are forwarded into the `AsyncStream` where the consumer decides how to
-/// hop actors. The ViewModel subscribes and debounces before calling `refreshTree()`
-/// (MR-2, SW-1).
-// @unchecked Sendable is required: NSFilePresenter requires NSObject, and Sendable
-// conformance cannot be compiler-verified for ObjC-bridged types. Mutable state
-// (continuation, presentedItemURL) is accessed only from the serial presenter queue
-// or from NSFileCoordinator callbacks, making this safe.
-public final class FileSystemWatcher: NSObject, NSFilePresenter, @unchecked Sendable {
+/// Unlike `NSFilePresenter`, `FSEventStream` fires for all writers — including
+/// POSIX `rename`/`write` calls from terminal tools (`git`, `cp`, `rm -rf`,
+/// build systems) that bypass file coordination (ISS-111a).
+///
+/// Events are delivered on a private `DispatchQueue` owned by the watcher.
+/// `emit(_:)` holds `lock` before yielding so concurrent `stop()` + callback
+/// calls cannot race on `continuation` (ISS-115).  Root removal is detected
+/// via `kFSEventStreamEventFlagRootChanged` and reported as a sentinel URL
+/// (ISS-114).
+public final class FileSystemWatcher: @unchecked Sendable {
 
-    // MARK: - NSFilePresenter
+    // MARK: - Public
 
-    public var presentedItemURL: URL?
+    /// The URL passed to `init`; exposed so callers can reuse it.
+    public let watchedURL: URL
 
-    public let presentedItemOperationQueue: OperationQueue = {
-        let q = OperationQueue()
-        q.name = "com.sputnik.filetree.presenter"
-        q.maxConcurrentOperationCount = 1
-        return q
-    }()
+    /// Emits a URL each time a change is detected in the watched directory.
+    /// Emits `sputnik://watchedRootLost` when the root disappears.
+    public let changeStream: AsyncStream<URL>
 
-    // MARK: - Change stream
+    // MARK: - Private state
 
     private var continuation: AsyncStream<URL>.Continuation?
-
-    /// Emits a URL each time a change is detected in or to the watched item.
-    public let changeStream: AsyncStream<URL>
+    private let lock = NSLock()             // guards `continuation` (ISS-115)
+    private var eventStream: FSEventStreamRef?
+    private var watchQueue: DispatchQueue?
 
     // MARK: - Init / deinit
 
     public init(url: URL) {
+        self.watchedURL = url
+
         var cont: AsyncStream<URL>.Continuation!
         changeStream = AsyncStream { cont = $0 }
         continuation = cont
-        presentedItemURL = url
-        super.init()
-        NSFileCoordinator.addFilePresenter(self)
+
+        setupStream(url: url)
     }
 
     deinit {
@@ -48,35 +54,115 @@ public final class FileSystemWatcher: NSObject, NSFilePresenter, @unchecked Send
 
     // MARK: - Stop
 
-    /// Removes this presenter from the file coordinator and finishes the stream.
+    /// Stops the `FSEventStream` and finishes the `changeStream`.
+    /// Safe to call multiple times.
     public func stop() {
-        NSFileCoordinator.removeFilePresenter(self)
-        continuation?.finish()
+        lock.lock()
+        let cont = continuation
         continuation = nil
+        lock.unlock()
+        cont?.finish()
+
+        if let stream = eventStream {
+            FSEventStreamStop(stream)
+            FSEventStreamInvalidate(stream)
+            FSEventStreamRelease(stream)
+            eventStream = nil
+        }
+        watchQueue = nil
     }
 
-    // MARK: - NSFilePresenter callbacks
+    // MARK: - Internal emit (called from C callback)
 
-    public func presentedSubitemDidChange(at url: URL) {
-        emit(url)
-    }
-
-    public func presentedSubitemDidAppear(at url: URL) {
-        emit(url)
-    }
-
-    public func presentedItemDidChange() {
-        if let url = presentedItemURL { emit(url) }
-    }
-
-    public func accommodatePresentedItemDeletion(completionHandler: @escaping (Error?) -> Void) {
-        if let url = presentedItemURL { emit(url) }
-        completionHandler(nil)
-    }
-
-    // MARK: - Private
-
-    private func emit(_ url: URL) {
+    fileprivate func emit(_ url: URL) {
+        lock.lock()
         continuation?.yield(url)
+        lock.unlock()
+    }
+
+    fileprivate var rootPath: String { watchedURL.path }
+
+    // MARK: - Setup
+
+    private func setupStream(url: URL) {
+        let paths = [url.path as CFString] as CFArray
+
+        // Context passes `self` (unretained) to the C callback via `info`.
+        // The callback lifetime is bounded by `FSEventStreamInvalidate`, called
+        // from `stop()` before the watcher can be released, so the pointer is
+        // always valid when the callback fires.
+        var context = FSEventStreamContext(
+            version: 0,
+            info: Unmanaged.passUnretained(self).toOpaque(),
+            retain: nil,
+            release: nil,
+            copyDescription: nil
+        )
+
+        // `@convention(c)` closure — captures nothing; recovers `self` via `info`.
+        let callback: FSEventStreamCallback = { _, info, numEvents, eventPaths, eventFlags, _ in
+            guard let info else { return }
+            let watcher = Unmanaged<FileSystemWatcher>.fromOpaque(info).takeUnretainedValue()
+
+            // With kFSEventStreamCreateFlagUseCFTypes, eventPaths is a CFArray of CFStrings.
+            let cfPaths = unsafeBitCast(eventPaths, to: CFArray.self)
+
+            for i in 0..<numEvents {
+                let flags = eventFlags[i]
+
+                // Skip the synthetic "history done" marker.
+                if flags & FSEventStreamEventFlags(kFSEventStreamEventFlagHistoryDone) != 0 { continue }
+
+                // Root changed (directory renamed/deleted, or a parent renamed).
+                if flags & FSEventStreamEventFlags(kFSEventStreamEventFlagRootChanged) != 0 {
+                    watcher.emit(rootLostURL)
+                    return
+                }
+
+                guard let rawPath = CFArrayGetValueAtIndex(cfPaths, i) else { continue }
+                let path = unsafeBitCast(rawPath, to: CFString.self) as String
+
+                // Root directory itself removed.
+                if flags & FSEventStreamEventFlags(kFSEventStreamEventFlagItemRemoved) != 0,
+                   path == watcher.rootPath
+                {
+                    watcher.emit(rootLostURL)
+                    return
+                }
+
+                watcher.emit(URL(fileURLWithPath: path))
+            }
+        }
+
+        let createFlags = FSEventStreamCreateFlags(
+            kFSEventStreamCreateFlagFileEvents
+                | kFSEventStreamCreateFlagUseCFTypes
+                | kFSEventStreamCreateFlagWatchRoot
+        )
+
+        guard let stream = FSEventStreamCreate(
+            nil,
+            callback,
+            &context,
+            paths,
+            FSEventStreamEventId(kFSEventStreamEventIdSinceNow),
+            0.25,       // latency: batches rapid bursts (ISS-111a)
+            createFlags
+        ) else {
+            SputnikLogger.fileTree.error("[FileSystemWatcher] FSEventStreamCreate failed for \(url.path)")
+            return
+        }
+        eventStream = stream
+
+        let queue = DispatchQueue(label: "com.sputnik.filetree.watcher", qos: .utility)
+        watchQueue = queue
+        FSEventStreamSetDispatchQueue(stream, queue)
+
+        let started = FSEventStreamStart(stream)
+        if started {
+            SputnikLogger.fileTree.debug("[FileSystemWatcher] Watching \(url.path)")
+        } else {
+            SputnikLogger.fileTree.error("[FileSystemWatcher] FSEventStreamStart failed for \(url.path)")
+        }
     }
 }
