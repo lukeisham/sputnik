@@ -716,3 +716,152 @@ struct TerminalSessionTests {
         #expect(didThrow)
     }
 }
+
+// MARK: - TerminalSessionLifecycleTests
+// Integration tests that launch a real /bin/zsh over a real PTY. They cover the
+// EOF-driven stream teardown (ISS-070) and the SIGKILL escalation path (ISS-072)
+// added in plan 7a. Each is bounded by a timeout so a regression hangs the test
+// (and fails) rather than the whole suite.
+
+private func withTimeout<T: Sendable>(
+    seconds: Double,
+    _ operation: @escaping @Sendable () async -> T
+) async -> T? {
+    await withTaskGroup(of: T?.self) { group in
+        group.addTask { await operation() }
+        group.addTask {
+            try? await Task.sleep(nanoseconds: UInt64(seconds * 1_000_000_000))
+            return nil
+        }
+        let result = await group.next() ?? nil
+        group.cancelAll()
+        return result
+    }
+}
+
+struct TerminalSessionLifecycleTests {
+
+    /// When the shell exits, the parent's slave copy is already closed, so the
+    /// master sees EOF and the output stream finishes on its own (ISS-070). A
+    /// regression (slave kept open) leaves the stream open and this times out.
+    @Test func sessionStreamFinishesWhenShellExits() async throws {
+        let session = TerminalSession()
+        try await session.start()
+
+        // Ask the shell to exit, then confirm the stream completes.
+        try await session.send(Data("exit\n".utf8))
+
+        let stream = await session.outputStream
+        let finished = await withTimeout(seconds: 6) {
+            for await _ in stream { }
+            return true
+        }
+        #expect(finished == true)
+
+        let state = await session.state
+        if case .exited = state { } else if case .idle = state {
+            Issue.record("Session unexpectedly idle after shell exit")
+        } else if case .running = state {
+            Issue.record("Session still running after shell exit")
+        }
+    }
+
+    /// A shell that traps SIGTERM must still die: `terminate()` escalates to
+    /// SIGKILL after its poll window (ISS-072). A regression (no escalation) hangs
+    /// the shell and `terminate()` would block past the timeout.
+    @Test func terminateEscalatesToKillForTrappingShell() async throws {
+        let session = TerminalSession()
+        try await session.start()
+
+        // Ignore SIGTERM and block, so only SIGKILL can stop it.
+        try await session.send(Data("trap '' TERM\nsleep 60\n".utf8))
+        try? await Task.sleep(nanoseconds: 600_000_000)  // let the trap install
+
+        let completed = await withTimeout(seconds: 6) {
+            await session.terminate()
+            return true
+        }
+        #expect(completed == true)
+
+        // After teardown the channel is gone, so sends fail.
+        var didThrow = false
+        do { try await session.send(Data("x".utf8)) } catch { didThrow = true }
+        #expect(didThrow)
+    }
+
+    /// `terminate()` is safe to call repeatedly and on an already-dead session.
+    @Test func terminateIsIdempotent() async throws {
+        let session = TerminalSession()
+        try await session.start()
+        let first = await withTimeout(seconds: 5) { await session.terminate(); return true }
+        let second = await withTimeout(seconds: 5) { await session.terminate(); return true }
+        #expect(first == true)
+        #expect(second == true)
+    }
+}
+
+// MARK: - PTYSpawn / controlling-terminal tests (plan 7b)
+// These verify that the posix_spawn launch gives Zsh a controlling terminal so
+// SIGINT (Ctrl-C) reaches the foreground process group (ISS-071) — the behaviour
+// Foundation.Process could not provide.
+
+/// Thread-safe accumulator for streamed shell output.
+private actor OutputAccumulator {
+    private var text = ""
+    func append(_ chunk: String) { text += chunk }
+    func contains(_ needle: String) -> Bool { text.contains(needle) }
+}
+
+struct PTYSpawnTests {
+
+    @Test func exitCodeDecodesNormalExit() {
+        // status 0 → exit 0; high byte holds the code for a normal exit.
+        #expect(PTYSpawn.exitCode(fromWaitStatus: 0) == 0)
+        #expect(PTYSpawn.exitCode(fromWaitStatus: 42 << 8) == 42)
+    }
+
+    @Test func exitCodeDecodesSignalTermination() {
+        // Low 7 bits hold the terminating signal; convention is 128 + signal.
+        #expect(PTYSpawn.exitCode(fromWaitStatus: SIGKILL) == 128 + SIGKILL)
+    }
+
+    /// Ctrl-C must interrupt a foreground `sleep` so the prompt returns and a
+    /// follow-up command runs. The marker `DONE` only appears in the command's
+    /// *output* — the echoed input line reads `echo DON''E`, which never contains
+    /// the contiguous substring — so a match proves the echo actually executed.
+    /// Without a controlling terminal the SIGINT is lost, `sleep 100` blocks, and
+    /// this times out (ISS-071).
+    @Test func ctrlCInterruptsForegroundCommand() async throws {
+        let session = TerminalSession()
+        try await session.start()
+        let stream = await session.outputStream
+
+        let accumulator = OutputAccumulator()
+        let drain = Task {
+            for await data in stream {
+                if let text = String(data: data, encoding: .utf8) {
+                    await accumulator.append(text)
+                }
+            }
+        }
+        defer { drain.cancel() }
+
+        // Let the login shell finish loading before issuing commands.
+        try? await Task.sleep(nanoseconds: 1_200_000_000)
+        try await session.send(Data("sleep 100\n".utf8))
+        try? await Task.sleep(nanoseconds: 800_000_000)   // let sleep reach the foreground
+        try await session.send(Data([0x03]))              // Ctrl-C → SIGINT
+        try await session.send(Data("echo DON''E\n".utf8))
+
+        let interrupted = await withTimeout(seconds: 10) {
+            while !Task.isCancelled {
+                if await accumulator.contains("DONE") { return true }
+                try? await Task.sleep(nanoseconds: 100_000_000)
+            }
+            return false
+        }
+        #expect(interrupted == true)
+
+        await session.terminate()
+    }
+}

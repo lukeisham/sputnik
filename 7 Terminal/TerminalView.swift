@@ -37,6 +37,10 @@ public struct TerminalView: View {
     @State private var activeTabID: UUID?
     @State private var showAlert: Bool = false
     @State private var tabCounter: Int = 0
+    /// Guards against spawning more than one initial Zsh session. Set on first spawn;
+    /// prevents repeated `onAppear` calls (and visibility-on/off cycles) from forking
+    /// additional PTYs. The user can still add tabs manually via the "+" button.
+    @State private var hasLaunched = false
 
     // MARK: - Computed
 
@@ -69,9 +73,19 @@ public struct TerminalView: View {
         .background(profile.swiftUIBackground)
         .overlay { focusIndicator }
         .onAppear {
-            if tabs.isEmpty {
-                addTab()
-            }
+            // Defer PTY spawn until the terminal strip is actually visible. This keeps
+            // the forkpty launch off the critical launch path (ISS-107).
+            guard !hasLaunched, windowState.layout.terminalVisible else { return }
+            hasLaunched = true
+            if tabs.isEmpty { addTab() }
+        }
+        .onChange(of: windowState.layout.terminalVisible) { _, isVisible in
+            // First-show path: TerminalView is always in the hierarchy (confirmed in
+            // ContentView), so onAppear fires at launch. If terminalVisible was false
+            // at that point the spawn was skipped; trigger it here on first reveal.
+            guard isVisible, !hasLaunched else { return }
+            hasLaunched = true
+            if tabs.isEmpty { addTab() }
         }
         .onChange(of: windowState.activeWorkspaceDirectory) { _, newValue in
             for tab in tabs {

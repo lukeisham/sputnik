@@ -104,19 +104,23 @@ public final class TerminalManager: ObservableObject, TerminalLifecycle, Termina
         self.snapshot = await emu.snapshot()
 
         // Pump the session's AsyncStream into the emulator and refresh snapshots.
+        // This Task inherits @MainActor isolation from startSession — MainActor.run is a no-op here (ISS-084).
+        // `self` is re-resolved weakly each iteration so the pump never holds the
+        // manager alive for the loop's lifetime; `deinit { pumpTask?.cancel() }` can
+        // then fire mid-run (ISS-069). `sess`/`emu` are captured strongly on purpose
+        // — they must outlive the pump that drains them.
         pumpTask = Task { [weak self] in
-            guard let self else { return }
             for await data in sess.outputStream {
+                guard let self else { break }
                 await emu.feed(data)
                 let snap = await emu.snapshot()
-                await MainActor.run { self.snapshot = snap }
+                self.snapshot = snap
             }
             // Stream finished — shell exited.
+            guard let self else { return }
             let finalSnap = await emu.snapshot()
-            await MainActor.run {
-                self.isRunning = false
-                self.snapshot = finalSnap
-            }
+            self.isRunning = false
+            self.snapshot = finalSnap
         }
     }
 
