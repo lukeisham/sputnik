@@ -94,7 +94,10 @@ public final class AppDelegate: NSObject, NSApplicationDelegate {
     public func applicationWillTerminate(_ notification: Notification) {
         // F-5: stop the process-monitor polling loop before the process exits.
         processMonitor?.stop()
-        persistenceService?.flushLayout(layoutState)
+
+        // Use synchronous write paths — applicationWillTerminate returns immediately,
+        // so any fire-and-forget Task spawned here is never scheduled.
+        persistenceService?.flushLayoutSync(layoutState)
 
         // Save scratchpad state (F-6)
         if let state = appState {
@@ -106,7 +109,7 @@ public final class AppDelegate: NSObject, NSApplicationDelegate {
 
             // Save per-window state (step 9) — now includes window frame and view states.
             let descriptors = state.collectDescriptors()
-            persistenceService?.saveWindows(descriptors)
+            persistenceService?.saveWindowsSync(descriptors)
         }
     }
 

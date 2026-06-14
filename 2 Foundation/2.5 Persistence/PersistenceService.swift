@@ -15,8 +15,12 @@ public protocol PersistenceService: AnyObject {
     /// the file is absent or corrupt.
     func restore() async -> LayoutState
 
-    /// Writes the current `LayoutState` to `layout.json` synchronously on a utility task.
+    /// Writes the current `LayoutState` to `layout.json` on a utility actor (async).
     func flushLayout(_ state: LayoutState)
+
+    /// Encodes and writes layout state synchronously — for use in `applicationWillTerminate` only,
+    /// where fire-and-forget Tasks are never scheduled before the process exits.
+    func flushLayoutSync(_ state: LayoutState)
 
     // MARK: Multi-window persistence
 
@@ -24,8 +28,12 @@ public protocol PersistenceService: AnyObject {
     /// empty array if the file is absent or corrupt.
     func restoreWindows() async -> [WindowDescriptor]
 
-    /// Writes the given window descriptors to `windows.json` on a utility task.
+    /// Writes the given window descriptors to `windows.json` on a utility actor (async).
     func saveWindows(_ descriptors: [WindowDescriptor])
+
+    /// Encodes and writes window descriptors synchronously — for use in `applicationWillTerminate`
+    /// only, where fire-and-forget Tasks are never scheduled before the process exits.
+    func saveWindowsSync(_ descriptors: [WindowDescriptor])
 
     // MARK: Crash recovery
 

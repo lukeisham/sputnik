@@ -1,11 +1,15 @@
 import Foundation
+import os
 
 /// Concrete `PersistenceService` backed by `UserDefaults` and
 /// `~/Library/Application Support/Sputnik/`.
 ///
 /// This type is instantiated once in `SputnikApp` and injected into the environment.
-/// All methods run on `@MainActor`; file I/O is dispatched on a `.utility` `Task` so the
-/// main thread is never blocked by disk writes.
+/// All protocol methods run on `@MainActor`. Async file I/O is dispatched through
+/// `PersistenceWriter` (an actor) so the main thread is never blocked and writes are
+/// serialised to prevent interleaving hazards. Quit-time writes use synchronous methods
+/// (`flushLayoutSync`/`saveWindowsSync`) because `applicationWillTerminate` returns
+/// before any fire-and-forget Task is scheduled.
 @MainActor
 public final class FilePersistenceService: PersistenceService {
 
@@ -16,12 +20,16 @@ public final class FilePersistenceService: PersistenceService {
         static let windowsFilename = "windows.json"
         static let recoveryDirectory = "recovery"
         static let recoveryExtension = "recovery"
+        static let recoverySourcePrefix = "// source: "
     }
 
     // MARK: - Support directory
 
     /// Resolved once at init; all file I/O uses this path.
     private let supportDirectory: URL
+
+    private let writer = PersistenceWriter()
+    private let logger = Logger(subsystem: "com.sputnik", category: "Persistence")
 
     public init() {
         let base =
@@ -45,7 +53,7 @@ public final class FilePersistenceService: PersistenceService {
                     at: url, withIntermediateDirectories: true
                 )
             } catch {
-                // Non-fatal: subsequent writes will surface errors individually.
+                logger.error("Failed to create directory \(url.path): \(error.localizedDescription)")
             }
         }
     }
@@ -61,14 +69,35 @@ public final class FilePersistenceService: PersistenceService {
             let data = try Data(contentsOf: layoutURL)
             return try JSONDecoder().decode(LayoutState.self, from: data)
         } catch {
-            // Corrupt file — return default; the next `flushLayout` overwrites it.
+            logger.warning("Layout restore failed, using default: \(error.localizedDescription)")
             return .default
         }
     }
 
     public func flushLayout(_ state: LayoutState) {
         let layoutURL = supportDirectory.appendingPathComponent(Keys.layoutFilename)
-        writeJSON(state, to: layoutURL)
+        Task {
+            do {
+                try await writer.write(state, to: layoutURL)
+            } catch {
+                logger.warning("Layout flush failed: \(error.localizedDescription)")
+            }
+        }
+    }
+
+    /// Encodes and writes layout state synchronously. Call only from
+    /// `applicationWillTerminate` where async dispatch is not viable.
+    public func flushLayoutSync(_ state: LayoutState) {
+        let url = supportDirectory.appendingPathComponent(Keys.layoutFilename)
+        guard let data = try? JSONEncoder().encode(state) else {
+            logger.warning("Layout sync encode failed")
+            return
+        }
+        do {
+            try data.write(to: url, options: .atomic)
+        } catch {
+            logger.warning("Layout sync write failed: \(error.localizedDescription)")
+        }
     }
 
     // MARK: - Multi-window persistence
@@ -80,60 +109,77 @@ public final class FilePersistenceService: PersistenceService {
             let data = try Data(contentsOf: url)
             return try JSONDecoder().decode([WindowDescriptor].self, from: data)
         } catch {
-            // Corrupt file — return empty; next save overwrites it.
+            logger.warning("Windows restore failed, using empty: \(error.localizedDescription)")
             return []
         }
     }
 
     public func saveWindows(_ descriptors: [WindowDescriptor]) {
         let url = supportDirectory.appendingPathComponent(Keys.windowsFilename)
-        writeJSON(descriptors, to: url)
+        Task {
+            do {
+                try await writer.write(descriptors, to: url)
+            } catch {
+                logger.warning("Windows save failed: \(error.localizedDescription)")
+            }
+        }
     }
 
-    // MARK: - Private helpers
-
-    /// Encodes `value` and writes it atomically to `url` on a utility task.
-    /// Failures are silently swallowed — persistence is best-effort.
-    private func writeJSON<T: Encodable>(_ value: T, to url: URL) {
-        Task(priority: .utility) {
-            do {
-                let data = try JSONEncoder().encode(value)
-                try data.write(to: url, options: .atomic)
-            } catch {
-                // Non-fatal; worst case the state resets on next launch.
-            }
+    /// Encodes and writes window descriptors synchronously. Call only from
+    /// `applicationWillTerminate` where async dispatch is not viable.
+    public func saveWindowsSync(_ descriptors: [WindowDescriptor]) {
+        let url = supportDirectory.appendingPathComponent(Keys.windowsFilename)
+        guard let data = try? JSONEncoder().encode(descriptors) else {
+            logger.warning("Windows sync encode failed")
+            return
+        }
+        do {
+            try data.write(to: url, options: .atomic)
+        } catch {
+            logger.warning("Windows sync write failed: \(error.localizedDescription)")
         }
     }
 
     // MARK: - Crash recovery
 
     private func recoveryURL(for url: URL) -> URL {
-        let name = url.deletingPathExtension().lastPathComponent
-        return
-            supportDirectory
+        let hash = stableHash(of: url.path)
+        let display = url.deletingPathExtension().lastPathComponent
+        let name = "\(display)-\(hash)"
+        return supportDirectory
             .appendingPathComponent(Keys.recoveryDirectory, isDirectory: true)
             .appendingPathComponent("\(name).\(Keys.recoveryExtension)")
     }
 
+    /// djb2 hash over the UTF-8 bytes of `string` — stable across process launches,
+    /// unlike `String.hashValue` which is randomised per process.
+    private func stableHash(of string: String) -> String {
+        var hash: UInt64 = 5381
+        for byte in string.utf8 {
+            hash = ((hash << 5) &+ hash) &+ UInt64(byte)
+        }
+        return String(hash, radix: 16, uppercase: false)
+    }
+
     public func writeRecovery(for url: URL, content: String) {
         let target = recoveryURL(for: url)
-        Task(priority: .utility) {
+        let headed = "\(Keys.recoverySourcePrefix)\(url.path)\n\(content)"
+        Task {
             do {
-                try content.write(to: target, atomically: true, encoding: .utf8)
+                try await writer.writeText(headed, to: target)
             } catch {
-                // Recovery write failure is non-fatal; the user may lose changes only on crash.
+                logger.error("Recovery write failed for \(url.path): \(error.localizedDescription)")
             }
         }
     }
 
     public func clearRecovery(for url: URL) {
         let target = recoveryURL(for: url)
-        Task(priority: .utility) {
-            guard FileManager.default.fileExists(atPath: target.path) else { return }
+        Task {
             do {
-                try FileManager.default.removeItem(at: target)
+                try await writer.remove(at: target)
             } catch {
-                // Non-fatal; stale recovery files are overwritten on next edit.
+                logger.error("Recovery clear failed for \(url.path): \(error.localizedDescription)")
             }
         }
     }
@@ -149,23 +195,27 @@ public final class FilePersistenceService: PersistenceService {
         else {
             return []
         }
-        return
-            contents
+        return contents
             .filter { $0.pathExtension == Keys.recoveryExtension }
-            .map { $0.deletingPathExtension().lastPathComponent }
+            .compactMap { fileURL -> String? in
+                if let text = try? String(contentsOf: fileURL, encoding: .utf8),
+                   let firstLine = text.components(separatedBy: "\n").first,
+                   firstLine.hasPrefix(Keys.recoverySourcePrefix) {
+                    return String(firstLine.dropFirst(Keys.recoverySourcePrefix.count))
+                }
+                // Legacy fallback: files without the source header surface by filename.
+                return fileURL.deletingPathExtension().lastPathComponent
+            }
     }
 
     // MARK: - Settings
 
     public func saveSetting<T: Encodable>(_ value: T, forKey key: String) {
-        Task(priority: .utility) {
-            do {
-                let data = try JSONEncoder().encode(value)
-                UserDefaults.standard.set(data, forKey: key)
-            } catch {
-                // Encoding failure for settings is non-fatal.
-            }
+        guard let data = try? JSONEncoder().encode(value) else {
+            logger.warning("Settings encode failed for key \(key)")
+            return
         }
+        UserDefaults.standard.set(data, forKey: key)
     }
 
     public func loadSetting<T: Decodable>(forKey key: String) -> T? {

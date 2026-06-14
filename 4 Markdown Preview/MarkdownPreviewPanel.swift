@@ -106,10 +106,10 @@ public struct MarkdownPreviewPanel: View {
         .onChange(of: appState.activeDocumentID) { _, _ in
             handleActiveDocumentChange()
         }
-        .onChange(of: printAction) { _, newValue in
+        .onChange(of: printAction != nil) { _, _ in
             updatePairedPreviewActions()
         }
-        .onChange(of: saveAsPDFAction) { _, newValue in
+        .onChange(of: saveAsPDFAction != nil) { _, _ in
             updatePairedPreviewActions()
         }
         .onAppear {

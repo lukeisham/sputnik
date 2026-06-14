@@ -83,10 +83,10 @@ public struct HTMLPreviewPanel: View {
             loadError = nil
             updatePairedPreviewActions()
         }
-        .onChange(of: printAction) { _, _ in
+        .onChange(of: printAction != nil) { _, _ in
             updatePairedPreviewActions()
         }
-        .onChange(of: saveAsPDFAction) { _, _ in
+        .onChange(of: saveAsPDFAction != nil) { _, _ in
             updatePairedPreviewActions()
         }
         .onDisappear {
