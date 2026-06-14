@@ -26,15 +26,21 @@ struct WindowProxyView: NSViewRepresentable {
     func makeNSView(context: Context) -> NSView {
         let view = NSView()
         // Schedule the initial update on the next run loop so the window
-        // exists by the time we try to configure it.
-        DispatchQueue.main.async {
-            context.coordinator.updateWindow(title: title, url: documentURL)
+        // exists by the time we try to configure it. At make time `view.window`
+        // is still nil (the view is not yet in the hierarchy), so fall back to the
+        // key window here only — `updateNSView` uses the precise `nsView.window`.
+        DispatchQueue.main.async { [weak view] in
+            let window = view?.window ?? NSApp.keyWindow ?? NSApp.windows.first
+            context.coordinator.updateWindow(title: title, url: documentURL, in: window)
         }
         return view
     }
 
     func updateNSView(_ nsView: NSView, context: Context) {
-        context.coordinator.updateWindow(title: title, url: documentURL)
+        // Target the window that actually hosts this proxy view, not whichever window
+        // happens to be key at render time (ISS-094) — the latter renames the wrong
+        // window in any multi-window scenario.
+        context.coordinator.updateWindow(title: title, url: documentURL, in: nsView.window)
     }
 
     func makeCoordinator() -> Coordinator {
@@ -46,13 +52,11 @@ struct WindowProxyView: NSViewRepresentable {
     @MainActor
     final class Coordinator: NSObject {
 
-        /// Applies the document URL and title to the key window.
+        /// Applies the document URL and title to the given window — the window that
+        /// hosts the proxy view, resolved by the caller from `nsView.window` (ISS-094).
         /// Called on every SwiftUI render where the inputs change.
-        func updateWindow(title: String, url: URL?) {
-            // Operate on the key window, falling back to any available window.
-            // This is safe because the proxy view is rendered inside the window
-            // whose title/proxy we want to update (SW-3).
-            guard let window = NSApp.keyWindow ?? NSApp.windows.first else { return }
+        func updateWindow(title: String, url: URL?, in window: NSWindow?) {
+            guard let window else { return }
 
             if let url {
                 // File-based document: show the proxy icon and file name.

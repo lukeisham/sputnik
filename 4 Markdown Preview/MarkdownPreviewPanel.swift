@@ -38,16 +38,9 @@ public struct MarkdownPreviewPanel: View {
     /// Written by `MarkdownRenderView`'s scroll observer; read back on document switch.
     @State private var scrollOffsets: [UUID: CGFloat] = [:]
 
-    /// Print-action closure, set by `MarkdownRenderView` when the text view is available.
-    @State private var printAction: (() -> Void)? = nil
-
-    /// Save-as-Markdown-action closure, set by `MarkdownRenderView` when the text view is available.
-    @State private var saveAsMarkdownAction: (() -> Void)? = nil
-
-    /// Save-as-PDF-action closure, set by `MarkdownRenderView` when the text view is available.
-    @State private var saveAsPDFAction: (() -> Void)? = nil
-
     /// The coordinator for this panel, created once on init and wired into `MarkdownRenderView`.
+    /// The print / save-as-PDF / save-as-Markdown actions live on this coordinator (ISS-095),
+    /// wired once in `MarkdownRenderView.makeNSView` and read here directly.
     private let coordinator: MarkdownPreviewCoordinator
 
     /// The help-context resolver used for the "More Context" right-click gesture.
@@ -106,12 +99,6 @@ public struct MarkdownPreviewPanel: View {
         .onChange(of: appState.activeDocumentID) { _, _ in
             handleActiveDocumentChange()
         }
-        .onChange(of: printAction != nil) { _, _ in
-            updatePairedPreviewActions()
-        }
-        .onChange(of: saveAsPDFAction != nil) { _, _ in
-            updatePairedPreviewActions()
-        }
         .onAppear {
             handleActiveDocumentChange()
         }
@@ -144,14 +131,14 @@ public struct MarkdownPreviewPanel: View {
 
             // Overflow menu: Save as Markdown…, Save as PDF…, Print…, Reveal in Finder.
             Menu {
-                Button("Save as Markdown…") { saveAsMarkdownAction?() }
-                    .disabled(saveAsMarkdownAction == nil)
+                Button("Save as Markdown…") { coordinator.saveAsMarkdownAction?() }
+                    .disabled(appState.activeDocument == nil)
 
-                Button("Save as PDF…") { saveAsPDFAction?() }
-                    .disabled(saveAsPDFAction == nil)
+                Button("Save as PDF…") { coordinator.saveAsPDFAction?() }
+                    .disabled(appState.activeDocument == nil)
 
-                Button("Print…") { printAction?() }
-                    .disabled(printAction == nil)
+                Button("Print…") { coordinator.printAction?() }
+                    .disabled(appState.activeDocument == nil)
 
                 Divider()
 
@@ -303,37 +290,28 @@ public struct MarkdownPreviewPanel: View {
                     ? appState.editorScrollFraction : nil
 
                 if fitWidth {
-                    ScrollView(.vertical) {
-                        MarkdownRenderView(
-                            renderedString: viewModel.renderedString,
-                            fontScale: viewModel.fontScale,
-                            coordinator: coordinator,
-                            settings: settings,
-                            scrollOffset: scrollBinding(for: appState.activeDocumentID),
-                            syncScrollFraction: syncFraction,
-                            isLargeFile: viewModel.isLargeFile,
-                            printAction: $printAction,
-                            saveAsPDFAction: $saveAsPDFAction,
-                            saveAsMarkdownAction: $saveAsMarkdownAction
-                        )
-                        .frame(maxWidth: 720)
-                        .frame(maxWidth: .infinity)
-                    }
+                    // The bridge owns its scroll view (ISS-096) — no SwiftUI ScrollView wrapper.
+                    MarkdownRenderView(
+                        renderedString: viewModel.renderedString,
+                        fontScale: viewModel.fontScale,
+                        coordinator: coordinator,
+                        settings: settings,
+                        scrollOffset: scrollBinding(for: appState.activeDocumentID),
+                        syncScrollFraction: syncFraction,
+                        isLargeFile: viewModel.isLargeFile
+                    )
+                    .frame(maxWidth: 720)
+                    .frame(maxWidth: .infinity)
                 } else {
-                    ScrollView(.vertical) {
-                        MarkdownRenderView(
-                            renderedString: viewModel.renderedString,
-                            fontScale: viewModel.fontScale,
-                            coordinator: coordinator,
-                            settings: settings,
-                            scrollOffset: scrollBinding(for: appState.activeDocumentID),
-                            syncScrollFraction: syncFraction,
-                            isLargeFile: viewModel.isLargeFile,
-                            printAction: $printAction,
-                            saveAsPDFAction: $saveAsPDFAction,
-                            saveAsMarkdownAction: $saveAsMarkdownAction
-                        )
-                    }
+                    MarkdownRenderView(
+                        renderedString: viewModel.renderedString,
+                        fontScale: viewModel.fontScale,
+                        coordinator: coordinator,
+                        settings: settings,
+                        scrollOffset: scrollBinding(for: appState.activeDocumentID),
+                        syncScrollFraction: syncFraction,
+                        isLargeFile: viewModel.isLargeFile
+                    )
                 }
             } else {
                 // Active document is not Markdown — show placeholder.
@@ -422,8 +400,13 @@ public struct MarkdownPreviewPanel: View {
             appState.pairedPreviewSaveAsPDFAction = nil
             return
         }
-        appState.pairedPreviewPrintAction = printAction
-        appState.pairedPreviewSaveAsPDFAction = saveAsPDFAction
+        // Delegate into the coordinator's actions, which are read live at invocation time.
+        // This is safe to register before `MarkdownRenderView.makeNSView` has wired them —
+        // a tap before the view exists is a harmless no-op (ISS-095).
+        appState.pairedPreviewPrintAction = { [weak coordinator] in coordinator?.printAction?() }
+        appState.pairedPreviewSaveAsPDFAction = { [weak coordinator] in
+            coordinator?.saveAsPDFAction?()
+        }
     }
 
     // MARK: - Render trigger
@@ -463,6 +446,10 @@ public struct MarkdownPreviewPanel: View {
         if session.fileType == .markdown || session.fileType == .ascii {
             let baseDir = session.url?.deletingLastPathComponent()
             viewModel.render(markdown: session.text, baseDir: baseDir)
+            // Register the paired-preview actions now that a renderable document is active.
+            // The coordinator-delegating closures are valid even before the render view's
+            // `makeNSView` runs (ISS-095).
+            updatePairedPreviewActions()
         } else {
             viewModel.cancel()
             viewModel.renderedString = NSAttributedString()

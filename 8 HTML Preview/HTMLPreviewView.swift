@@ -73,10 +73,6 @@ public struct HTMLPreviewView: NSViewRepresentable {
 
     // MARK: - Dependencies
 
-    /// The app's inter-panel router, passed in at construction from the app-assembly layer.
-    /// Held weakly inside `HTMLPreviewCoordinator` to avoid retain cycles (SW-2).
-    private let router: (any InterPanelRouter)?
-
     /// Whether link-click navigation is enabled. Toggled from `HTMLPreviewPanel` toolbar.
     private let isLinkNavigationEnabled: Bool
 
@@ -89,17 +85,9 @@ public struct HTMLPreviewView: NSViewRepresentable {
     /// The settings store, read for per-panel font and background (F-4).
     private let settings: SettingsStore
 
-    /// Binding to a print-action closure. The view sets this in `updateNSView` so the
-    /// parent panel can trigger a print of the `WKWebView` content.
-    @Binding private var printAction: (() -> Void)?
-
-    /// Binding to a save-as-PDF closure. The view sets this in `updateNSView` so the
-    /// parent panel can trigger a PDF export of the `WKWebView` content.
-    @Binding private var saveAsPDFAction: (() -> Void)?
-
-    /// Binding to a save-as-HTML closure. The view sets this in `updateNSView` so the
-    /// parent panel can export the active document's raw HTML source to a `.html` file.
-    @Binding private var saveAsHTMLAction: (() -> Void)?
+    /// The coordinator owned by the parent panel, injected so the panel can read the
+    /// print / save-as-PDF / save-as-HTML actions wired in `makeNSView` (ISS-095).
+    private let injectedCoordinator: HTMLPreviewCoordinator
 
     /// When `true`, the preview follows the editor's fractional scroll position (ISS-063).
     /// `false` for large files (>80k chars) or when the user has disabled sync (Step 10).
@@ -109,42 +97,34 @@ public struct HTMLPreviewView: NSViewRepresentable {
 
     /// Creates the HTML preview view.
     /// - Parameters:
-    ///   - router:                  The app's `InterPanelRouter` instance.
     ///   - isLinkNavigationEnabled: Whether link clicks open files/URLs. Default `true`.
     ///   - onLoadError:             Optional callback when navigation fails.
     ///   - helpContextResolver:     Resolver for "More Context" right-click help. Defaults to
     ///                              `SputnikHelpContextResolver.shared`.
     ///   - settings:                The app settings store (for per-panel font/background).
-    ///   - printAction:             Binding set by the view with the print closure.
-    ///   - saveAsPDFAction:          Binding set by the view with the save-as-PDF closure.
-    ///   - saveAsHTMLAction:         Binding set by the view with the save-as-HTML closure.
+    ///   - coordinator:             The coordinator owned by the parent panel. The export
+    ///                              actions are exposed on it (ISS-095).
     @MainActor
     public init(
-        router: (any InterPanelRouter)? = nil,
         isLinkNavigationEnabled: Bool = true,
         syncScrollEnabled: Bool = false,
         onLoadError: ((String) -> Void)? = nil,
         helpContextResolver: HelpContextResolving? = nil,
         settings: SettingsStore,
-        printAction: Binding<(() -> Void)?> = .constant(nil),
-        saveAsPDFAction: Binding<(() -> Void)?> = .constant(nil),
-        saveAsHTMLAction: Binding<(() -> Void)?> = .constant(nil)
+        coordinator: HTMLPreviewCoordinator
     ) {
-        self.router = router
         self.isLinkNavigationEnabled = isLinkNavigationEnabled
         self.syncScrollEnabled = syncScrollEnabled
         self.onLoadError = onLoadError
         self.helpContextResolver = helpContextResolver ?? SputnikHelpContextResolver.shared
         self.settings = settings
-        _printAction = printAction
-        _saveAsPDFAction = saveAsPDFAction
-        _saveAsHTMLAction = saveAsHTMLAction
+        self.injectedCoordinator = coordinator
     }
 
     // MARK: - NSViewRepresentable
 
     public func makeCoordinator() -> HTMLPreviewCoordinator {
-        let c = HTMLPreviewCoordinator(router: router)
+        let c = injectedCoordinator
         c.isLinkNavigationEnabled = isLinkNavigationEnabled
         c.onLoadError = onLoadError
         c.helpContextResolver = helpContextResolver
@@ -186,6 +166,80 @@ public struct HTMLPreviewView: NSViewRepresentable {
         webView.previewCoordinator = context.coordinator
         webView.navigationDelegate = context.coordinator
         webView.allowsMagnification = true
+
+        // Wire export/print actions once (ISS-095). Building these per-update inside
+        // `updateNSView` ran on every AppState change and mutated SwiftUI bindings mid
+        // view-update. The closures capture `[weak webView]` and read the coordinator's
+        // live state (`currentBaseURL`, `fullSessionText`) at call time, so they always
+        // reflect the active document. The parent panel reads them off the coordinator.
+        let coordinator = context.coordinator
+
+        coordinator.printAction = { [weak webView] in
+            guard let webView, let window = webView.window else { return }
+            let printOp = NSPrintOperation(view: webView, printInfo: .shared)
+            printOp.runModal(for: window, delegate: nil, didRun: nil, contextInfo: nil)
+        }
+
+        coordinator.saveAsPDFAction = { [weak webView, weak coordinator] in
+            guard let webView, let window = webView.window else { return }
+            let panel = NSSavePanel()
+            panel.allowedContentTypes = [.pdf]
+            let suggestedName = coordinator?.currentBaseURL?.lastPathComponent ?? "document"
+            panel.nameFieldStringValue = (suggestedName as NSString).deletingPathExtension + ".pdf"
+            panel.beginSheetModal(for: window) { response in
+                guard response == .OK, let url = panel.url else { return }
+                let config = WKPDFConfiguration()
+                config.rect = .zero  // full document
+                webView.createPDF(configuration: config) { result in
+                    switch result {
+                    case .success(let data):
+                        do {
+                            try data.write(to: url)
+                        } catch {
+                            let alert = NSAlert()
+                            alert.messageText = "Save as PDF Failed"
+                            alert.informativeText = error.localizedDescription
+                            alert.alertStyle = .warning
+                            alert.runModal()
+                        }
+                    case .failure(let error):
+                        let alert = NSAlert()
+                        alert.messageText = "PDF Generation Failed"
+                        alert.informativeText = error.localizedDescription
+                        alert.alertStyle = .warning
+                        alert.runModal()
+                    }
+                }
+            }
+        }
+
+        coordinator.saveAsHTMLAction = { [weak webView, weak coordinator] in
+            guard let webView, let window = webView.window else { return }
+            let sourceText = coordinator?.fullSessionText ?? ""  // raw source, no F-4 CSS injected
+            let panel = NSSavePanel()
+            panel.allowedContentTypes = [.html]
+            let baseName =
+                (coordinator?.currentBaseURL?.deletingPathExtension().lastPathComponent)
+                ?? "document"
+            panel.nameFieldStringValue = baseName + ".html"
+            panel.beginSheetModal(for: window) { response in
+                guard response == .OK, let url = panel.url else { return }
+                Task(priority: .userInitiated) {
+                    do {
+                        try sourceText.write(to: url, atomically: true, encoding: .utf8)
+                    } catch {
+                        await MainActor.run {
+                            let alert = NSAlert()
+                            alert.messageText = "Save as HTML Failed"
+                            alert.informativeText = error.localizedDescription
+                            alert.alertStyle = .warning
+                            alert.runModal()
+                        }
+                    }
+                }
+            }
+        }
+
         return webView
     }
 
@@ -216,78 +270,6 @@ public struct HTMLPreviewView: NSViewRepresentable {
         context.coordinator.onLoadError = onLoadError
         context.coordinator.fullSessionText = session.text
         context.coordinator.webView = webView
-
-        // Wire the print action so the panel's overflow menu can trigger printing.
-        context.coordinator.printAction = { [weak webView] in
-            guard let webView, let window = webView.window else { return }
-            let printOp = NSPrintOperation(view: webView, printInfo: .shared)
-            printOp.runModal(for: window, delegate: nil, didRun: nil, contextInfo: nil)
-        }
-        printAction = context.coordinator.printAction
-
-        // Wire the save-as-PDF action.
-        context.coordinator.saveAsPDFAction = { [weak webView] in
-            guard let webView, let window = webView.window else { return }
-            let panel = NSSavePanel()
-            panel.allowedContentTypes = [.pdf]
-            let suggestedName = context.coordinator.currentBaseURL?.lastPathComponent ?? "document"
-            panel.nameFieldStringValue = (suggestedName as NSString).deletingPathExtension + ".pdf"
-            panel.beginSheetModal(for: window) { response in
-                guard response == .OK, let url = panel.url else { return }
-                let config = WKPDFConfiguration()
-                config.rect = .zero  // full document
-                webView.createPDF(configuration: config) { result in
-                    switch result {
-                    case .success(let data):
-                        do {
-                            try data.write(to: url)
-                        } catch {
-                            let alert = NSAlert()
-                            alert.messageText = "Save as PDF Failed"
-                            alert.informativeText = error.localizedDescription
-                            alert.alertStyle = .warning
-                            alert.runModal()
-                        }
-                    case .failure(let error):
-                        let alert = NSAlert()
-                        alert.messageText = "PDF Generation Failed"
-                        alert.informativeText = error.localizedDescription
-                        alert.alertStyle = .warning
-                        alert.runModal()
-                    }
-                }
-            }
-        }
-        saveAsPDFAction = context.coordinator.saveAsPDFAction
-
-        // Wire the save-as-HTML action.
-        context.coordinator.saveAsHTMLAction = { [weak webView] in
-            guard let webView, let window = webView.window else { return }
-            let sourceText = session.text  // raw source, no F-4 CSS injected
-            let panel = NSSavePanel()
-            panel.allowedContentTypes = [.html]
-            let baseName =
-                (context.coordinator.currentBaseURL?.deletingPathExtension().lastPathComponent)
-                ?? "document"
-            panel.nameFieldStringValue = baseName + ".html"
-            panel.beginSheetModal(for: window) { response in
-                guard response == .OK, let url = panel.url else { return }
-                Task(priority: .userInitiated) {
-                    do {
-                        try sourceText.write(to: url, atomically: true, encoding: .utf8)
-                    } catch {
-                        await MainActor.run {
-                            let alert = NSAlert()
-                            alert.messageText = "Save as HTML Failed"
-                            alert.informativeText = error.localizedDescription
-                            alert.alertStyle = .warning
-                            alert.runModal()
-                        }
-                    }
-                }
-            }
-        }
-        saveAsHTMLAction = context.coordinator.saveAsHTMLAction
 
         // Inject per-panel font and background CSS (F-4), then load (throttled — SR-4).
         // Cache the styled output keyed by the inputs that affect it so scroll-sync

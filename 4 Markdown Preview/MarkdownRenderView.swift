@@ -11,8 +11,9 @@ import SwiftUI
 ///
 /// The text view is configured as read-only, non-editable, with link detection
 /// disabled (links come from the `AttributedString`, not auto-detect), and a
-/// comfortable text-container inset. Scroll is handled by a SwiftUI `ScrollView`
-/// wrapping this view in `MarkdownPreviewPanel`.
+/// comfortable text-container inset. The bridge **owns its `NSScrollView`** (ISS-096)
+/// rather than reaching into SwiftUI's private `enclosingScrollView`, which is not
+/// API-contracted and has broken between macOS releases.
 public struct MarkdownRenderView: NSViewRepresentable {
 
     // MARK: - Input
@@ -33,18 +34,6 @@ public struct MarkdownRenderView: NSViewRepresentable {
     /// The render view reads this to restore position after re-render and writes
     /// it whenever the user scrolls.
     let scrollOffset: Binding<CGFloat>
-
-    /// Binding to a print-action closure. The view sets this in `updateNSView` so the
-    /// parent panel can trigger a print of the Markdown content via `NSTextView`.
-    @Binding var printAction: (() -> Void)?
-
-    /// Binding to a save-as-PDF closure. The view sets this in `updateNSView` so the
-    /// parent panel can trigger a PDF export of the Markdown content via `NSPrintOperation`.
-    @Binding var saveAsPDFAction: (() -> Void)?
-
-    /// Binding to a save-as-Markdown closure. The view sets this in `updateNSView` so the
-    /// parent panel can export the active document's raw Markdown source to a `.md` file.
-    @Binding var saveAsMarkdownAction: (() -> Void)?
 
     /// The fractional scroll position to apply for editor→preview sync (ISS-063, Step 5).
     /// `nil` when sync is disabled or the document exceeds the large-file threshold (Step 10).
@@ -67,9 +56,10 @@ public struct MarkdownRenderView: NSViewRepresentable {
     ///   - coordinator:    The link-click coordinator.
     ///   - settings:       The app settings store (for per-panel font/background).
     ///   - scrollOffset:   Binding for per-document scroll offset.
-    ///   - printAction:          Binding set by the view with the print closure.
-    ///   - saveAsPDFAction:       Binding set by the view with the save-as-PDF closure.
-    ///   - saveAsMarkdownAction:  Binding set by the view with the save-as-Markdown closure.
+    ///
+    /// Print / Save-as-PDF / Save-as-Markdown actions are exposed on the
+    /// `MarkdownPreviewCoordinator` (wired once in `makeNSView`), not via bindings —
+    /// see ISS-095. The parent panel reads them directly off the coordinator.
     public init(
         renderedString: NSAttributedString,
         fontScale: CGFloat,
@@ -77,10 +67,7 @@ public struct MarkdownRenderView: NSViewRepresentable {
         settings: SettingsStore,
         scrollOffset: Binding<CGFloat> = .constant(0),
         syncScrollFraction: Double? = nil,
-        isLargeFile: Bool = false,
-        printAction: Binding<(() -> Void)?> = .constant(nil),
-        saveAsPDFAction: Binding<(() -> Void)?> = .constant(nil),
-        saveAsMarkdownAction: Binding<(() -> Void)?> = .constant(nil)
+        isLargeFile: Bool = false
     ) {
         self.renderedString = renderedString
         self.fontScale = fontScale
@@ -89,9 +76,6 @@ public struct MarkdownRenderView: NSViewRepresentable {
         self.scrollOffset = scrollOffset
         self.syncScrollFraction = syncScrollFraction
         self.isLargeFile = isLargeFile
-        _printAction = printAction
-        _saveAsPDFAction = saveAsPDFAction
-        _saveAsMarkdownAction = saveAsMarkdownAction
     }
 
     // MARK: - NSViewRepresentable
@@ -100,8 +84,14 @@ public struct MarkdownRenderView: NSViewRepresentable {
         coordinator
     }
 
-    public func makeNSView(context: Context) -> NSTextView {
-        let textView = NSTextView(frame: .zero)
+    public func makeNSView(context: Context) -> NSScrollView {
+        // The bridge owns its scroll view (ISS-096). `scrollableTextView()` wires the
+        // text view's resizing/containers correctly so we never touch the SwiftUI-private
+        // `enclosingScrollView`.
+        let scrollView = NSTextView.scrollableTextView()
+        guard let textView = scrollView.documentView as? NSTextView else {
+            return scrollView
+        }
 
         // Read-only, selectable display.
         textView.isEditable = false
@@ -123,9 +113,12 @@ public struct MarkdownRenderView: NSViewRepresentable {
         textView.textContainer?.widthTracksTextView = true
         textView.textContainer?.heightTracksTextView = false
 
-        // Disable the built-in scroll view — SwiftUI handles scrolling.
-        textView.enclosingScrollView?.hasVerticalScroller = false
-        textView.enclosingScrollView?.hasHorizontalScroller = false
+        // Scroll configuration — the bridge owns this scroll view.
+        scrollView.hasVerticalScroller = true
+        scrollView.hasHorizontalScroller = false
+        scrollView.autohidesScrollers = true
+        scrollView.drawsBackground = false
+        scrollView.borderType = .noBorder
 
         // Wire the delegate for link-click handling.
         textView.delegate = context.coordinator
@@ -140,77 +133,40 @@ public struct MarkdownRenderView: NSViewRepresentable {
         clickRecognizer.numberOfClicksRequired = 1
         textView.addGestureRecognizer(clickRecognizer)
 
-        return textView
-    }
-
-    public func updateNSView(_ textView: NSTextView, context: Context) {
-        // Reapply background from settings (F-4) — may have changed since last update.
-        textView.backgroundColor = NSColor(settings.markdownPreviewBackground)
-
-        // Keep the coordinator's binding pointing at the current document's slot so
-        // the scroll observer always writes to the right entry in the panel's dict.
-        context.coordinator.scrollOffsetBinding = scrollOffset
-
-        // Apply editor→preview scroll sync (ISS-063, Step 5).
-        // Only fires when sync is enabled (fraction is non-nil) and has moved enough
-        // to be worth applying. Runs at +0.02 s, before the render's scroll-restore
-        // at +0.05 s, so a re-render always wins (restores the user's saved position).
-        if let fraction = syncScrollFraction,
-            abs(fraction - context.coordinator.lastSyncScrollFraction) > 0.005
-        {
-            let coordinator = context.coordinator
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.02) { [weak textView] in
-                guard let scrollView = textView?.enclosingScrollView else { return }
-                coordinator.lastSyncScrollFraction = fraction
-                let docH = scrollView.documentView?.frame.height ?? 0
-                let viewH = scrollView.contentView.bounds.height
-                guard docH > viewH else { return }
-                let targetY = CGFloat(fraction) * (docH - viewH)
-                scrollView.contentView.scroll(to: NSPoint(x: 0, y: targetY))
-                scrollView.reflectScrolledClipView(scrollView.contentView)
+        // Register the scroll observer once against the owned clip view. The bridge owns
+        // the scroll view, so the clip view is stable for the view's lifetime — no
+        // per-update re-registration is needed (ISS-096). Removed in `dismantleNSView`.
+        let clipView = scrollView.contentView
+        clipView.postsBoundsChangedNotifications = true
+        context.coordinator.observedClipView = clipView
+        let weakCoordinator = context.coordinator
+        context.coordinator.scrollObserverToken = NotificationCenter.default.addObserver(
+            forName: NSView.boundsDidChangeNotification,
+            object: clipView,
+            queue: .main
+        ) { [weak weakCoordinator, weak scrollView] _ in
+            MainActor.assumeIsolated {
+                guard let y = scrollView?.documentVisibleRect.origin.y else { return }
+                weakCoordinator?.scrollOffsetBinding?.wrappedValue = y
             }
         }
 
-        // Set up (or re-set up) the scroll observer against the current clip view.
-        // Re-registration is needed when fitWidth toggles rebuild the view tree and
-        // the hosting NSScrollView changes.
-        if let clipView = textView.enclosingScrollView?.contentView as? NSClipView,
-            clipView !== context.coordinator.observedClipView
-        {
-            if let token = context.coordinator.scrollObserverToken {
-                NotificationCenter.default.removeObserver(token)
-            }
-            clipView.postsBoundsChangedNotifications = true
-            context.coordinator.observedClipView = clipView
-            let weakCoordinator = context.coordinator
-            context.coordinator.scrollObserverToken = NotificationCenter.default.addObserver(
-                forName: NSView.boundsDidChangeNotification,
-                object: clipView,
-                queue: .main
-            ) { [weak weakCoordinator, weak textView] _ in
-                MainActor.assumeIsolated {
-                    guard let y = textView?.enclosingScrollView?.documentVisibleRect.origin.y else {
-                        return
-                    }
-                    weakCoordinator?.scrollOffsetBinding?.wrappedValue = y
-                }
-            }
-        }
-
-        // Wire the print action so the panel's overflow menu can trigger printing.
-        printAction = { [weak textView] in
+        // Wire export/print actions once (ISS-095). Building these per-update inside
+        // `updateNSView` ran on every AppState change and mutated SwiftUI bindings mid
+        // view-update; exposing them on the coordinator keeps `updateNSView` a pure sync.
+        // The closures capture `[weak textView]` and read the coordinator's export
+        // context (`currentSourceText` / `currentDocumentName`) live at call time, so they
+        // always reflect the active document.
+        context.coordinator.printAction = { [weak textView] in
             guard let textView, let window = textView.window else { return }
             let printOp = NSPrintOperation(view: textView, printInfo: .shared)
             printOp.runModal(for: window, delegate: nil, didRun: nil, contextInfo: nil)
         }
 
-        // Wire the save-as-Markdown action. Capture source text and document name
-        // from the coordinator (set by the panel before each render) so the closure
-        // is safe to call later without racing on the active document.
-        let capturedSource = coordinator.currentSourceText
-        let capturedName = coordinator.currentDocumentName
-        saveAsMarkdownAction = { [weak textView] in
+        context.coordinator.saveAsMarkdownAction = { [weak textView, weak weakCoordinator] in
             guard let textView, let window = textView.window else { return }
+            let capturedSource = weakCoordinator?.currentSourceText ?? ""
+            let capturedName = weakCoordinator?.currentDocumentName ?? ""
             let panel = NSSavePanel()
             panel.allowedContentTypes = [.text]  // .md has no UTType constant; .text opens the name field freely
             let baseName = (capturedName as NSString).deletingPathExtension
@@ -234,8 +190,7 @@ public struct MarkdownRenderView: NSViewRepresentable {
             }
         }
 
-        // Wire the save-as-PDF action.
-        saveAsPDFAction = { [weak textView] in
+        context.coordinator.saveAsPDFAction = { [weak textView] in
             guard let textView, let window = textView.window else { return }
             let panel = NSSavePanel()
             panel.allowedContentTypes = [.pdf]
@@ -261,6 +216,39 @@ public struct MarkdownRenderView: NSViewRepresentable {
                     alert.alertStyle = .warning
                     alert.runModal()
                 }
+            }
+        }
+
+        return scrollView
+    }
+
+    public func updateNSView(_ scrollView: NSScrollView, context: Context) {
+        guard let textView = scrollView.documentView as? NSTextView else { return }
+
+        // Reapply background from settings (F-4) — may have changed since last update.
+        textView.backgroundColor = NSColor(settings.markdownPreviewBackground)
+
+        // Keep the coordinator's binding pointing at the current document's slot so
+        // the scroll observer always writes to the right entry in the panel's dict.
+        context.coordinator.scrollOffsetBinding = scrollOffset
+
+        // Apply editor→preview scroll sync (ISS-063, Step 5).
+        // Only fires when sync is enabled (fraction is non-nil) and has moved enough
+        // to be worth applying. Runs at +0.02 s, before the render's scroll-restore
+        // at +0.05 s, so a re-render always wins (restores the user's saved position).
+        if let fraction = syncScrollFraction,
+            abs(fraction - context.coordinator.lastSyncScrollFraction) > 0.005
+        {
+            let coordinator = context.coordinator
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.02) { [weak scrollView] in
+                guard let scrollView else { return }
+                coordinator.lastSyncScrollFraction = fraction
+                let docH = scrollView.documentView?.frame.height ?? 0
+                let viewH = scrollView.contentView.bounds.height
+                guard docH > viewH else { return }
+                let targetY = CGFloat(fraction) * (docH - viewH)
+                scrollView.contentView.scroll(to: NSPoint(x: 0, y: targetY))
+                scrollView.reflectScrolledClipView(scrollView.contentView)
             }
         }
 
@@ -298,19 +286,17 @@ public struct MarkdownRenderView: NSViewRepresentable {
             if let container = textView.textContainer {
                 textView.layoutManager?.ensureLayout(for: container)
             }
-            if let scrollView = textView.enclosingScrollView {
-                let maxY = max(
-                    0,
-                    (scrollView.documentView?.frame.height ?? 0)
-                        - scrollView.contentView.bounds.height
-                )
-                let clampedY = max(0, min(targetOffset, maxY))
-                scrollView.contentView.scroll(to: NSPoint(x: 0, y: clampedY))
-                scrollView.reflectScrolledClipView(scrollView.contentView)
-            }
+            let maxY = max(
+                0,
+                (scrollView.documentView?.frame.height ?? 0)
+                    - scrollView.contentView.bounds.height
+            )
+            let clampedY = max(0, min(targetOffset, maxY))
+            scrollView.contentView.scroll(to: NSPoint(x: 0, y: clampedY))
+            scrollView.reflectScrolledClipView(scrollView.contentView)
         } else {
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) { [weak textView] in
-                guard let scrollView = textView?.enclosingScrollView else { return }
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) { [weak scrollView] in
+                guard let scrollView else { return }
                 let maxY = max(
                     0,
                     (scrollView.documentView?.frame.height ?? 0)
@@ -321,5 +307,18 @@ public struct MarkdownRenderView: NSViewRepresentable {
                 scrollView.reflectScrolledClipView(scrollView.contentView)
             }
         }
+    }
+
+    /// Removes the block-based scroll observer when the bridge is torn down (ISS-093).
+    /// `NotificationCenter` block observers are never released automatically; without this
+    /// the token (and the clip view it captures) leaks for the app's lifetime (SW-2).
+    public static func dismantleNSView(
+        _ nsView: NSScrollView, coordinator: MarkdownPreviewCoordinator
+    ) {
+        if let token = coordinator.scrollObserverToken {
+            NotificationCenter.default.removeObserver(token)
+            coordinator.scrollObserverToken = nil
+        }
+        coordinator.observedClipView = nil
     }
 }

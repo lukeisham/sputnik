@@ -25,9 +25,6 @@ public struct HTMLPreviewPanel: View {
     @State private var isLinkNavigationEnabled: Bool = true
     @State private var syncScrollEnabled: Bool = false
     @State private var loadError: String? = nil
-    @State private var printAction: (() -> Void)? = nil
-    @State private var saveAsHTMLAction: (() -> Void)? = nil
-    @State private var saveAsPDFAction: (() -> Void)? = nil
 
     /// `true` when the active HTML document exceeds the large-file threshold (Step 10).
     /// Disables scroll sync to prevent layout thrash on very large files.
@@ -39,6 +36,11 @@ public struct HTMLPreviewPanel: View {
 
     /// The app's inter-panel router, passed through to `HTMLPreviewView`.
     private let router: (any InterPanelRouter)?
+
+    /// The coordinator for this panel, created once on init and injected into
+    /// `HTMLPreviewView`. The print / save-as-PDF / save-as-HTML actions live on it
+    /// (ISS-095), wired once in `HTMLPreviewView.makeNSView` and read here directly.
+    private let coordinator: HTMLPreviewCoordinator
 
     /// The shared help-context resolver, passed through to `HTMLPreviewView`.
     private let helpContextResolver: HelpContextResolving
@@ -64,6 +66,7 @@ public struct HTMLPreviewPanel: View {
         helpContextEnabled: Bool = true
     ) {
         self.router = router
+        self.coordinator = HTMLPreviewCoordinator(router: router)
         self.helpContextResolver = helpContextResolver ?? SputnikHelpContextResolver.shared
         self.helpContextEnabled = helpContextEnabled
     }
@@ -83,10 +86,7 @@ public struct HTMLPreviewPanel: View {
             loadError = nil
             updatePairedPreviewActions()
         }
-        .onChange(of: printAction != nil) { _, _ in
-            updatePairedPreviewActions()
-        }
-        .onChange(of: saveAsPDFAction != nil) { _, _ in
+        .onAppear {
             updatePairedPreviewActions()
         }
         .onDisappear {
@@ -106,8 +106,13 @@ public struct HTMLPreviewPanel: View {
             appState.pairedPreviewSaveAsPDFAction = nil
             return
         }
-        appState.pairedPreviewPrintAction = printAction
-        appState.pairedPreviewSaveAsPDFAction = saveAsPDFAction
+        // Delegate into the coordinator's actions, read live at invocation time. Safe to
+        // register before `HTMLPreviewView.makeNSView` wires them — a tap before the view
+        // exists is a harmless no-op (ISS-095).
+        appState.pairedPreviewPrintAction = { [weak coordinator] in coordinator?.printAction?() }
+        appState.pairedPreviewSaveAsPDFAction = { [weak coordinator] in
+            coordinator?.saveAsPDFAction?()
+        }
     }
 
     // MARK: - Header bar
@@ -136,14 +141,14 @@ public struct HTMLPreviewPanel: View {
 
             // Overflow menu: Save as HTML…, Save as PDF…, Print…, Reveal in Finder, Reload Preview.
             Menu {
-                Button("Save as HTML…") { saveAsHTMLAction?() }
-                    .disabled(saveAsHTMLAction == nil)
+                Button("Save as HTML…") { coordinator.saveAsHTMLAction?() }
+                    .disabled(appState.activeDocument?.fileType != .html)
 
-                Button("Save as PDF…") { saveAsPDFAction?() }
-                    .disabled(saveAsPDFAction == nil)
+                Button("Save as PDF…") { coordinator.saveAsPDFAction?() }
+                    .disabled(appState.activeDocument?.fileType != .html)
 
-                Button("Print…") { printAction?() }
-                    .disabled(printAction == nil)
+                Button("Print…") { coordinator.printAction?() }
+                    .disabled(appState.activeDocument?.fileType != .html)
 
                 Divider()
 
@@ -243,15 +248,12 @@ public struct HTMLPreviewPanel: View {
                 }
 
                 HTMLPreviewView(
-                    router: router,
                     isLinkNavigationEnabled: isLinkNavigationEnabled,
                     syncScrollEnabled: syncScrollEnabled && !isLargeFile,
                     onLoadError: { message in loadError = message },
                     helpContextResolver: helpContextResolver,
                     settings: settings,
-                    printAction: $printAction,
-                    saveAsPDFAction: $saveAsPDFAction,
-                    saveAsHTMLAction: $saveAsHTMLAction
+                    coordinator: coordinator
                 )
                 // Fit Width: centre the preview with a max width of 960 pt.
                 // When disabled, the web view fills the entire panel width.

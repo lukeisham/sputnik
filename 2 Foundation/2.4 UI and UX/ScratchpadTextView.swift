@@ -48,6 +48,10 @@ public struct ScratchpadTextView: NSViewRepresentable {
     }
 
     public func updateNSView(_ nsView: NSScrollView, context: Context) {
+        // Refresh the coordinator's reference to the current struct value (ISS-098).
+        // The coordinator captured a copy at `makeCoordinator` time; without this the
+        // standard SwiftUI representable pattern would read stale non-binding state.
+        context.coordinator.parent = self
         guard let textView = nsView.documentView as? NSTextView else { return }
         if textView.string != text {
             textView.string = text

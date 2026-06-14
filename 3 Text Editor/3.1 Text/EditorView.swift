@@ -35,6 +35,16 @@ public struct EditorView: NSViewRepresentable {
         Coordinator(viewModel: viewModel)
     }
 
+    /// Removes the block-based scroll observer when the bridge is torn down (ISS-093).
+    /// `NotificationCenter` block observers are never released automatically; without this
+    /// the token (and the views it captures) would leak for the app's lifetime (SW-2).
+    public static func dismantleNSView(_ nsView: NSScrollView, coordinator: Coordinator) {
+        if let token = coordinator.scrollObserverToken {
+            NotificationCenter.default.removeObserver(token)
+            coordinator.scrollObserverToken = nil
+        }
+    }
+
     public func makeNSView(context: Context) -> NSScrollView {
         // Build a standard scrollable text view, then swap the document view for
         // our EditorTextView subclass so key-event hooks are available.
@@ -176,9 +186,10 @@ public struct EditorView: NSViewRepresentable {
             textView.string = viewModel.loadedText
             textView.undoManager?.removeAllActions()
 
-            // Run initial syntax highlight pass.
-            if let storage = textView.textStorage {
-                let highlighter = SyntaxHighlighter(textStorage: storage)
+            // Run initial syntax highlight pass using the coordinator's live highlighter
+            // (ISS-099) — constructing a throwaway here wasted an allocation and applied
+            // `codeBlockHighlightEnabled` to an instance that was discarded after one use.
+            if let highlighter = context.coordinator.syntaxHighlighter {
                 highlighter.codeBlockHighlightEnabled = settings.codeBlockHighlightEnabled
                 highlighter.highlight(mode: viewModel.mode)
             }

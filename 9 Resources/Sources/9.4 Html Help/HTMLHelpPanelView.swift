@@ -25,55 +25,47 @@ public struct SandboxedHTMLDemo: NSViewRepresentable {
         webView.navigationDelegate = context.coordinator
         webView.setValue(false, forKey: "drawsBackground")
 
-        // Wrap the snippet in a minimal HTML document with system fonts
-        let wrapped = """
-            <!DOCTYPE html>
-            <html>
-            <head>
-            <meta charset="utf-8">
-            <meta name="viewport" content="width=device-width, initial-scale=1">
-            <style>
-              * { margin: 0; padding: 0; box-sizing: border-box; }
-              body {
-                font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-                padding: 12px;
-                color: -apple-system-label;
-                background: transparent;
-              }
-              @media (prefers-color-scheme: dark) {
-                body { color: -apple-system-label; }
-              }
-            </style>
-            </head>
-            <body>\(html)</body>
-            </html>
-            """
+        let wrapped = wrappedHTML(html)
+        context.coordinator.lastLoadedHTML = wrapped
         webView.loadHTMLString(wrapped, baseURL: nil)
         return webView
     }
 
     public func updateNSView(_ nsView: WKWebView, context: Context) {
-        // Only reload if the HTML actually changed
-        let wrapped = """
-            <!DOCTYPE html>
-            <html>
-            <head>
-            <meta charset="utf-8">
-            <meta name="viewport" content="width=device-width, initial-scale=1">
-            <style>
-              * { margin: 0; padding: 0; box-sizing: border-box; }
-              body {
-                font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-                padding: 12px;
-                color: -apple-system-label;
-                background: transparent;
-              }
-            </style>
-            </head>
-            <body>\(html)</body>
-            </html>
-            """
+        // Only reload when the wrapped HTML actually changed (ISS-097) — otherwise every
+        // unrelated AppState change reloads and reflashes the demo web view.
+        let wrapped = wrappedHTML(html)
+        guard wrapped != context.coordinator.lastLoadedHTML else { return }
+        context.coordinator.lastLoadedHTML = wrapped
         nsView.loadHTMLString(wrapped, baseURL: nil)
+    }
+
+    /// Wraps a snippet in a minimal HTML document with system fonts. Single source of
+    /// truth for the template — used by both `makeNSView` and `updateNSView` so the two
+    /// can never drift (ISS-097).
+    private func wrappedHTML(_ body: String) -> String {
+        """
+        <!DOCTYPE html>
+        <html>
+        <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <style>
+          * { margin: 0; padding: 0; box-sizing: border-box; }
+          body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            padding: 12px;
+            color: -apple-system-label;
+            background: transparent;
+          }
+          @media (prefers-color-scheme: dark) {
+            body { color: -apple-system-label; }
+          }
+        </style>
+        </head>
+        <body>\(body)</body>
+        </html>
+        """
     }
 
     public func makeCoordinator() -> Coordinator {
@@ -82,6 +74,11 @@ public struct SandboxedHTMLDemo: NSViewRepresentable {
 
     /// Blocks all navigation so the sandboxed view cannot browse away.
     public final class Coordinator: NSObject, WKNavigationDelegate {
+
+        /// The last wrapped HTML string loaded into the web view. Compared in
+        /// `updateNSView` to suppress redundant reloads (ISS-097).
+        var lastLoadedHTML: String = ""
+
         public func webView(
             _ webView: WKWebView,
             decidePolicyFor navigationAction: WKNavigationAction,

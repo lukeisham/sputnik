@@ -76,6 +76,19 @@ public final class MarkdownPreviewCoordinator: NSObject, NSTextViewDelegate {
     /// default `.md` export filename.
     var currentDocumentName: String = ""
 
+    // MARK: - Export / print actions (ISS-095)
+
+    /// Print the rendered Markdown. Wired once in `MarkdownRenderView.makeNSView` and read
+    /// by `MarkdownPreviewPanel` — moved off `updateNSView` to avoid mutating SwiftUI state
+    /// during a view update (ISS-095). `nil` until the render view has been created.
+    var printAction: (() -> Void)?
+
+    /// Export the rendered Markdown as a PDF via an `NSSavePanel`. See `printAction`.
+    var saveAsPDFAction: (() -> Void)?
+
+    /// Export the raw Markdown source as a `.md` file via an `NSSavePanel`. See `printAction`.
+    var saveAsMarkdownAction: (() -> Void)?
+
     // MARK: - Init
 
     /// Creates the coordinator.
