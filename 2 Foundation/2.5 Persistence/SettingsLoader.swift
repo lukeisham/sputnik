@@ -171,6 +171,10 @@ struct SettingsLoader {
         {
             store.templateDirectoryURL = URL(fileURLWithPath: savedPath)
         }
+        // Minimap
+        if let saved: Double = persistence.loadSetting(forKey: DefaultsKey.minimapOpacity) {
+            store.minimapOpacity = max(0.15, min(1.0, saved))
+        }
     }
 }
 
@@ -213,4 +217,5 @@ private enum DefaultsKey {
     static let jsonAutoCompleteStep = "sputnik.settings.jsonAutoCompleteStep"
     static let supportingAIConfig = "sputnik.settings.supportingAIConfig"
     static let templateDirectoryURL = "sputnik.settings.templateDirectoryURL"
+    static let minimapOpacity = "sputnik.settings.minimapOpacity"
 }

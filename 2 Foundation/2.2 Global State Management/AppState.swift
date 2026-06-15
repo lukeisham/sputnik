@@ -156,6 +156,18 @@ public final class AppState {
         set { activeWindow?.scratchpadVisible = newValue }
     }
 
+    // MARK: - Minimap (delegates to active window)
+
+    public var minimapVisible: Bool {
+        get { activeWindow?.minimapVisible ?? false }
+        set { activeWindow?.minimapVisible = newValue }
+    }
+
+    /// Toggles the minimap for the active window.
+    public func toggleMinimap() {
+        activeWindow?.minimapVisible.toggle()
+    }
+
     public var scratchpadText: String {
         get { activeWindow?.scratchpadText ?? "" }
         set { activeWindow?.scratchpadText = newValue }

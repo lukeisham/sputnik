@@ -64,6 +64,53 @@ public enum SputnikColor {
     /// Ghost-text / inline suggestion foreground.
     public static var ghostText: Color { Color(NSColor.tertiaryLabelColor) }
 
+    // MARK: - Minimap
+
+    /// Minimap bar colour for plain text lines.
+    public static var minimapPlain: Color {
+        Color(light: Color(white: 0.55), dark: Color(white: 0.50))
+    }
+
+    /// Minimap bar colour for blank lines (dimmer than plain).
+    public static var minimapBlank: Color {
+        Color(light: Color(white: 0.35), dark: Color(white: 0.30))
+    }
+
+    /// Minimap bar colour for heading lines.
+    public static var minimapHeading: Color {
+        Color(
+            light: Color(red: 0.15, green: 0.42, blue: 0.72),
+            dark: Color(red: 0.35, green: 0.65, blue: 0.95))
+    }
+
+    /// Minimap bar colour for code/fenced-code-block lines.
+    public static var minimapCode: Color {
+        Color(
+            light: Color(red: 0.62, green: 0.35, blue: 0.15),
+            dark: Color(red: 0.85, green: 0.58, blue: 0.35))
+    }
+
+    /// Minimap bar colour for blockquote lines.
+    public static var minimapQuote: Color {
+        Color(
+            light: Color(red: 0.55, green: 0.45, blue: 0.12),
+            dark: Color(red: 0.78, green: 0.68, blue: 0.30))
+    }
+
+    /// Minimap bar colour for list-item lines.
+    public static var minimapList: Color {
+        Color(
+            light: Color(red: 0.28, green: 0.55, blue: 0.18),
+            dark: Color(red: 0.50, green: 0.78, blue: 0.40))
+    }
+
+    /// Minimap viewport-indicator tint.
+    public static var minimapViewport: Color {
+        Color(
+            light: Color(white: 0.0, opacity: 0.28),
+            dark: Color(white: 1.0, opacity: 0.28))
+    }
+
     /// Primary accent for dynamic panel borders, active indicators, and toggle pills.
     /// Uses the system control accent colour.
     public static var accentPrimary: Color { Color(NSColor.controlAccentColor) }

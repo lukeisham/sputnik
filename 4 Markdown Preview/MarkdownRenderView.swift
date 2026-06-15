@@ -48,6 +48,9 @@ public struct MarkdownRenderView: NSViewRepresentable {
 
     // MARK: - Init
 
+    /// The view model, used to publish the scroll view for the minimap.
+    let viewModel: MarkdownPreviewViewModel
+
     /// Creates the render view.
     ///
     /// - Parameters:
@@ -56,6 +59,7 @@ public struct MarkdownRenderView: NSViewRepresentable {
     ///   - coordinator:    The link-click coordinator.
     ///   - settings:       The app settings store (for per-panel font/background).
     ///   - scrollOffset:   Binding for per-document scroll offset.
+    ///   - viewModel:      The Markdown preview view model.
     ///
     /// Print / Save-as-PDF / Save-as-Markdown actions are exposed on the
     /// `MarkdownPreviewCoordinator` (wired once in `makeNSView`), not via bindings —
@@ -67,7 +71,8 @@ public struct MarkdownRenderView: NSViewRepresentable {
         settings: SettingsStore,
         scrollOffset: Binding<CGFloat> = .constant(0),
         syncScrollFraction: Double? = nil,
-        isLargeFile: Bool = false
+        isLargeFile: Bool = false,
+        viewModel: MarkdownPreviewViewModel
     ) {
         self.renderedString = renderedString
         self.fontScale = fontScale
@@ -76,6 +81,7 @@ public struct MarkdownRenderView: NSViewRepresentable {
         self.scrollOffset = scrollOffset
         self.syncScrollFraction = syncScrollFraction
         self.isLargeFile = isLargeFile
+        self.viewModel = viewModel
     }
 
     // MARK: - NSViewRepresentable
@@ -190,6 +196,9 @@ public struct MarkdownRenderView: NSViewRepresentable {
             }
         }
 
+        // Publish the scroll view for the minimap binder.
+        viewModel.scrollView = scrollView
+
         context.coordinator.saveAsPDFAction = { [weak textView] in
             guard let textView, let window = textView.window else { return }
             let panel = NSSavePanel()
@@ -256,8 +265,9 @@ public struct MarkdownRenderView: NSViewRepresentable {
         // to avoid unnecessary layout invalidation.
         let desiredFontSize = settings.resolvedMarkdownPreviewFont.pointSize * fontScale
         let currentFontSize = textView.font?.pointSize ?? 0
-        guard textView.textStorage?.string != renderedString.string
-            || abs(currentFontSize - desiredFontSize) > 0.5
+        guard
+            textView.textStorage?.string != renderedString.string
+                || abs(currentFontSize - desiredFontSize) > 0.5
         else { return }
 
         // Capture the desired scroll offset before rewriting the text storage.

@@ -295,6 +295,7 @@ public struct HTMLPreviewView: NSViewRepresentable {
         context.coordinator.onLoadError = onLoadError
         context.coordinator.fullSessionText = session.text
         context.coordinator.webView = webView
+        appState.activeWindow?.minimapTargetWebView = webView
 
         // Inject per-panel font and background CSS (F-4), then load (throttled — SR-4).
         // Cache the styled output keyed by the inputs that affect it so scroll-sync

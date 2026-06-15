@@ -54,6 +54,10 @@ public final class MarkdownPreviewViewModel {
     /// The panel shows a visual indicator and skips scroll sync in degraded mode.
     public var isLargeFile: Bool = false
 
+    /// The NSScrollView that owns the rendered text view. Wired in by `MarkdownRenderView`.
+    /// Used by the minimap binder to observe scroll position.
+    public var scrollView: NSScrollView?
+
     /// Source map from the last completed render. Maps rendered character ranges to
     /// source line ranges for ⌘-click-to-source navigation (ISS-065, Step 8).
     public var sourceMap: [MarkdownSourceBlock] = []

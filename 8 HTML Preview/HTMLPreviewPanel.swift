@@ -81,6 +81,9 @@ public struct HTMLPreviewPanel: View {
             Divider()
             contentArea
         }
+        .overlay(alignment: .trailing) {
+            Minimap()
+        }
         .background(SputnikColor.editorBackground)
         .onChange(of: appState.activeDocumentID) { _, _ in
             loadError = nil
@@ -92,6 +95,7 @@ public struct HTMLPreviewPanel: View {
         .onDisappear {
             appState.pairedPreviewPrintAction = nil
             appState.pairedPreviewSaveAsPDFAction = nil
+            appState.activeWindow?.minimapTargetWebView = nil
         }
     }
 

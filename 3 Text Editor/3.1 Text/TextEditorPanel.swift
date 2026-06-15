@@ -140,6 +140,17 @@ public struct TextEditorPanel: View {
                 viewModel: viewModel, settings: settings, appState: appState, isEditable: isEditable
             )
         }
+        .overlay(alignment: .trailing) {
+            Minimap()
+        }
+        .onAppear {
+            appState.activeWindow?.minimapTargetScrollView = viewModel.scrollView
+        }
+        .onDisappear {
+            if appState.activeWindow?.minimapTargetScrollView === viewModel.scrollView {
+                appState.activeWindow?.minimapTargetScrollView = nil
+            }
+        }
     }
 }
 

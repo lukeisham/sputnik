@@ -145,6 +145,7 @@ public struct EditorView: NSViewRepresentable {
         // Wire SearchController and TextView into the view model.
         viewModel.searchController = search
         viewModel.textView = textView
+        viewModel.scrollView = scrollView
 
         // Set up syntax highlighting and debounce timer.
         if let storage = textView.textStorage {

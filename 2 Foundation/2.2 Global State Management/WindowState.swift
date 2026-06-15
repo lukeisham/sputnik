@@ -1,6 +1,7 @@
 import Foundation
 import Observation
 import SwiftUI
+import WebKit
 
 // MARK: - FocusedValues key for frontmost-window tracking
 
@@ -130,9 +131,24 @@ public final class WindowState {
     public var scratchpadVisible: Bool = false
     public var scratchpadText: String = ""
 
+    // MARK: - Minimap (per-window)
+
+    public var minimapVisible: Bool = false
+
     /// The width of the docked scratchpad panel, persisted via `UserDefaults`.
     /// Clamped to 200…600 pt on read.
     public var scratchpadDockedWidth: CGFloat = 280
+
+    // MARK: - Minimap (continued)
+
+    /// Weak reference to the active content view for the minimap binder.
+    /// Set by each panel's overlay to bridge the scroll view to the minimap.
+    /// Not persisted — transient per-window state.
+    public weak var minimapTargetScrollView: NSScrollView?
+
+    /// Weak reference to the active WKWebView for the HTML minimap binder.
+    /// Set by the HTML preview panel. Not persisted.
+    public weak var minimapTargetWebView: WKWebView?
 
     // MARK: - Restoration state
 

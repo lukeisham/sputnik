@@ -12,6 +12,7 @@ import SwiftUI
 private struct JSONTextViewRepresentable: NSViewRepresentable {
 
     let content: NSAttributedString?
+    let viewModel: JSONViewerViewModel
 
     func makeNSView(context: Context) -> NSScrollView {
         let scrollView = NSScrollView()
@@ -37,6 +38,7 @@ private struct JSONTextViewRepresentable: NSViewRepresentable {
             height: CGFloat.greatestFiniteMagnitude)
 
         scrollView.documentView = textView
+        viewModel.scrollView = scrollView
         return scrollView
     }
 
@@ -81,9 +83,15 @@ public struct JSONViewerPanel: View {
             if viewModel.isEmpty {
                 emptyStatePlaceholder
             } else {
-                JSONTextViewRepresentable(content: viewModel.renderedContent)
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                JSONTextViewRepresentable(
+                    content: viewModel.renderedContent,
+                    viewModel: viewModel
+                )
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
             }
+        }
+        .overlay(alignment: .trailing) {
+            Minimap()
         }
         .background(SputnikColor.editorBackground)
         .onChange(of: appState.activeDocumentID) { _, _ in
@@ -94,6 +102,12 @@ public struct JSONViewerPanel: View {
         }
         .onAppear {
             refreshText()
+            appState.activeWindow?.minimapTargetScrollView = viewModel.scrollView
+        }
+        .onDisappear {
+            if appState.activeWindow?.minimapTargetScrollView === viewModel.scrollView {
+                appState.activeWindow?.minimapTargetScrollView = nil
+            }
         }
     }
 
@@ -130,7 +144,9 @@ public struct JSONViewerPanel: View {
             }
             .buttonStyle(.plain)
             .foregroundStyle(SputnikColor.secondaryText)
-            .help(viewModel.displayMode == .pretty ? "Collapse to one line" : "Expand with indentation")
+            .help(
+                viewModel.displayMode == .pretty
+                    ? "Collapse to one line" : "Expand with indentation")
 
             // Copy button.
             Button {

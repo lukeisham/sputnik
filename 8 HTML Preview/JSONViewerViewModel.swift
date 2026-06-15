@@ -30,6 +30,10 @@ public final class JSONViewerViewModel {
     /// Non-nil when the last parse attempt failed.
     public private(set) var lastError: String?
 
+    /// The NSScrollView that owns the rendered text view. Wired in by the JSON viewer.
+    /// Used by the minimap binder to observe scroll position.
+    public var scrollView: NSScrollView?
+
     /// Whether `rawText` is currently empty.
     public var isEmpty: Bool { rawText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }
 
@@ -100,14 +104,16 @@ public final class JSONViewerViewModel {
 
             let jsonObject: Any
             do {
-                jsonObject = try JSONSerialization.jsonObject(with: data, options: .fragmentsAllowed)
+                jsonObject = try JSONSerialization.jsonObject(
+                    with: data, options: .fragmentsAllowed)
             } catch {
                 return .failure(.message(error.localizedDescription))
             }
 
             let outputData: Data
             do {
-                let opts: JSONSerialization.WritingOptions = (mode == .pretty)
+                let opts: JSONSerialization.WritingOptions =
+                    (mode == .pretty)
                     ? [.prettyPrinted, .sortedKeys]
                     : []
                 outputData = try JSONSerialization.data(withJSONObject: jsonObject, options: opts)
@@ -170,7 +176,8 @@ public final class JSONViewerViewModel {
         let numberPattern = "-?\\b\\d+(?:\\.\\d+)?(?:[eE][+-]?\\d+)?\\b"
         if let numRegex = try? NSRegularExpression(pattern: numberPattern) {
             for match in numRegex.matches(in: text, range: fullRange) {
-                result.addAttribute(.foregroundColor, value: NSColor.systemOrange, range: match.range)
+                result.addAttribute(
+                    .foregroundColor, value: NSColor.systemOrange, range: match.range)
             }
         }
 

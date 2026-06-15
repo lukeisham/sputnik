@@ -81,6 +81,9 @@ public struct MarkdownPreviewPanel: View {
             Divider()
             contentArea
         }
+        .overlay(alignment: .trailing) {
+            Minimap()
+        }
         .background(SputnikColor.editorBackground)
         .task {
             viewModel.configure(appState: appState)
@@ -101,10 +104,14 @@ public struct MarkdownPreviewPanel: View {
         }
         .onAppear {
             handleActiveDocumentChange()
+            appState.activeWindow?.minimapTargetScrollView = viewModel.scrollView
         }
         .onDisappear {
             appState.pairedPreviewPrintAction = nil
             appState.pairedPreviewSaveAsPDFAction = nil
+            if appState.activeWindow?.minimapTargetScrollView === viewModel.scrollView {
+                appState.activeWindow?.minimapTargetScrollView = nil
+            }
         }
     }
 
@@ -298,7 +305,8 @@ public struct MarkdownPreviewPanel: View {
                         settings: settings,
                         scrollOffset: scrollBinding(for: appState.activeDocumentID),
                         syncScrollFraction: syncFraction,
-                        isLargeFile: viewModel.isLargeFile
+                        isLargeFile: viewModel.isLargeFile,
+                        viewModel: viewModel
                     )
                     .frame(maxWidth: 720)
                     .frame(maxWidth: .infinity)
@@ -310,7 +318,8 @@ public struct MarkdownPreviewPanel: View {
                         settings: settings,
                         scrollOffset: scrollBinding(for: appState.activeDocumentID),
                         syncScrollFraction: syncFraction,
-                        isLargeFile: viewModel.isLargeFile
+                        isLargeFile: viewModel.isLargeFile,
+                        viewModel: viewModel
                     )
                 }
             } else {

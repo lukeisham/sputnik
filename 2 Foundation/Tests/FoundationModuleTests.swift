@@ -229,7 +229,8 @@ struct TemplatePlaceholderExpanderTests {
     }
 
     @Test func multiplePlaceholdersInOrder() {
-        let keys = TemplatePlaceholderExpander.placeholders(in: "{{title}} by {{author}} on {{date}}")
+        let keys = TemplatePlaceholderExpander.placeholders(
+            in: "{{title}} by {{author}} on {{date}}")
         #expect(keys == ["title", "author", "date"])
     }
 
@@ -375,4 +376,230 @@ struct FileTypeDefaultExtensionTests {
         #expect(FileType(extension: "txt") == .text)
         #expect(FileType(extension: "asc") == .ascii)
     }
+}
+
+// MARK: - MinimapModelBuilder Tests
+
+struct MinimapModelBuilderTests {
+
+    // MARK: - Empty / blank input
+
+    @Test func emptyTextProducesEmptyModel() {
+        let model = MinimapModelBuilder().build(from: "")
+        #expect(model.lines.isEmpty)
+    }
+
+    @Test func blankLinesAreClassifiedAsBlank() {
+        // Trailing newline produces one extra empty line.
+        let model = MinimapModelBuilder().build(from: "\n   \n\t")
+        #expect(model.lines.count == 3)
+        for line in model.lines {
+            #expect(line.kind == .blank)
+        }
+    }
+
+    // MARK: - Heading classification
+
+    @Test func atxHeadingClassifiedAsHeading() {
+        let line = MinimapModelBuilder.classify(line: "# Heading 1")
+        #expect(line == .heading)
+    }
+
+    @Test func h2HeadingClassifiedAsHeading() {
+        let line = MinimapModelBuilder.classify(line: "## Section")
+        #expect(line == .heading)
+    }
+
+    @Test func h6HeadingClassifiedAsHeading() {
+        let line = MinimapModelBuilder.classify(line: "###### Deep")
+        #expect(line == .heading)
+    }
+
+    @Test func sevenHashesAreNotHeading() {
+        let line = MinimapModelBuilder.classify(line: "####### Too many")
+        #expect(line != .heading)
+    }
+
+    @Test func hashWithoutSpaceIsNotHeading() {
+        // "#tag" is not a heading.
+        let line = MinimapModelBuilder.classify(line: "#tag")
+        #expect(line != .heading)
+    }
+
+    // MARK: - Blockquote classification
+
+    @Test func blockquoteLineClassifiedAsQuote() {
+        let line = MinimapModelBuilder.classify(line: "> Quoted text")
+        #expect(line == .quote)
+    }
+
+    @Test func nestedBlockquoteIsQuote() {
+        let line = MinimapModelBuilder.classify(line: ">> Deep quote")
+        #expect(line == .quote)
+    }
+
+    // MARK: - List classification
+
+    @Test func unorderedDashList() {
+        let line = MinimapModelBuilder.classify(line: "- Item one")
+        #expect(line == .list)
+    }
+
+    @Test func unorderedAsteriskList() {
+        let line = MinimapModelBuilder.classify(line: "* Item two")
+        #expect(line == .list)
+    }
+
+    @Test func unorderedPlusList() {
+        let line = MinimapModelBuilder.classify(line: "+ Item three")
+        #expect(line == .list)
+    }
+
+    @Test func orderedList() {
+        let line = MinimapModelBuilder.classify(line: "1. First step")
+        #expect(line == .list)
+    }
+
+    @Test func multiDigitOrderedList() {
+        let line = MinimapModelBuilder.classify(line: "42. Answer")
+        #expect(line == .list)
+    }
+
+    @Test func listWithoutSpaceIsNotList() {
+        let line = MinimapModelBuilder.classify(line: "-NotAList")
+        #expect(line != .list)
+    }
+
+    // MARK: - Code classification
+
+    @Test func fencedCodeBlockBackticks() {
+        let line = MinimapModelBuilder.classify(line: "```swift")
+        #expect(line == .code)
+    }
+
+    @Test func fencedCodeBlockTildes() {
+        let line = MinimapModelBuilder.classify(line: "~~~")
+        #expect(line == .code)
+    }
+
+    @Test func indentedCode() {
+        let line = MinimapModelBuilder.classify(line: "    code line")
+        #expect(line == .code)
+    }
+
+    // MARK: - Plain text
+
+    @Test func ordinaryTextIsPlain() {
+        let line = MinimapModelBuilder.classify(line: "Just a regular sentence.")
+        #expect(line == .plain)
+    }
+
+    // MARK: - Length normalisation
+
+    @Test func longestLineHasFullWidth() {
+        let model = MinimapModelBuilder().build(from: "short\nlongest line here")
+        #expect(model.lines.count == 2)
+        #expect(model.lines[0].lengthFraction < model.lines[1].lengthFraction)
+        #expect(model.lines[1].lengthFraction == 1.0)
+    }
+
+    @Test func singleLineHasFullWidth() {
+        let model = MinimapModelBuilder().build(from: "only line")
+        #expect(model.lines.count == 1)
+        #expect(model.lines[0].lengthFraction == 1.0)
+    }
+
+    @Test func allLinesSameLength() {
+        let model = MinimapModelBuilder().build(from: "aaa\nbbb\nccc")
+        #expect(model.lines.count == 3)
+        for line in model.lines {
+            #expect(line.lengthFraction == 1.0)
+        }
+    }
+
+    @Test func mixedContentDocument() {
+        let markdown = """
+            # Title
+
+            Some paragraph text here.
+
+            > A blockquote
+
+            - List item
+            - Another item
+
+                code block
+
+            ## Section 2
+
+            More text.
+            """
+        let model = MinimapModelBuilder().build(from: markdown)
+        #expect(model.lines.count > 5)
+
+        // The first non-blank line should be a heading.
+        let nonBlank = model.lines.filter { $0.kind != .blank }
+        #expect(nonBlank.first?.kind == .heading)
+    }
+
+    // MARK: - Viewport math
+
+    @Test func viewportFractionZeroAtTop() {
+        // When offset is 0, fraction should be 0.
+        let fraction = viewportFraction(offset: 0, docHeight: 1000, viewHeight: 200)
+        #expect(fraction == 0.0)
+    }
+
+    @Test func viewportFractionOneAtBottom() {
+        let fraction = viewportFraction(offset: 800, docHeight: 1000, viewHeight: 200)
+        #expect(fraction == 1.0)
+    }
+
+    @Test func viewportFractionMidDocument() {
+        let fraction = viewportFraction(offset: 400, docHeight: 1000, viewHeight: 200)
+        #expect(fraction == 0.5)
+    }
+
+    @Test func contentShorterThanViewportYieldsZero() {
+        let fraction = viewportFraction(offset: 0, docHeight: 100, viewHeight: 200)
+        #expect(fraction == 0.0)
+    }
+
+    @Test func emptyDocumentYieldsZero() {
+        let fraction = viewportFraction(offset: 0, docHeight: 0, viewHeight: 200)
+        #expect(fraction == 0.0)
+    }
+
+    @Test func clickFractionToScrollTarget() {
+        let target = scrollTarget(forClickFraction: 0.5, docHeight: 1000, viewHeight: 200)
+        #expect(target == 400.0)
+    }
+
+    @Test func clickFractionZeroMapsToZero() {
+        let target = scrollTarget(forClickFraction: 0.0, docHeight: 1000, viewHeight: 200)
+        #expect(target == 0.0)
+    }
+
+    @Test func clickFractionOneMapsToMaxScroll() {
+        let target = scrollTarget(forClickFraction: 1.0, docHeight: 1000, viewHeight: 200)
+        #expect(target == 800.0)
+    }
+}
+
+// MARK: - Viewport math helpers (package-private)
+
+/// Computes the viewport fraction from scroll offset and dimensions.
+/// Mirrors the logic in MinimapScrollBinder.Coordinator.updateViewport.
+private func viewportFraction(offset: CGFloat, docHeight: CGFloat, viewHeight: CGFloat) -> Double {
+    let maxScroll = max(0, docHeight - viewHeight)
+    guard maxScroll > 0 else { return 0 }
+    return max(0, min(1.0, Double(offset / maxScroll)))
+}
+
+/// Computes the scroll target from a click fraction.
+private func scrollTarget(
+    forClickFraction fraction: Double, docHeight: CGFloat, viewHeight: CGFloat
+) -> CGFloat {
+    let maxScroll = max(0, docHeight - viewHeight)
+    return CGFloat(fraction) * maxScroll
 }

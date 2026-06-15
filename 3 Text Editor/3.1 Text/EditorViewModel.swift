@@ -66,6 +66,10 @@ public final class EditorViewModel: EditorCommandHandling {
     /// The active NSTextView. Wired in by `EditorView` to support ASCII Studio.
     public var textView: NSTextView?
 
+    /// The active NSScrollView that owns `textView`. Wired in by `EditorView`.
+    /// Used by the minimap binder to observe scroll position.
+    public var scrollView: NSScrollView?
+
     // MARK: - External file watching
 
     /// Watches the open file for external changes. Instantiated per document; cleared on close.

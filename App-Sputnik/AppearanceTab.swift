@@ -62,6 +62,24 @@ struct AppearanceTab: View {
                     onBackgroundChange: { settings.setHtmlPreviewBackground($0) }
                 )
             }
+
+            Divider()
+
+            LabeledContent("Minimap Opacity") {
+                HStack {
+                    Slider(
+                        value: Binding(
+                            get: { settings.minimapOpacity },
+                            set: { settings.setMinimapOpacity($0) }
+                        ),
+                        in: 0.15...1.0
+                    )
+                    Text(String(format: "%.0f%%", settings.minimapOpacity * 100))
+                        .font(.system(size: SputnikFont.caption))
+                        .foregroundStyle(SputnikColor.secondaryText)
+                        .frame(width: 40, alignment: .trailing)
+                }
+            }
         }
     }
 }

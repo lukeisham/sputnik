@@ -183,6 +183,17 @@ public final class SettingsStore {
         persistence.saveSetting(value?.path, forKey: DefaultsKey.templateDirectoryURL)
     }
 
+    // MARK: - Minimap
+
+    /// Opacity of the minimap overlay. Range 0.15 … 1.0; default 0.55.
+    public var minimapOpacity: Double = 0.55
+
+    /// Sets `minimapOpacity`, clamped to 0.15 … 1.0, and persists it.
+    public func setMinimapOpacity(_ value: Double) {
+        minimapOpacity = max(0.15, min(1.0, value))
+        persistence.saveSetting(minimapOpacity, forKey: DefaultsKey.minimapOpacity)
+    }
+
     // MARK: - Persistence keys
 
     private enum DefaultsKey {
@@ -231,6 +242,8 @@ public final class SettingsStore {
         static let supportingAIConfig = "sputnik.settings.supportingAIConfig"
         // Templates
         static let templateDirectoryURL = "sputnik.settings.templateDirectoryURL"
+        // Minimap
+        static let minimapOpacity = "sputnik.settings.minimapOpacity"
     }
 
     // MARK: - Dependencies

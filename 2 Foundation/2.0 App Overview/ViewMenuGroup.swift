@@ -107,6 +107,17 @@ struct ViewMenuGroup: Commands {
 
             Divider()
 
+            Toggle(
+                "Minimap",
+                isOn: Binding(
+                    get: { appState.minimapVisible },
+                    set: { appState.minimapVisible = $0 }
+                )
+            )
+            .keyboardShortcut("5", modifiers: [.control, .command])
+
+            Divider()
+
             Menu("Appearance") {
                 Button("Light Mode") {
                     settings.setTheme(.light)
