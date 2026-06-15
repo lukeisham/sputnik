@@ -127,7 +127,7 @@ struct ImageToASCIIConverterTests {
     }
 
     @Test func allRampStylesEnumeratedAsCases() {
-        #expect(ImageToASCIIConverter.RampStyle.allCases.count == 5)
+        #expect(ImageToASCIIConverter.RampStyle.allCases.count == 6)
     }
 
     @Test func brailleRampEndsWithSpace() {
@@ -213,7 +213,7 @@ struct ImageToASCIIConverterTests {
     @Test func ditherEnabledDoesNotCrash() {
         let image = makeSolidImage(color: .gray, size: CGSize(width: 8, height: 8))
         let result = ImageToASCIIConverter.convert(
-            image, settings: .init(width: 8, dither: true))
+            image, settings: .init(width: 8, ditherMode: .floydSteinberg))
         #expect(!result.isEmpty)
     }
 
@@ -295,9 +295,9 @@ struct ImageToASCIIConverterTests {
         #expect(settings.contrast == 1.0)
     }
 
-    @Test func settingsDefaultDitherIsFalse() {
+    @Test func settingsDefaultDitherModeIsNone() {
         let settings = ImageToASCIIConverter.Settings()
-        #expect(settings.dither == false)
+        #expect(settings.ditherMode == .none)
     }
 
     @Test func settingsDefaultEdgeStyleIsSimple() {
@@ -313,7 +313,7 @@ struct ImageToASCIIConverterTests {
             mode: .lineArt,
             brightness: 0.3,
             contrast: 1.5,
-            dither: true,
+            ditherMode: .floydSteinberg,
             edgeStyle: .dense
         )
         #expect(settings.width == 40)
@@ -322,14 +322,14 @@ struct ImageToASCIIConverterTests {
         #expect(settings.mode == .lineArt)
         #expect(settings.brightness == 0.3)
         #expect(settings.contrast == 1.5)
-        #expect(settings.dither == true)
+        #expect(settings.ditherMode == .floydSteinberg)
         #expect(settings.edgeStyle == .dense)
     }
 
     // MARK: — Mode enum
 
-    @Test func modeAllCasesHasTwoValues() {
-        #expect(ImageToASCIIConverter.Mode.allCases.count == 2)
+    @Test func modeAllCasesHasThreeValues() {
+        #expect(ImageToASCIIConverter.Mode.allCases.count == 3)
     }
 
     @Test func modeLuminanceExists() {

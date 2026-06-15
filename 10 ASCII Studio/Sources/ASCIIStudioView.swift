@@ -23,11 +23,13 @@ public struct ASCIIStudioView: View {
     @State private var targetWidth: Double = 80
     @State private var invert: Bool = false
     @State private var rampStyle: ImageToASCIIConverter.RampStyle = .block
+    @State private var customRampString: String = ""
     @State private var conversionMode: ImageToASCIIConverter.Mode = .luminance
     @State private var brightness: Double = 0.0
     @State private var contrast: Double = 1.0
-    @State private var ditherEnabled: Bool = false
+    @State private var ditherMode: ImageToASCIIConverter.DitherMode = .none
     @State private var edgeStyle: ASCIIEdgeDetector.EdgeStyle = .simple
+    @State private var lightThreshold: Double = 1.0
 
     // Adjustments disclosure
     @State private var adjustmentsExpanded: Bool = false
@@ -51,11 +53,29 @@ public struct ASCIIStudioView: View {
     @State private var showDiscardWarning: Bool = false
     @State private var pendingAction: (() -> Void)? = nil
 
+    // Alert for preset save when no source image is loaded
+    @State private var showNoImageAlert: Bool = false
+
     private let library = ASCIILibraryBrowser()
 
     public enum Tab: String, CaseIterable {
         case imageToASCII = "Image → ASCII"
         case library = "Library"
+    }
+
+    /// Fixed column-width presets for exporting ASCII art without disturbing the live canvas.
+    enum OutputPreset: String, CaseIterable {
+        case small = "Small (32 cols)"
+        case standard = "Standard (72 cols)"
+        case large = "Large (120 cols)"
+
+        var columns: Int {
+            switch self {
+            case .small: return 32
+            case .standard: return 72
+            case .large: return 120
+            }
+        }
     }
 
     public init() {}
@@ -105,7 +125,11 @@ public struct ASCIIStudioView: View {
         } message: {
             Text("Re-converting will discard your manual edits. Continue?")
         }
-
+        .alert("No Source Image", isPresented: $showNoImageAlert) {
+            Button("OK", role: .cancel) {}
+        } message: {
+            Text("Import an image first to use preset export sizes.")
+        }
     }
 
     // MARK: - Image → ASCII tab
@@ -153,6 +177,14 @@ public struct ASCIIStudioView: View {
                 .disabled(imageEditor.grid.isEmpty)
                 .help("Save the current ASCII art to a file")
 
+            Menu("Export Preset…") {
+                ForEach(OutputPreset.allCases, id: \.self) { preset in
+                    Button(preset.rawValue) { saveAtPreset(preset) }
+                }
+            }
+            .disabled(imageEditor.grid.isEmpty)
+            .help("Re-convert at a fixed column width and save, without changing the live canvas")
+
             Button("Insert at Cursor") {
                 insertASCII(imageEditor.asString())
             }
@@ -183,7 +215,7 @@ public struct ASCIIStudioView: View {
                         Text($0.rawValue).tag($0)
                     }
                 }
-                .frame(width: 120)
+                .frame(width: 130)
                 .onChange(of: conversionMode) { _, _ in regenerateOnChange() }
 
                 Spacer()
@@ -201,6 +233,16 @@ public struct ASCIIStudioView: View {
                 .frame(width: 100)
                 .onChange(of: rampStyle) { _, _ in regenerateOnChange() }
             }
+
+            // Custom ramp TextField (visible only when Style is Custom)
+            if rampStyle == .custom {
+                TextField("Custom ramp (darkest → lightest)…", text: $customRampString)
+                    .font(.system(.body, design: .monospaced))
+                    .onChange(of: customRampString) { _, _ in regenerateOnChange() }
+            }
+
+            // Ramp preview swatch
+            RampSwatchView(characters: effectiveRamp)
 
             // Edge style (only shown when in line-art mode)
             if conversionMode == .lineArt {
@@ -225,7 +267,7 @@ public struct ASCIIStudioView: View {
                     // Brightness
                     HStack {
                         Text("Brightness:")
-                            .frame(width: 72, alignment: .leading)
+                            .frame(width: 96, alignment: .leading)
                         Slider(value: $brightness, in: -1.0...1.0, step: 0.05)
                             .onChange(of: brightness) { _, _ in regenerateOnChange() }
                         Text(String(format: "%+.2f", brightness))
@@ -236,7 +278,7 @@ public struct ASCIIStudioView: View {
                     // Contrast
                     HStack {
                         Text("Contrast:")
-                            .frame(width: 72, alignment: .leading)
+                            .frame(width: 96, alignment: .leading)
                         Slider(value: $contrast, in: 0.0...3.0, step: 0.05)
                             .onChange(of: contrast) { _, _ in regenerateOnChange() }
                         Text(String(format: "%.2f", contrast))
@@ -244,9 +286,25 @@ public struct ASCIIStudioView: View {
                             .frame(width: 48, alignment: .trailing)
                     }
 
-                    // Dither toggle
-                    Toggle("Floyd–Steinberg Dither", isOn: $ditherEnabled)
-                        .onChange(of: ditherEnabled) { _, _ in regenerateOnChange() }
+                    // Light threshold
+                    HStack {
+                        Text("Light threshold:")
+                            .frame(width: 96, alignment: .leading)
+                        Slider(value: $lightThreshold, in: 0.5...1.0, step: 0.01)
+                            .onChange(of: lightThreshold) { _, _ in regenerateOnChange() }
+                        Text(String(format: "%.2f", lightThreshold))
+                            .monospacedDigit()
+                            .frame(width: 48, alignment: .trailing)
+                    }
+                    .help("Higher values preserve more light areas; lower values carve out more negative space")
+
+                    // Dither mode picker
+                    Picker("Dither:", selection: $ditherMode) {
+                        ForEach(ImageToASCIIConverter.DitherMode.allCases, id: \.self) {
+                            Text($0.rawValue).tag($0)
+                        }
+                    }
+                    .onChange(of: ditherMode) { _, _ in regenerateOnChange() }
                 }
                 .padding(.vertical, 4)
             },
@@ -467,6 +525,18 @@ public struct ASCIIStudioView: View {
         .clipShape(RoundedRectangle(cornerRadius: 6))
     }
 
+    // MARK: - Computed helpers
+
+    /// The active character ramp as strings, for `RampSwatchView`.
+    private var effectiveRamp: [String] {
+        if rampStyle == .custom {
+            let chars = Array(customRampString)
+            let source = chars.isEmpty ? ImageToASCIIConverter.RampStyle.ascii.characters : chars
+            return source.map { String($0) }
+        }
+        return rampStyle.characters.map { String($0) }
+    }
+
     // MARK: - Actions
 
     private func importImage() {
@@ -497,6 +567,37 @@ public struct ASCIIStudioView: View {
         ASCIIExporter.save(content: content, suggestedFilename: name)
     }
 
+    /// Re-converts the source image at a fixed preset column width and saves it to disk.
+    /// The live canvas and all @State settings are left untouched.
+    private func saveAtPreset(_ preset: OutputPreset) {
+        guard let image = selectedImage else {
+            showNoImageAlert = true
+            return
+        }
+
+        let localSettings = ImageToASCIIConverter.Settings(
+            width: preset.columns,
+            invert: invert,
+            style: rampStyle,
+            mode: conversionMode,
+            brightness: brightness,
+            contrast: contrast,
+            ditherMode: ditherMode,
+            edgeStyle: edgeStyle,
+            customRampString: customRampString,
+            lightThreshold: lightThreshold
+        )
+
+        Task(priority: .userInitiated) {
+            let result = ImageToASCIIConverter.convert(image, settings: localSettings)
+            await MainActor.run {
+                let baseName = sourceImageName.isEmpty ? "ascii-art" : sourceImageName
+                let suffix = "_\(preset.columns)col"
+                ASCIIExporter.save(content: result, suggestedFilename: baseName + suffix)
+            }
+        }
+    }
+
     /// Regenerate the ASCII preview, but check for manual edits first.
     private func regenerateOnChange() {
         guard imageEditor.hasManualEdits else {
@@ -522,7 +623,6 @@ public struct ASCIIStudioView: View {
 
     private func regenerate() {
         guard let image = selectedImage else { return }
-        guard conversionMode == .luminance || conversionMode == .lineArt else { return }
 
         isConverting = true
         let settings = ImageToASCIIConverter.Settings(
@@ -532,8 +632,10 @@ public struct ASCIIStudioView: View {
             mode: conversionMode,
             brightness: brightness,
             contrast: contrast,
-            dither: ditherEnabled,
-            edgeStyle: edgeStyle
+            ditherMode: ditherMode,
+            edgeStyle: edgeStyle,
+            customRampString: customRampString,
+            lightThreshold: lightThreshold
         )
 
         Task(priority: .userInitiated) {
