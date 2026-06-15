@@ -1,0 +1,229 @@
+{
+  "topics": [
+    {
+      "id": "types/string",
+      "title": "Strings",
+      "category": "types",
+      "body": "JSON strings are sequences of Unicode characters enclosed in **double quotes** (`\"`). Single quotes are not valid JSON. Use backslash escapes for special characters: `\\\"` (quote), `\\\\` (backslash), `\\/` (forward slash), `\\n` (newline), `\\r` (carriage return), `\\t` (tab), `\\b` (backspace), `\\f` (form feed), and `\\uXXXX` (Unicode code point).\n\nJSON strings are always UTF-8 encoded when written to files.",
+      "searchTerms": ["string", "text", "unicode", "escape", "quote", "double quote", "utf8"],
+      "relatedTopics": ["types/number", "structure/key-value"],
+      "exampleJSON": "{\n  \"name\": \"Ada Lovelace\",\n  \"email\": \"ada@example.com\",\n  \"bio\": \"First programmer.\\nBorn 1815.\"\n}"
+    },
+    {
+      "id": "types/number",
+      "title": "Numbers",
+      "category": "types",
+      "body": "JSON supports **integers** and **floating-point numbers**. There is no separate integer type in the spec — all numbers are IEEE 754 double-precision floats in most implementations.\n\nValid forms: `42`, `-7`, `3.14`, `2.5e10`, `-1.2E-3`. Not valid: `0x1F` (hex), `NaN`, `Infinity`, trailing commas in number literals, or leading zeros (`01`).",
+      "searchTerms": ["number", "integer", "float", "double", "decimal", "exponent", "scientific notation"],
+      "relatedTopics": ["types/boolean", "types/null"],
+      "exampleJSON": "{\n  \"count\": 42,\n  \"price\": 9.99,\n  \"ratio\": 1.5e-3,\n  \"negative\": -7\n}"
+    },
+    {
+      "id": "types/boolean",
+      "title": "Booleans",
+      "category": "types",
+      "body": "JSON booleans are the lowercase literals `true` and `false` — no quotes, no capitalisation. They map to `Bool` in Swift, `boolean` in JavaScript, and similar in other languages.\n\nCommon mistake: using `\"true\"` (a string) instead of `true` (the boolean literal).",
+      "searchTerms": ["boolean", "bool", "true", "false", "flag"],
+      "relatedTopics": ["types/null", "types/string"],
+      "exampleJSON": "{\n  \"isActive\": true,\n  \"isDeleted\": false\n}"
+    },
+    {
+      "id": "types/null",
+      "title": "Null",
+      "category": "types",
+      "body": "`null` is the JSON representation of an absent or unknown value. It is the lowercase literal `null` — not `NULL`, `Null`, `None`, or `nil`.\n\nIn Swift, a JSON `null` decodes to `nil` on an optional property. In JavaScript it is distinct from `undefined`.",
+      "searchTerms": ["null", "nil", "none", "absent", "missing", "optional"],
+      "relatedTopics": ["types/boolean", "patterns/optional-fields"],
+      "exampleJSON": "{\n  \"middleName\": null,\n  \"deletedAt\": null\n}"
+    },
+    {
+      "id": "types/array",
+      "title": "Arrays",
+      "category": "types",
+      "body": "JSON arrays are **ordered lists** of values enclosed in square brackets `[…]`, with elements separated by commas. Elements can be any JSON type and do not need to be the same type.\n\nArrays are zero-indexed when accessed in most languages. Trailing commas after the last element are **not** valid JSON.",
+      "searchTerms": ["array", "list", "ordered", "sequence", "collection", "bracket"],
+      "relatedTopics": ["types/object", "patterns/nesting"],
+      "exampleJSON": "[\n  \"apple\",\n  42,\n  true,\n  null,\n  { \"nested\": true }\n]"
+    },
+    {
+      "id": "types/object",
+      "title": "Objects",
+      "category": "types",
+      "body": "JSON objects are **unordered** collections of key–value pairs enclosed in curly braces `{…}`. Keys must be **strings** (double-quoted). Values can be any JSON type.\n\nTrailing commas after the last pair are **not** valid JSON. Duplicate keys are technically allowed by the spec but have implementation-defined behaviour — avoid them.",
+      "searchTerms": ["object", "map", "dictionary", "hash", "key-value", "curly brace"],
+      "relatedTopics": ["structure/key-value", "types/array", "patterns/nesting"],
+      "exampleJSON": "{\n  \"id\": 1,\n  \"name\": \"Ada\",\n  \"active\": true\n}"
+    },
+    {
+      "id": "structure/key-value",
+      "title": "Key–Value Pairs",
+      "category": "structure",
+      "body": "Each entry in a JSON object is a **key–value pair**: a string key, a colon `:`, and a value. Keys must be unique within a single object (duplicates are undefined behaviour).\n\nWhitespace around the colon and between pairs is allowed and ignored. Elements are separated by commas — no trailing comma after the last pair.",
+      "searchTerms": ["key", "value", "pair", "colon", "property", "field"],
+      "relatedTopics": ["types/object", "types/string"],
+      "exampleJSON": "{\n  \"key\": \"value\",\n  \"count\": 3\n}"
+    },
+    {
+      "id": "structure/objects",
+      "title": "Object Syntax",
+      "category": "structure",
+      "body": "An object begins with `{` and ends with `}`. Inside, each key–value pair is separated by a comma. **No trailing comma** is allowed after the last pair.\n\nObjects can be empty: `{}`. They can contain other objects, arrays, or any mix of JSON types.",
+      "searchTerms": ["object", "brace", "curly", "open", "close", "syntax"],
+      "relatedTopics": ["types/object", "structure/key-value"],
+      "exampleJSON": "{}\n\n{\n  \"a\": 1,\n  \"b\": { \"c\": 2 }\n}"
+    },
+    {
+      "id": "structure/arrays",
+      "title": "Array Syntax",
+      "category": "structure",
+      "body": "An array begins with `[` and ends with `]`. Elements are separated by commas. **No trailing comma** is allowed after the last element.\n\nArrays can be empty: `[]`. They can contain heterogeneous types (strings, numbers, objects, arrays, etc.).",
+      "searchTerms": ["array", "bracket", "square", "open", "close", "syntax"],
+      "relatedTopics": ["types/array", "patterns/nesting"],
+      "exampleJSON": "[]\n\n[1, \"two\", true, null]"
+    },
+    {
+      "id": "patterns/nesting",
+      "title": "Nested Structures",
+      "category": "patterns",
+      "body": "JSON supports arbitrary nesting of objects and arrays. An object value can itself be an object or an array, and vice versa. Depth is theoretically unlimited but parsers often impose a practical limit (e.g. 512 levels).\n\nKeep nesting depth reasonable for readability — deeply nested structures are harder to diff and debug.",
+      "searchTerms": ["nested", "deep", "hierarchy", "tree", "recursive", "depth"],
+      "relatedTopics": ["types/object", "types/array"],
+      "exampleJSON": "{\n  \"user\": {\n    \"id\": 1,\n    \"addresses\": [\n      { \"type\": \"home\", \"city\": \"London\" },\n      { \"type\": \"work\", \"city\": \"Oxford\" }\n    ]\n  }\n}"
+    },
+    {
+      "id": "patterns/optional-fields",
+      "title": "Optional Fields",
+      "category": "patterns",
+      "body": "JSON has no built-in concept of optional fields. Two common conventions:\n1. **Omit the key** when the value is absent — the consumer must handle a missing key.\n2. **Set the value to `null`** — the key is always present, value signals absence.\n\nBe consistent within an API. Swift's `Codable` treats missing keys and `null` differently: a missing key throws unless the property is optional; `null` maps to `nil`.",
+      "searchTerms": ["optional", "null", "missing", "absent", "undefined", "optional field"],
+      "relatedTopics": ["types/null", "patterns/schema"],
+      "exampleJSON": "{\n  \"name\": \"Ada\",\n  \"middleName\": null,\n  \"nickname\": null\n}"
+    },
+    {
+      "id": "patterns/schema",
+      "title": "JSON Schema",
+      "category": "patterns",
+      "body": "**JSON Schema** is a vocabulary for annotating and validating JSON documents. A schema describes the expected shape — required fields, types, string patterns, number ranges, array constraints, etc.\n\nSchemas are themselves JSON objects (draft 2020-12 or earlier drafts). Tools like `ajv` (JavaScript) or `JSONSchemaDraft4` (Swift) can validate documents against a schema at runtime.",
+      "searchTerms": ["schema", "validate", "validation", "draft", "spec", "required", "definition"],
+      "relatedTopics": ["patterns/validation", "patterns/nesting"],
+      "exampleJSON": "{\n  \"$schema\": \"https://json-schema.org/draft/2020-12/schema\",\n  \"type\": \"object\",\n  \"required\": [\"id\", \"name\"],\n  \"properties\": {\n    \"id\":   { \"type\": \"integer\" },\n    \"name\": { \"type\": \"string\" }\n  }\n}"
+    },
+    {
+      "id": "patterns/validation",
+      "title": "Validation",
+      "category": "patterns",
+      "body": "JSON validation checks that a document is **syntactically correct** (well-formed JSON) and optionally **semantically correct** (matches a schema).\n\nSputnik's JSON editor validates syntax on every keystroke using `JSONSerialization` and shows errors in the gutter. For schema validation, use a dedicated validator tool or library.",
+      "searchTerms": ["validate", "validation", "syntax error", "parse error", "check", "lint"],
+      "relatedTopics": ["patterns/schema", "tools/parsing"],
+      "exampleJSON": null
+    },
+    {
+      "id": "tools/formatting",
+      "title": "Pretty-Print & Minify",
+      "category": "tools",
+      "body": "**Pretty-printing** adds indentation and newlines to make JSON human-readable. **Minifying** removes all non-essential whitespace to reduce file size.\n\nIn Swift: `JSONSerialization.data(withJSONObject:options: .prettyPrinted)` produces pretty output. Without the option, the output is minified.\n\nSputnik's JSON Viewer (Module 8) provides a Prettify / Minify toggle.",
+      "searchTerms": ["pretty", "print", "minify", "format", "indent", "whitespace", "compact"],
+      "relatedTopics": ["tools/parsing", "patterns/validation"],
+      "exampleJSON": "{ \"a\": 1, \"b\": [2, 3] }\n\n// Pretty-printed:\n{\n  \"a\": 1,\n  \"b\": [\n    2,\n    3\n  ]\n}"
+    },
+    {
+      "id": "tools/parsing",
+      "title": "Parsing & Serialisation",
+      "category": "tools",
+      "body": "**Parsing** converts a JSON string into an in-memory data structure. **Serialising** (or stringifying) converts a data structure back to a JSON string.\n\nIn Swift, use `JSONDecoder` / `JSONEncoder` with `Codable` types for type-safe parsing, or `JSONSerialization` for dynamic `[String: Any]` access.",
+      "searchTerms": ["parse", "decode", "encode", "serialize", "stringify", "deserialize", "codable"],
+      "relatedTopics": ["tools/formatting", "patterns/schema"],
+      "exampleJSON": null
+    },
+    {
+      "id": "formats/json5",
+      "title": "JSON5",
+      "category": "formats",
+      "body": "**JSON5** is a superset of JSON that allows:\n- Single-line (`//`) and block (`/* */`) comments\n- Trailing commas in objects and arrays\n- Single-quoted strings\n- Unquoted object keys (if valid identifiers)\n- Hexadecimal numbers (`0xCAFE`)\n- Multi-line strings\n\nJSON5 is **not** valid JSON. Most parsers do not support it. Config files (`.json5`) often use this format. Do not confuse with standard JSON.",
+      "searchTerms": ["json5", "comment", "trailing comma", "single quote", "superset"],
+      "relatedTopics": ["formats/jsonc", "patterns/validation"],
+      "exampleJSON": null
+    },
+    {
+      "id": "formats/jsonc",
+      "title": "JSONC (JSON with Comments)",
+      "category": "formats",
+      "body": "**JSONC** is JSON extended with C-style comments (`//` and `/* */`). It is used by VS Code settings files and some configuration tools.\n\nLike JSON5, JSONC is **not** standard JSON. A JSONC parser strips comments before parsing the rest as JSON. Sputnik's JSON editor validates standard JSON only.",
+      "searchTerms": ["jsonc", "comment", "configuration", "vscode", "settings"],
+      "relatedTopics": ["formats/json5"],
+      "exampleJSON": null
+    },
+    {
+      "id": "formats/json-ld",
+      "title": "JSON-LD",
+      "category": "formats",
+      "body": "**JSON-LD** (JSON for Linked Data) is a W3C standard for representing semantic/linked data as JSON. It uses a `@context` key to map JSON properties to IRIs (Internationalized Resource Identifiers).\n\nJSON-LD documents are valid JSON, but they carry additional semantic meaning. Used in SEO structured data, knowledge graphs, and the Semantic Web.",
+      "searchTerms": ["json-ld", "linked data", "semantic", "context", "iri", "rdf", "schema.org"],
+      "relatedTopics": ["formats/geojson", "patterns/schema"],
+      "exampleJSON": "{\n  \"@context\": \"https://schema.org\",\n  \"@type\": \"Person\",\n  \"name\": \"Ada Lovelace\",\n  \"birthDate\": \"1815-12-10\"\n}"
+    },
+    {
+      "id": "formats/geojson",
+      "title": "GeoJSON",
+      "category": "formats",
+      "body": "**GeoJSON** (RFC 7946) is a JSON format for encoding geographic data — points, lines, polygons, and collections. The root object has a `type` key.\n\nCommon types: `Point`, `LineString`, `Polygon`, `MultiPoint`, `MultiLineString`, `MultiPolygon`, `GeometryCollection`, `Feature`, `FeatureCollection`.",
+      "searchTerms": ["geojson", "geo", "geography", "coordinate", "latitude", "longitude", "polygon", "feature"],
+      "relatedTopics": ["formats/json-ld"],
+      "exampleJSON": "{\n  \"type\": \"Feature\",\n  \"geometry\": {\n    \"type\": \"Point\",\n    \"coordinates\": [-0.1276, 51.5074]\n  },\n  \"properties\": {\n    \"name\": \"London\"\n  }\n}"
+    },
+    {
+      "id": "guides/common-errors",
+      "title": "Common JSON Errors",
+      "category": "guides",
+      "body": "The most frequent JSON syntax errors:\n\n1. **Trailing comma** — `{\"a\": 1,}` — not allowed after the last element.\n2. **Single quotes** — `{'key': 'value'}` — only double quotes are valid.\n3. **Unquoted key** — `{key: \"value\"}` — all keys must be quoted strings.\n4. **Comments** — `// comment` — standard JSON has no comments.\n5. **NaN / Infinity** — not valid JSON number literals; use `null` instead.\n6. **Hex numbers** — `0xFF` — not valid; only decimal integers and floats.\n7. **Trailing decimal point** — `1.` — not valid; write `1.0`.",
+      "searchTerms": ["error", "syntax error", "trailing comma", "single quote", "unquoted", "invalid", "common mistake"],
+      "relatedTopics": ["patterns/validation", "tools/parsing"],
+      "exampleJSON": null
+    },
+    {
+      "id": "guides/best-practices",
+      "title": "Best Practices",
+      "category": "guides",
+      "body": "Guidelines for writing clean, portable JSON:\n\n- **Use consistent key casing** — `camelCase` is conventional in JavaScript APIs; `snake_case` in Python/Ruby. Pick one and stick to it.\n- **Keep arrays homogeneous** — mixing types in one array makes parsing fragile.\n- **Prefer explicit nulls over missing keys** when absence is meaningful.\n- **Avoid deep nesting** — flatter structures are easier to query and cache.\n- **Use ISO 8601 strings for dates** — `\"2024-01-15T09:30:00Z\"` — JSON has no native date type.\n- **Limit numeric precision** — not all parsers handle all doubles identically. Safe integer range: `-(2^53 - 1)` to `2^53 - 1`.",
+      "searchTerms": ["best practice", "convention", "style", "guideline", "date", "camel case", "snake case"],
+      "relatedTopics": ["guides/common-errors", "patterns/optional-fields"],
+      "exampleJSON": null
+    },
+    {
+      "id": "guides/encoding",
+      "title": "Encoding & Unicode",
+      "category": "guides",
+      "body": "JSON files **must** be encoded in **UTF-8**, UTF-16, or UTF-32. UTF-8 without BOM is strongly recommended (RFC 8259). In practice, nearly all JSON tooling assumes UTF-8.\n\nAny Unicode character can appear in a string either literally (if valid UTF-8) or as a `\\uXXXX` escape. Characters above U+FFFF require surrogate pairs: `\\uD800\\uDC00` for U+10000.\n\nNon-ASCII characters in keys are valid but may cause interoperability problems with some parsers.",
+      "searchTerms": ["encoding", "unicode", "utf-8", "utf8", "bom", "surrogate", "rfc 8259"],
+      "relatedTopics": ["types/string"],
+      "exampleJSON": "{\n  \"emoji\": \"\\uD83D\\uDE80\",\n  \"literal\": \"🚀\"\n}"
+    },
+    {
+      "id": "guides/size-and-performance",
+      "title": "Size & Performance",
+      "category": "guides",
+      "body": "Techniques for keeping JSON payloads lean:\n\n- **Minify** for production — strip whitespace.\n- **Shorten key names** in high-volume APIs (`\"id\"` not `\"identifier\"`).\n- **Use arrays of arrays** instead of arrays of objects when keys are shared and the schema is fixed.\n- **Compress with gzip/brotli** — JSON compresses well due to repeated keys and structure.\n- **Pagination** large datasets instead of returning everything at once.\n- **NDJSON** (Newline-Delimited JSON) for streaming large datasets: one JSON value per line.",
+      "searchTerms": ["performance", "size", "minify", "compress", "gzip", "ndjson", "streaming", "large"],
+      "relatedTopics": ["tools/formatting", "guides/best-practices"],
+      "exampleJSON": null
+    },
+    {
+      "id": "guides/comparing-formats",
+      "title": "JSON vs Other Formats",
+      "category": "guides",
+      "body": "**JSON vs XML**: JSON is more compact and easier to parse in JavaScript. XML supports namespaces, DTDs, and mixed content; JSON does not.\n\n**JSON vs YAML**: YAML is a superset of JSON (most valid JSON is valid YAML 1.2). YAML allows comments and more data types but is harder to parse and whitespace-sensitive.\n\n**JSON vs TOML**: TOML is designed for config files; more readable for flat or shallow data. JSON is better for deeply nested data or API responses.\n\n**JSON vs MessagePack/CBOR**: Binary formats; much more compact but not human-readable.",
+      "searchTerms": ["xml", "yaml", "toml", "messagepack", "cbor", "compare", "vs", "format"],
+      "relatedTopics": ["formats/json5", "guides/best-practices"],
+      "exampleJSON": null
+    },
+    {
+      "id": "guides/dates-and-times",
+      "title": "Dates & Times",
+      "category": "guides",
+      "body": "JSON has **no native date type**. The standard approach is to encode dates as **ISO 8601 strings**: `\"2024-01-15\"` (date only) or `\"2024-01-15T09:30:00Z\"` (UTC datetime) or `\"2024-01-15T09:30:00+01:00\"` (with offset).\n\nAlternatives: Unix timestamps (integers) for compact storage, but they are less readable. Always document which format your API uses.\n\nSwift's `JSONDecoder` supports `.iso8601` date decoding strategy out of the box.",
+      "searchTerms": ["date", "time", "datetime", "iso 8601", "timestamp", "unix", "epoch", "timezone"],
+      "relatedTopics": ["types/string", "types/number", "guides/best-practices"],
+      "exampleJSON": "{\n  \"createdAt\": \"2024-01-15T09:30:00Z\",\n  \"updatedAt\": \"2024-01-15T10:00:00+01:00\",\n  \"epochSeconds\": 1705310400\n}"
+    }
+  ]
+}

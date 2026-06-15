@@ -217,4 +217,20 @@ public final class ASCIIImageEditor: ObservableObject {
         }
         hasManualEdits = true
     }
+
+    /// Fill (replace) every character in the grid — including spaces — with `char`.
+    public func fillAll(_ char: Character) {
+        guard !grid.isEmpty else { return }
+        let snapshot = grid
+
+        undoManager.registerUndo(withTarget: self) { editor in
+            editor.grid = snapshot
+            editor.hasManualEdits = true
+        }
+
+        for i in grid.indices {
+            grid[i] = char
+        }
+        hasManualEdits = true
+    }
 }

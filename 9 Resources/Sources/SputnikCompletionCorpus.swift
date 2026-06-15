@@ -19,7 +19,7 @@ private struct CompletionsFile: Codable, Sendable {
 /// Lazily loads one `*_completions.json` per supported language on first use and
 /// builds a weight-sorted prefix index from it. Spelling and Grammar have no corpus
 /// here (Spelling completions come from `NSSpellChecker` in module 3.5; Grammar has
-/// no Auto-Complete per the applicability matrix).
+/// no Auto-Complete per the applicability matrix). JSON uses `9.7 JSON Help/json_completions.json`.
 ///
 /// **RAM:** Each index is loaded once and held for the app's lifetime — the lists are
 /// compact (≤ 60 entries each) so the total resident cost is negligible.
@@ -27,6 +27,7 @@ public actor SputnikCompletionCorpus: CompletionProviding {
 
     private var markdownIndex: [String]?
     private var htmlIndex: [String]?
+    private var jsonIndex: [String]?
     private var asciiIndex: [String]?
 
     public init() {}
@@ -44,6 +45,8 @@ public actor SputnikCompletionCorpus: CompletionProviding {
             return prefixMatches(in: loadMarkdown(), prefix: prefix, limit: query.limit)
         case .html:
             return prefixMatches(in: loadHTML(), prefix: prefix, limit: query.limit)
+        case .json:
+            return prefixMatches(in: loadJSON(), prefix: prefix, limit: query.limit)
         case .asciiArt:
             return prefixMatches(in: loadASCII(), prefix: prefix, limit: query.limit)
         }
@@ -63,6 +66,13 @@ public actor SputnikCompletionCorpus: CompletionProviding {
         if let idx = htmlIndex { return idx }
         let idx = loadBundle(resource: "html_completions", subdirectory: "9.4 Html Help") ?? []
         htmlIndex = idx
+        return idx
+    }
+
+    private func loadJSON() -> [String] {
+        if let idx = jsonIndex { return idx }
+        let idx = loadBundle(resource: "json_completions", subdirectory: "9.7 JSON Help") ?? []
+        jsonIndex = idx
         return idx
     }
 

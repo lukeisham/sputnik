@@ -4,9 +4,11 @@ import SwiftUI
 struct EditMenuGroup: Commands {
 
     private let settings: SettingsStore
+    private let appState: AppState
 
-    init(settings: SettingsStore) {
+    init(settings: SettingsStore, appState: AppState) {
         self.settings = settings
+        self.appState = appState
     }
 
     var body: some Commands {
@@ -97,6 +99,16 @@ struct EditMenuGroup: Commands {
                 }
 
                 writingAssistanceMenu
+
+                Divider()
+
+                Button("Render as JSON") {
+                    Task {
+                        try? await appState.editorCommandHandler?.renderAsJSON()
+                    }
+                }
+                .keyboardShortcut("j", modifiers: [.command, .control])
+                .disabled(appState.editorCommandHandler == nil)
             }
         }
     }
@@ -130,6 +142,11 @@ struct EditMenuGroup: Commands {
             Menu("HTML") {
                 toggleCell(.autoComplete, .html, label: "Auto-Complete")
                 toggleCell(.moreContext, .html, label: "More Context")
+            }
+
+            Menu("JSON") {
+                toggleCell(.autoComplete, .json, label: "Auto-Complete")
+                toggleCell(.moreContext, .json, label: "More Context")
             }
 
             Menu("ASCII Art") {

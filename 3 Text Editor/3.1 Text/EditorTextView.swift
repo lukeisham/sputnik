@@ -56,6 +56,23 @@ public final class EditorTextView: NSTextView {
     /// The live summary popover, if shown. AppKit seam for the SwiftUI summary view.
     private var summaryPopover: NSPopover?
 
+    // MARK: - First-responder tracking (ISS-118)
+
+    /// Notifies `ASCIIStudioCoordinator` so it can track which editor last held focus.
+    /// Required because the Studio panel's SwiftUI controls steal key-window first-responder
+    /// when the user interacts with them, making `activeTextView()` return nil without this.
+    @discardableResult
+    public override func becomeFirstResponder() -> Bool {
+        let result = super.becomeFirstResponder()
+        if result {
+            NotificationCenter.default.post(
+                name: Notification.Name("EditorTextViewDidBecomeFirstResponder"),
+                object: self
+            )
+        }
+        return result
+    }
+
     // MARK: - Key handling
 
     public override func keyDown(with event: NSEvent) {
@@ -327,6 +344,7 @@ public final class EditorTextView: NSTextView {
         case .plainText: return viewModel.htmlModeActive ? .html : .grammar
         case .markdown: return .markdown
         case .html: return .html
+        case .json: return .json
         case .asciiArt: return .asciiArt
         }
     }
@@ -337,6 +355,7 @@ public final class EditorTextView: NSTextView {
         switch kind {
         case .markdown: return .markdown
         case .html: return .html
+        case .json: return .json
         case .grammar: return .grammar
         case .asciiArt: return .asciiArt
         case .sputnik: return nil

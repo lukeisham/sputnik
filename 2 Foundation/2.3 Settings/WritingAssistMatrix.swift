@@ -8,6 +8,7 @@ public enum WritingAssistLanguage: String, Codable, CaseIterable, Sendable {
     case grammar
     case markdown
     case html
+    case json
     case asciiArt
 }
 
@@ -34,6 +35,7 @@ public enum WritingAssistFunction: String, Codable, CaseIterable, Sendable {
 /// | Grammar   |  ✓  |  —  |  ✓  |
 /// | Markdown  |  —  |  ✓  |  ✓  |
 /// | HTML      |  —  |  ✓  |  ✓  |
+/// | JSON      |  —  |  ✓  |  ✓  |
 /// | ASCII Art |  —  |  ✓  |  —  |
 public struct WritingAssistMatrix: Codable, Sendable, Equatable {
 
@@ -62,9 +64,10 @@ public struct WritingAssistMatrix: Codable, Sendable, Equatable {
         case .instantCorrect:
             return lang == .spelling || lang == .grammar
         case .autoComplete:
-            return lang == .spelling || lang == .markdown || lang == .html || lang == .asciiArt
+            return lang == .spelling || lang == .markdown || lang == .html || lang == .json
+                || lang == .asciiArt
         case .moreContext:
-            return lang == .grammar || lang == .markdown || lang == .html
+            return lang == .grammar || lang == .markdown || lang == .html || lang == .json
         }
     }
 

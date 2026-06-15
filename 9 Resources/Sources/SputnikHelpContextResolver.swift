@@ -51,6 +51,13 @@ public final class SputnikHelpContextResolver: HelpContextResolving {
                 selectedText: query.selectedText
             )
 
+        case .json:
+            topicID = JSONHelpCoordinator.shared.lookupContext(
+                fullText: query.fullText,
+                cursorOffset: query.cursorOffset,
+                selectedText: query.selectedText
+            )
+
         case .asciiArt:
             let topic = await ASCIIArtHelpCoordinator.shared.bestMatch(for: query.selectedText)
             topicID = topic?.id

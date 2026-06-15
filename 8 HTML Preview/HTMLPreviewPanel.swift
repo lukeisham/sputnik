@@ -102,6 +102,7 @@ public struct HTMLPreviewPanel: View {
     /// "Plain Text / Rendered" choice. Clears both fields otherwise.
     private func updatePairedPreviewActions() {
         guard let session = appState.activeDocument, session.fileType == .html else {
+            // JSON and all other types have no paired print/PDF actions.
             appState.pairedPreviewPrintAction = nil
             appState.pairedPreviewSaveAsPDFAction = nil
             return
@@ -241,7 +242,9 @@ public struct HTMLPreviewPanel: View {
         let session = appState.activeDocument
 
         if let session {
-            if session.fileType == .html {
+            if session.fileType == .json {
+                JSONViewerPanel()
+            } else if session.fileType == .html {
                 // Error banner above the web view.
                 if let error = loadError {
                     errorBanner(error)

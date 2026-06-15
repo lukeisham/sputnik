@@ -345,6 +345,7 @@ public struct EditorView: NSViewRepresentable {
             case .html: htmlProvider?.onKeypress()
             case .asciiArt: asciiProvider?.onKeypress()
             case .plainText: spellingCompletionProvider?.onKeypress()
+            case .json: break
             }
         }
     }

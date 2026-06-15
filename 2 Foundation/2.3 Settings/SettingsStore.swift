@@ -159,6 +159,18 @@ public final class SettingsStore {
     /// unquoted attribute values, and duplicate ids in `.html` documents. Default: `true`.
     public var htmlSyntaxCheckEnabled: Bool = true
 
+    /// Whether JSON ghost-text auto-complete suggestions are active. Default: `true`.
+    public var jsonAutoCompleteEnabled: Bool = true
+
+    /// Whether real-time JSON structure validation is active (error banner + underline). Default: `true`.
+    public var jsonValidationEnabled: Bool = true
+
+    /// Debounce interval (seconds) for JSON ghost-text suggestions. Default: `0.3`.
+    public var jsonDebounceInterval: TimeInterval = 0.3
+
+    /// Stepped debounce for JSON ghost-text auto-complete. Default: `.default`.
+    public var jsonAutoCompleteStep: AutoCompleteDebounceStep = .default
+
     // MARK: - Persistence keys
 
     private enum DefaultsKey {
@@ -198,6 +210,11 @@ public final class SettingsStore {
         static let currentLineHighlight = "sputnik.settings.currentLineHighlight"
         static let codeBlockHighlight = "sputnik.settings.codeBlockHighlight"
         static let htmlSyntaxCheck = "sputnik.settings.htmlSyntaxCheck"
+        // JSON
+        static let jsonAutoCompleteEnabled = "sputnik.settings.jsonAutoCompleteEnabled"
+        static let jsonValidationEnabled = "sputnik.settings.jsonValidationEnabled"
+        static let jsonDebounceInterval = "sputnik.settings.jsonDebounceInterval"
+        static let jsonAutoCompleteStep = "sputnik.settings.jsonAutoCompleteStep"
         // AI
         static let supportingAIConfig = "sputnik.settings.supportingAIConfig"
     }
@@ -282,6 +299,30 @@ public final class SettingsStore {
     public func setHtmlSyntaxCheckEnabled(_ value: Bool) {
         htmlSyntaxCheckEnabled = value
         persistence.saveSetting(value, forKey: DefaultsKey.htmlSyntaxCheck)
+    }
+
+    /// Enables or disables JSON ghost-text auto-complete suggestions and persists the setting.
+    public func setJsonAutoCompleteEnabled(_ value: Bool) {
+        jsonAutoCompleteEnabled = value
+        persistence.saveSetting(value, forKey: DefaultsKey.jsonAutoCompleteEnabled)
+    }
+
+    /// Enables or disables real-time JSON validation and persists the setting.
+    public func setJsonValidationEnabled(_ value: Bool) {
+        jsonValidationEnabled = value
+        persistence.saveSetting(value, forKey: DefaultsKey.jsonValidationEnabled)
+    }
+
+    /// Updates the JSON ghost-text debounce interval and persists the setting.
+    public func setJsonDebounceInterval(_ value: TimeInterval) {
+        jsonDebounceInterval = value
+        persistence.saveSetting(value, forKey: DefaultsKey.jsonDebounceInterval)
+    }
+
+    /// Updates the JSON auto-complete debounce step and persists the setting.
+    public func setJsonAutoCompleteStep(_ value: AutoCompleteDebounceStep) {
+        jsonAutoCompleteStep = value
+        persistence.saveSetting(value, forKey: DefaultsKey.jsonAutoCompleteStep)
     }
 
     // MARK: - Terminal mutators

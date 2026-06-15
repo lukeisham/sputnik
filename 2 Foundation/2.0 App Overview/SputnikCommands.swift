@@ -26,7 +26,7 @@ public struct SputnikCommands: Commands {
     public var body: some Commands {
         SputnikMenuGroup()
         FileMenuGroup(appState: appState)
-        EditMenuGroup(settings: settings)
+        EditMenuGroup(settings: settings, appState: appState)
         TerminalIntegrationCommands(appState: appState)
         FormatMenuGroup(appState: appState)
         ViewMenuGroup(appState: appState, settings: settings, focusCoordinator: focusCoordinator)

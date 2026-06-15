@@ -8,6 +8,7 @@ public enum FileType: String, Codable, Sendable, Hashable {
     case html
     case pdf
     case ascii
+    case json
     case image
     case binary
     case unknown
@@ -22,6 +23,7 @@ extension FileType {
         case "html", "htm": self = .html
         case "pdf": self = .pdf
         case "asc", "ascii": self = .ascii
+        case "json": self = .json
         case "png", "jpg", "jpeg", "gif", "heic", "tiff", "bmp": self = .image
         case "zip", "tar", "gz", "bz2", "xz", "7z",
             "exe", "dmg", "pkg", "o", "a", "dylib":

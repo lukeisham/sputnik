@@ -1,4 +1,3 @@
-import Accelerate
 import AppKit
 import CoreGraphics
 import CoreImage
@@ -6,10 +5,10 @@ import CoreImage
 /// Applies edge detection to an image and returns a pixel-intensity buffer
 /// for the ASCII converter to map to line-art glyphs.
 ///
-/// Uses a Core Image Sobel edge-detection filter (CISobelH) on the luminance
-/// channel, then reads the resulting grayscale intensity values. The converter
-/// maps high-intensity (edge) pixels to line characters (`/ \ | _ -`) and
-/// low-intensity (non-edge) pixels to spaces.
+/// Runs both horizontal (`CISobelH`) and vertical (`CISobelV`) Sobel passes,
+/// then computes gradient magnitude per pixel as `√(Gx² + Gy²)` and normalises
+/// the result to 0…1. Both filters are macOS 10.10+; macOS 14 is required by the
+/// project so no deployment-target guard is needed.
 ///
 /// SR-5: built on Apple imaging APIs only — no third-party packages.
 public enum ASCIIEdgeDetector {
@@ -38,7 +37,7 @@ public enum ASCIIEdgeDetector {
         width: Int,
         height: Int
     ) -> [Double]? {
-        // 1. Create CIIMage from the CGImage.
+        // 1. Create CIImage from the CGImage.
         let ciImage = CIImage(cgImage: cgImage)
 
         // 2. Resample to target size.
@@ -49,59 +48,60 @@ public enum ASCIIEdgeDetector {
         // 3. Convert to grayscale (luminance).
         let grayscale = scaled.applyingFilter(
             "CIColorControls",
-            parameters: [
-                kCIInputSaturationKey: 0.0
-            ])
+            parameters: [kCIInputSaturationKey: 0.0]
+        )
 
-        // 4. Apply Sobel edge detection.
-        //    CISobelH computes horizontal edges; we combine with a threshold.
-        guard let edged = CIFilter(name: "CISobelH") else { return nil }
-        edged.setValue(grayscale, forKey: kCIInputImageKey)
-        guard let edgedImage = edged.outputImage else { return nil }
+        // 4. Apply horizontal and vertical Sobel passes (both macOS 10.10+).
+        guard let sobelH = CIFilter(name: "CISobelH"),
+              let sobelV = CIFilter(name: "CISobelV")
+        else { return nil }
+        sobelH.setValue(grayscale, forKey: kCIInputImageKey)
+        sobelV.setValue(grayscale, forKey: kCIInputImageKey)
+        guard let edgedH = sobelH.outputImage,
+              let edgedV = sobelV.outputImage
+        else { return nil }
 
-        // 5. Clamp and threshold for cleaner results.
-        let contrast: CGFloat = 1.5
-        guard let adjusted = CIFilter(name: "CIColorControls") else { return nil }
-        adjusted.setValue(edgedImage, forKey: kCIInputImageKey)
-        adjusted.setValue(contrast, forKey: kCIInputContrastKey)
-        guard let adjustedImage = adjusted.outputImage else { return nil }
-
-        // 6. Render back to a bitmap context.
+        // 5. Render both passes to pixel buffers.
         let ciContext = CIContext(options: [.workingColorSpace: NSNull()])
+        let outputRect = CGRect(x: 0, y: 0, width: width, height: height)
+        guard
+            let cgH = ciContext.createCGImage(edgedH, from: outputRect),
+            let cgV = ciContext.createCGImage(edgedV, from: outputRect)
+        else { return nil }
+
         let bytesPerRow = width * 4
-        var rawData = [UInt8](repeating: 0, count: height * bytesPerRow)
-
-        guard
-            let cgOut = ciContext.createCGImage(
-                adjustedImage,
-                from: CGRect(x: 0, y: 0, width: width, height: height)
-            )
-        else { return nil }
-
-        // Draw into our buffer.
+        var rawH = [UInt8](repeating: 0, count: height * bytesPerRow)
+        var rawV = [UInt8](repeating: 0, count: height * bytesPerRow)
         let colorSpace = CGColorSpaceCreateDeviceRGB()
+        let bitmapInfo = CGImageAlphaInfo.premultipliedLast.rawValue
+
         guard
-            let context = CGContext(
-                data: &rawData,
-                width: width,
-                height: height,
-                bitsPerComponent: 8,
-                bytesPerRow: bytesPerRow,
-                space: colorSpace,
-                bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue
-            )
+            let ctxH = CGContext(data: &rawH, width: width, height: height,
+                                 bitsPerComponent: 8, bytesPerRow: bytesPerRow,
+                                 space: colorSpace, bitmapInfo: bitmapInfo),
+            let ctxV = CGContext(data: &rawV, width: width, height: height,
+                                 bitsPerComponent: 8, bytesPerRow: bytesPerRow,
+                                 space: colorSpace, bitmapInfo: bitmapInfo)
         else { return nil }
 
-        context.draw(cgOut, in: CGRect(x: 0, y: 0, width: width, height: height))
+        ctxH.draw(cgH, in: outputRect)
+        ctxV.draw(cgV, in: outputRect)
 
-        // 7. Extract intensity from the red channel (grayscale, all channels equal).
+        // 6. Compute gradient magnitude: √(Gx² + Gy²), then normalise to 0…1.
         var intensities = [Double](repeating: 0, count: width * height)
+        var maxMag = 0.0
         for row in 0..<height {
             for col in 0..<width {
-                let offset = (row * bytesPerRow) + col * 4
-                let r = Double(rawData[offset]) / 255.0
-                intensities[row * width + col] = r
+                let offset = row * bytesPerRow + col * 4
+                let gx = Double(rawH[offset]) / 255.0
+                let gy = Double(rawV[offset]) / 255.0
+                let mag = (gx * gx + gy * gy).squareRoot()
+                intensities[row * width + col] = mag
+                if mag > maxMag { maxMag = mag }
             }
+        }
+        if maxMag > 0 {
+            for i in intensities.indices { intensities[i] /= maxMag }
         }
 
         return intensities

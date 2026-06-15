@@ -39,6 +39,14 @@ public final class EditorViewModel: EditorCommandHandling {
     /// Enables HTML suggestions and the "Render as HTML" menu item (3.4).
     public var htmlModeActive: Bool = false
 
+    /// `true` when the open file is a `.json` document (`modeForFileType` returns `.json`).
+    /// Enables JSON suggestions, validation, and the "Render as JSON" menu item (3.6).
+    public var jsonModeActive: Bool = false
+
+    /// Structural errors from the last `JSONValidator` pass. Empty when the document is valid.
+    /// Views observe this to show an error banner and underline.
+    public var jsonValidationErrors: [JSONValidator.JSONError] = []
+
     /// Set by `SpellCheckFileTypeGuard` when the file extension is `.txt` or `.md`.
     /// Enables real-time spell/grammar checking (3.5).
     public var spellCheckActive: Bool = false
@@ -150,6 +158,7 @@ public final class EditorViewModel: EditorCommandHandling {
         // Run gating checks.
         HTMLDocTypeGuard.check(text, viewModel: self)
         SpellCheckFileTypeGuard.check(url, viewModel: self)
+        jsonModeActive = (fileType == .json)
 
         // Update text and bump token to notify `EditorView`.
         loadedText = text
@@ -198,16 +207,19 @@ public final class EditorViewModel: EditorCommandHandling {
         fileDeletedExternally = false
         pendingAlert = nil
         htmlModeActive = false
+        jsonModeActive = false
+        jsonValidationErrors = []
         spellCheckActive = false
         mode = .plainText
     }
 
     /// Maps a `FileType` to an `EditorMode`.
-    private func modeForFileType(_ fileType: FileType) -> EditorMode {
+    func modeForFileType(_ fileType: FileType) -> EditorMode {
         switch fileType {
         case .markdown: return .markdown
-        case .html: return .html
-        case .ascii: return .asciiArt
+        case .html:     return .html
+        case .json:     return .json
+        case .ascii:    return .asciiArt
         case .text, .pdf, .image, .binary, .unknown:
             return .plainText
         }
@@ -363,6 +375,13 @@ public final class EditorViewModel: EditorCommandHandling {
         await appState.router?.open(url)
     }
 
+    /// Opens the JSON viewer panel (Module 8) with the current file (⌃⌘J, Edit > Render as...).
+    /// No-op if JSON mode is inactive or no file is open.
+    public func renderAsJSON() async throws {
+        guard jsonModeActive, let url = fileURL else { return }
+        await appState.router?.open(url)
+    }
+
     /// Opens or raises the dockable ASCII Studio panel (⌘⌥A, Format menu).
     /// Instead of showing the old floating NSPanel, this toggles the .asciiStudio
     /// column in the dynamic layout.
@@ -394,6 +413,8 @@ public final class EditorViewModel: EditorCommandHandling {
             command = "cat \(escaped)"
         case .html:
             command = "open \(escaped)"
+        case .json:
+            command = "cat \(escaped) | python3 -m json.tool"
         case .asciiArt:
             command = "cat \(escaped)"
         case .plainText:

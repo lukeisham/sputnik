@@ -36,6 +36,7 @@ public struct FileTreeNode: Identifiable, Sendable, Hashable, Equatable {
         switch fileType {
         case .markdown: return "doc.richtext"
         case .html: return "chevron.left.slash.chevron.right"
+        case .json: return "curly.braces"
         case .pdf: return "doc.text.below.ecg"
         case .ascii: return "doc.text.image"
         case .text: return "doc.plaintext"

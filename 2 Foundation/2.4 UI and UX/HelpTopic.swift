@@ -10,6 +10,7 @@ public enum HelpTopic: String, Codable, Sendable, CaseIterable, Identifiable {
     case sputnik
     case markdown
     case html
+    case json
     case asciiArt
     case grammar
 
@@ -21,6 +22,7 @@ public enum HelpTopic: String, Codable, Sendable, CaseIterable, Identifiable {
         case .sputnik:  return "Sputnik Help"
         case .markdown: return "Markdown Help"
         case .html:     return "HTML Help"
+        case .json:     return "JSON Help"
         case .asciiArt: return "ASCII Art Help"
         case .grammar:  return "Grammar Help"
         }

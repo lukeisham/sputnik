@@ -126,6 +126,21 @@ struct SettingsLoader {
         if let saved: Bool = persistence.loadSetting(forKey: DefaultsKey.htmlSyntaxCheck) {
             store.htmlSyntaxCheckEnabled = saved
         }
+        // JSON
+        if let saved: Bool = persistence.loadSetting(forKey: DefaultsKey.jsonAutoCompleteEnabled) {
+            store.jsonAutoCompleteEnabled = saved
+        }
+        if let saved: Bool = persistence.loadSetting(forKey: DefaultsKey.jsonValidationEnabled) {
+            store.jsonValidationEnabled = saved
+        }
+        if let saved: Double = persistence.loadSetting(forKey: DefaultsKey.jsonDebounceInterval) {
+            store.jsonDebounceInterval = saved
+        }
+        if let saved: AutoCompleteDebounceStep = persistence.loadSetting(
+            forKey: DefaultsKey.jsonAutoCompleteStep)
+        {
+            store.jsonAutoCompleteStep = saved
+        }
         // Per-panel fonts
         if let saved: EditorFont = persistence.loadSetting(forKey: DefaultsKey.textEditorFont) {
             store.textEditorFont = saved
@@ -186,5 +201,9 @@ private enum DefaultsKey {
     static let currentLineHighlight = "sputnik.settings.currentLineHighlight"
     static let codeBlockHighlight = "sputnik.settings.codeBlockHighlight"
     static let htmlSyntaxCheck = "sputnik.settings.htmlSyntaxCheck"
+    static let jsonAutoCompleteEnabled = "sputnik.settings.jsonAutoCompleteEnabled"
+    static let jsonValidationEnabled = "sputnik.settings.jsonValidationEnabled"
+    static let jsonDebounceInterval = "sputnik.settings.jsonDebounceInterval"
+    static let jsonAutoCompleteStep = "sputnik.settings.jsonAutoCompleteStep"
     static let supportingAIConfig = "sputnik.settings.supportingAIConfig"
 }

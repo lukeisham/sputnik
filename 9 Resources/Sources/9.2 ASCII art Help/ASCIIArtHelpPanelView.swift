@@ -138,7 +138,7 @@ private struct ASCIIArtTopicContentView: View {
                     .font(.system(size: SputnikFont.body))
                     .foregroundStyle(SputnikColor.primaryText)
                     .task {
-                        resolvedBody = loadMarkdownBody(for: topic.id)
+                        resolvedBody = await loadMarkdownBody(for: topic.id)
                     }
             }
 
@@ -198,10 +198,6 @@ private struct ASCIIArtTopicContentView: View {
                 }
             }
         }
-        .task {
-            // Kick off art resolution early — overlaps with body rendering.
-            await loadRelatedArt()
-        }
     }
 
     // MARK: - Body Rendering
@@ -256,7 +252,7 @@ private struct ASCIIArtTopicContentView: View {
 
     /// Loads all related art pieces from the ASCII Library.
     private func loadRelatedArt() async {
-        guard !topic.relatedArtIDs.isEmpty, resolvedArt.isEmpty else { return }
+        guard !topic.relatedArtIDs.isEmpty, resolvedArt.isEmpty, !isLoadingArt else { return }
         isLoadingArt = true
         defer { isLoadingArt = false }
 
@@ -280,14 +276,13 @@ private struct ASCIIArtTopicContentView: View {
         case artPlaceholder(String)
     }
 
+    // try! is safe: the pattern is a compile-time constant and has been verified to compile.
+    private static let artPlaceholderRegex = try! NSRegularExpression(pattern: "@\\{art:([^}]+)\\}")
+
     /// Parses `@{art:ID}` placeholders out of a body string.
     private func parsePlaceholders(in text: String) -> [BodySegment] {
         var segments: [BodySegment] = []
-        guard
-            let pattern = try? NSRegularExpression(
-                pattern: "@\\{art:([^}]+)\\}"
-            )
-        else { return [.text(text)] }
+        let pattern = Self.artPlaceholderRegex
 
         let nsRange = NSRange(text.startIndex..<text.endIndex, in: text)
         var lastEnd = text.startIndex
@@ -329,7 +324,8 @@ private struct ASCIIArtTopicContentView: View {
     ///
     /// Topic IDs follow the pattern `"category/topic-name"` (e.g. `"basics/drawing-shapes"`),
     /// which maps to a file at `9.2 ASCII art Help/basics/drawing-shapes.md` in the bundle.
-    private func loadMarkdownBody(for topicID: String) -> String? {
+    /// The blocking `String(contentsOf:)` read runs on the cooperative thread pool (SR-4).
+    private func loadMarkdownBody(for topicID: String) async -> String? {
         let components = topicID.split(separator: "/", maxSplits: 1)
         guard components.count == 2 else { return nil }
 
@@ -349,6 +345,8 @@ private struct ASCIIArtTopicContentView: View {
             return nil
         }
 
-        return try? String(contentsOf: url, encoding: .utf8)
+        return await Task.detached(priority: .utility) {
+            try? String(contentsOf: url, encoding: .utf8)
+        }.value
     }
 }

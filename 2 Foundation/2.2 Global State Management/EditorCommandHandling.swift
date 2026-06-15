@@ -16,6 +16,9 @@ public protocol EditorCommandHandling: AnyObject {
     /// Opens the HTML Preview panel with the current file.
     func renderAsHTML() async throws
 
+    /// Opens the JSON viewer panel (Module 8) with the current file (⌃⌘J, Edit > Render as...).
+    func renderAsJSON() async throws
+
     /// Presents the ASCII Studio for the active editor.
     func showASCIIStudio() async throws
 

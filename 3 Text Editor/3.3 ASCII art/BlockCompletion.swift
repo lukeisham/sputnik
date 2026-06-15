@@ -47,6 +47,11 @@ public final class BlockCompletion {
         let found       = text.range(of: payload.pattern, range: searchRange)
         guard found.location != NSNotFound else { return }
 
+        // Register undo before expanding so ⌘Z restores the trigger pattern.
+        let expandedRange = NSRange(location: found.location, length: (payload.frame as NSString).length)
+        textView.undoManager?.registerUndo(withTarget: textView) { tv in
+            tv.textStorage?.replaceCharacters(in: expandedRange, with: payload.pattern)
+        }
         storage.replaceCharacters(in: found, with: payload.frame)
     }
 

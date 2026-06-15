@@ -36,13 +36,16 @@ public struct ASCIIStudioView: View {
     @State private var selectedCategory: ASCIILibraryBrowser.Category = .frames
 
     // Editor
-    @State private var imageEditor = ASCIIImageEditor()
+    @StateObject private var imageEditor = ASCIIImageEditor()
     @State private var showEditTools: Bool = false
     @State private var replaceChar: String = ""
     @State private var fillChar: String = ""
 
     // Source tracking
     @State private var sourceImageName: String = ""
+
+    // Whether the editor text view has ever held focus (tracked via notifications).
+    @State private var hasKnownEditor: Bool = false
 
     // Warn-before-discard alert
     @State private var showDiscardWarning: Bool = false
@@ -79,6 +82,15 @@ public struct ASCIIStudioView: View {
             }
         }
         .frame(minWidth: 320, minHeight: 400)
+        .task {
+            ASCIIStudioCoordinator.startTracking()
+            hasKnownEditor = ASCIIStudioCoordinator.lastKnownTextView != nil
+            for await _ in NotificationCenter.default.notifications(
+                named: .editorTextViewDidBecomeFirstResponder
+            ) {
+                hasKnownEditor = true
+            }
+        }
         .alert("Discard Edits?", isPresented: $showDiscardWarning) {
             Button("Cancel", role: .cancel) {
                 pendingAction = nil
@@ -144,9 +156,9 @@ public struct ASCIIStudioView: View {
             Button("Insert at Cursor") {
                 insertASCII(imageEditor.asString())
             }
-            .disabled(imageEditor.grid.isEmpty)
+            .disabled(imageEditor.grid.isEmpty || !hasKnownEditor)
             .buttonStyle(.borderedProminent)
-            .help("Insert at cursor in the editor")
+            .help(hasKnownEditor ? "Insert at cursor in the editor" : "Focus the editor first")
         }
     }
 
@@ -290,13 +302,23 @@ public struct ASCIIStudioView: View {
                 TextField("Fill", text: $fillChar)
                     .frame(width: 36)
                     .controlSize(.small)
-                Button("Fill") {
+                Button("Fill non-space") {
                     guard let char = fillChar.first else { return }
                     imageEditor.fill(char)
                     fillChar = ""
                 }
                 .buttonStyle(.bordered)
                 .controlSize(.small)
+                .help("Replace every non-space character in the grid with the given character")
+
+                Button("Fill all") {
+                    guard let char = fillChar.first else { return }
+                    imageEditor.fillAll(char)
+                    fillChar = ""
+                }
+                .buttonStyle(.bordered)
+                .controlSize(.small)
+                .help("Replace every character in the grid (including spaces) with the given character")
             }
 
             Spacer()
@@ -462,7 +484,9 @@ public struct ASCIIStudioView: View {
 
     private func openTXT() {
         guard let result = ASCIIExporter.open() else { return }
-        imageEditor.load(result.content, targetColumns: 80)
+        let maxLineWidth = result.content.components(separatedBy: .newlines).map(\.count).max() ?? 80
+        imageEditor.load(result.content, targetColumns: maxLineWidth)
+        targetWidth = Double(maxLineWidth)
         sourceImageName = result.filename
         showEditTools = true
     }

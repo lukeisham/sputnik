@@ -14,7 +14,7 @@ public final class ASCIIArtLanguageProvider {
 
     private weak var textView: NSTextView?
     private weak var ghostOverlay: GhostTextOverlay?
-    let blockCompletion: BlockCompletion
+    private let blockCompletion: BlockCompletion
     private let settings: SettingsStore
     private let completionProvider: any CompletionProviding
     private let debounce = DebounceTimer()

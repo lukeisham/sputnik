@@ -26,6 +26,10 @@ struct HelpMenuGroup: Commands {
                 appState.requestedHelpTopic = .html
             }
 
+            Button("JSON Help") {
+                appState.requestedHelpTopic = .json
+            }
+
             Button("ASCII Art Help") {
                 appState.requestedHelpTopic = .asciiArt
             }

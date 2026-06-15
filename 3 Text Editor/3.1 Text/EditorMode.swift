@@ -10,5 +10,6 @@ public enum EditorMode: String, Sendable, CaseIterable {
     case plainText = "Plain Text"
     case markdown  = "Markdown"
     case html      = "HTML"
+    case json      = "JSON"
     case asciiArt  = "ASCII Art"
 }
