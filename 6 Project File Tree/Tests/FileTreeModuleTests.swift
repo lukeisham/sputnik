@@ -555,73 +555,99 @@ struct FileTreeViewModelTests {
 }
 
 // MARK: - FileSystemWatcher
+// FSEventStream-based watcher (ISS-111a). The old NSFilePresenter tests are
+// replaced: the presenter callback stubs no longer exist. Tests here verify the
+// public API (watchedURL, changeStream, stop) and — via a real temp-dir fixture —
+// that POSIX writes actually trigger the stream, which NSFilePresenter could not do.
 
 struct FileSystemWatcherTests {
 
-    @Test func init_setsURL() {
-        let url = URL(fileURLWithPath: "/tmp/watchtest")
+    @Test func init_exposesWatchedURL() {
+        let url = URL(fileURLWithPath: "/tmp/watchtest-init")
         let watcher = FileSystemWatcher(url: url)
         defer { watcher.stop() }
-        #expect(watcher.presentedItemURL == url)
+        #expect(watcher.watchedURL == url)
     }
 
-    @Test func stop_finishesStream() async {
-        let watcher = FileSystemWatcher(url: URL(fileURLWithPath: "/tmp/watchtest"))
+    @Test func stop_finishesChangeStream() async {
+        let watcher = FileSystemWatcher(url: URL(fileURLWithPath: "/tmp/watchtest-stop"))
         watcher.stop()
         var count = 0
         for await _ in watcher.changeStream { count += 1 }
         #expect(count == 0)
     }
 
-    @Test func presentedSubitemDidChange_emitsURL() async {
-        let watcher = FileSystemWatcher(url: URL(fileURLWithPath: "/tmp/watchtest"))
-        defer { watcher.stop() }
-        let changed = URL(fileURLWithPath: "/tmp/watchtest/file.txt")
-        watcher.presentedSubitemDidChange(at: changed)
-        var received: URL?
-        for await url in watcher.changeStream {
-            received = url
-            break
-        }
-        #expect(received == changed)
+    @Test func stopIsIdempotent() {
+        let watcher = FileSystemWatcher(url: URL(fileURLWithPath: "/tmp/watchtest-idem"))
+        watcher.stop()
+        watcher.stop()   // must not crash or assert
     }
 
-    @Test func presentedSubitemDidAppear_emitsURL() async {
-        let watcher = FileSystemWatcher(url: URL(fileURLWithPath: "/tmp/watchtest"))
-        defer { watcher.stop() }
-        let appeared = URL(fileURLWithPath: "/tmp/watchtest/new.txt")
-        watcher.presentedSubitemDidAppear(at: appeared)
-        var received: URL?
-        for await url in watcher.changeStream {
-            received = url
-            break
-        }
-        #expect(received == appeared)
-    }
+    /// A POSIX write inside the watched directory fires `FSEventStream` and arrives
+    /// on `changeStream`. This is the core guarantee NSFilePresenter could not provide
+    /// for terminal/git/build-tool writes (ISS-111a).
+    @Test func posixWriteInsideDirectoryEmitsChangeEvent() async throws {
+        let dir = FileManager.default.temporaryDirectory
+            .appendingPathComponent("sputnik-watcher-\(UUID().uuidString)", isDirectory: true)
+        try FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: dir) }
 
-    @Test func presentedItemDidChange_emitsWatchedURL() async {
-        let base = URL(fileURLWithPath: "/tmp/watchtest")
-        let watcher = FileSystemWatcher(url: base)
+        let watcher = FileSystemWatcher(url: dir)
         defer { watcher.stop() }
-        watcher.presentedItemDidChange()
-        var received: URL?
-        for await url in watcher.changeStream {
-            received = url
-            break
-        }
-        #expect(received == base)
-    }
 
-    @Test func accommodateDeletion_callsCompletionWithNoError() async {
-        let watcher = FileSystemWatcher(url: URL(fileURLWithPath: "/tmp/watchtest"))
-        defer { watcher.stop() }
-        var completionError: Error? = NSError(domain: "sentinel", code: 0)
-        await withCheckedContinuation { (cont: CheckedContinuation<Void, Never>) in
-            watcher.accommodatePresentedItemDeletion { error in
-                completionError = error
-                cont.resume()
+        // Give FSEventStream time to start watching before we write.
+        try await Task.sleep(nanoseconds: 300_000_000)
+
+        let file = dir.appendingPathComponent("test.txt")
+        try Data("hello".utf8).write(to: file)
+
+        let received = await withTaskGroup(of: URL?.self) { group in
+            group.addTask {
+                for await url in watcher.changeStream { return url }
+                return nil
             }
+            group.addTask {
+                try? await Task.sleep(nanoseconds: 5_000_000_000)
+                return nil
+            }
+            let result = await group.next() ?? nil
+            group.cancelAll()
+            return result
         }
-        #expect(completionError == nil)
+
+        #expect(received != nil)
+    }
+
+    /// A POSIX delete of the watched root emits the sentinel URL
+    /// `sputnik://watchedRootLost` (ISS-114).
+    @Test func deletingWatchedRootEmitsSentinel() async throws {
+        let dir = FileManager.default.temporaryDirectory
+            .appendingPathComponent("sputnik-watcher-root-\(UUID().uuidString)", isDirectory: true)
+        try FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
+
+        let watcher = FileSystemWatcher(url: dir)
+        defer { watcher.stop() }
+
+        try await Task.sleep(nanoseconds: 300_000_000)
+        try FileManager.default.removeItem(at: dir)
+
+        let sentinel = URL(string: "sputnik://watchedRootLost")!
+        let received = await withTaskGroup(of: URL?.self) { group in
+            group.addTask {
+                for await url in watcher.changeStream {
+                    if url == sentinel { return url }
+                }
+                return nil
+            }
+            group.addTask {
+                try? await Task.sleep(nanoseconds: 5_000_000_000)
+                return nil
+            }
+            let result = await group.next() ?? nil
+            group.cancelAll()
+            return result
+        }
+
+        #expect(received == sentinel)
     }
 }
