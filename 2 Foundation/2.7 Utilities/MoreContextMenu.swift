@@ -36,6 +36,7 @@ public enum MoreContextMenu {
     ///   - kinds: The candidate `HelpTopic` kinds to build items for. One item per kind.
     ///   - fullText: The full text of the document or view content.
     ///   - cursorOffset: The UTF-16 offset of the cursor or selection start.
+    ///   - selectionLength: The length of the selection in UTF-16 units (default 0).
     ///   - resolver: The shared `HelpContextResolving` instance (concrete type from module 9).
     ///   - onRequest: A closure receiving the resolved `HelpRequest` (or `nil`). The host
     ///     writes this to `AppState.requestedHelpTarget`.
@@ -46,6 +47,7 @@ public enum MoreContextMenu {
         kinds: [HelpTopic],
         fullText: String,
         cursorOffset: Int,
+        selectionLength: Int = 0,
         resolver: HelpContextResolving,
         onRequest: @escaping (HelpRequest?) -> Void
     ) -> [NSMenuItem] {
@@ -59,7 +61,8 @@ public enum MoreContextMenu {
                     kind: kind,
                     selectedText: selectedText,
                     fullText: fullText,
-                    cursorOffset: cursorOffset
+                    cursorOffset: cursorOffset,
+                    selectionLength: selectionLength
                 )
                 Task {
                     let request = await resolver.resolve(query)

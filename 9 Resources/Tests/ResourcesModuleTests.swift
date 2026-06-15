@@ -711,6 +711,195 @@ extension PreviewImageResolver.ResolvedImage {
     }
 }
 
+// MARK: - HelpExternalSearchBuilderTests
+
+struct HelpExternalSearchBuilderTests {
+
+    // MARK: URL structure
+
+    @Test func grammarTopicProducesGoogleSearchURL() {
+        let links = HelpExternalSearchBuilder.build(
+            title: "Subject and Predicate",
+            searchTerms: ["sentence subject", "predicate"],
+            kind: .grammar
+        )
+        #expect(!links.isEmpty)
+        #expect(links[0].url.scheme == "https")
+        #expect(links[0].url.host == "www.google.com")
+        #expect(links[0].url.path == "/search")
+    }
+
+    @Test func urlContainsPercentEncodedTitle() {
+        let links = HelpExternalSearchBuilder.build(
+            title: "Subject and Predicate",
+            searchTerms: [],
+            kind: .grammar
+        )
+        let query = links.first.flatMap { URLComponents(url: $0.url, resolvingAgainstBaseURL: false) }?
+            .queryItems?.first(where: { $0.name == "q" })?.value
+        #expect(query?.contains("Subject and Predicate") == true)
+    }
+
+    // MARK: Context word per kind
+
+    @Test func grammarContextWordIsGrammar() {
+        #expect(HelpExternalSearchBuilder.contextWord(for: .grammar) == "grammar")
+    }
+
+    @Test func markdownContextWordIsMarkdownSyntax() {
+        #expect(HelpExternalSearchBuilder.contextWord(for: .markdown) == "markdown syntax")
+    }
+
+    @Test func htmlContextWordIsHTML() {
+        #expect(HelpExternalSearchBuilder.contextWord(for: .html) == "HTML")
+    }
+
+    @Test func jsonContextWordIsJSON() {
+        #expect(HelpExternalSearchBuilder.contextWord(for: .json) == "JSON")
+    }
+
+    @Test func asciiArtContextWordIsASCIIArt() {
+        #expect(HelpExternalSearchBuilder.contextWord(for: .asciiArt) == "ASCII art")
+    }
+
+    @Test func sputnikContextWordIsEmpty() {
+        #expect(HelpExternalSearchBuilder.contextWord(for: .sputnik) == "")
+    }
+
+    // MARK: Context word appears in query
+
+    @Test func grammarQueryContainsContextWord() {
+        let links = HelpExternalSearchBuilder.build(
+            title: "Comma Usage",
+            searchTerms: [],
+            kind: .grammar
+        )
+        let query = links.first.flatMap { URLComponents(url: $0.url, resolvingAgainstBaseURL: false) }?
+            .queryItems?.first(where: { $0.name == "q" })?.value
+        #expect(query?.contains("grammar") == true)
+    }
+
+    @Test func markdownQueryContainsContextWord() {
+        let links = HelpExternalSearchBuilder.build(
+            title: "Headings",
+            searchTerms: [],
+            kind: .markdown
+        )
+        let query = links.first.flatMap { URLComponents(url: $0.url, resolvingAgainstBaseURL: false) }?
+            .queryItems?.first(where: { $0.name == "q" })?.value
+        #expect(query?.contains("markdown syntax") == true)
+    }
+
+    @Test func htmlQueryContainsContextWord() {
+        let links = HelpExternalSearchBuilder.build(
+            title: "Links",
+            searchTerms: [],
+            kind: .html
+        )
+        let query = links.first.flatMap { URLComponents(url: $0.url, resolvingAgainstBaseURL: false) }?
+            .queryItems?.first(where: { $0.name == "q" })?.value
+        #expect(query?.contains("HTML") == true)
+    }
+
+    // MARK: Link count
+
+    @Test func noSearchTermsProducesOneLink() {
+        let links = HelpExternalSearchBuilder.build(
+            title: "Semicolons",
+            searchTerms: [],
+            kind: .grammar
+        )
+        #expect(links.count == 1)
+    }
+
+    @Test func distinctSearchTermProducesTwoLinks() {
+        let links = HelpExternalSearchBuilder.build(
+            title: "Their / There / They're",
+            searchTerms: ["their", "there", "they're"],
+            kind: .grammar
+        )
+        #expect(links.count == 2)
+    }
+
+    @Test func atMostTwoLinksReturned() {
+        let links = HelpExternalSearchBuilder.build(
+            title: "Commas",
+            searchTerms: ["comma", "serial comma", "Oxford comma", "list comma"],
+            kind: .grammar
+        )
+        #expect(links.count <= 2)
+    }
+
+    @Test func searchTermIdenticalToTitleProducesOneLink() {
+        let links = HelpExternalSearchBuilder.build(
+            title: "Commas",
+            searchTerms: ["commas"],
+            kind: .grammar
+        )
+        #expect(links.count == 1)
+    }
+
+    @Test func searchTermIdenticalToTitleCaseInsensitive() {
+        let links = HelpExternalSearchBuilder.build(
+            title: "Commas",
+            searchTerms: ["COMMAS"],
+            kind: .grammar
+        )
+        #expect(links.count == 1)
+    }
+
+    // MARK: Edge / crash-safety
+
+    @Test func emptyTitleReturnsEmpty() {
+        let links = HelpExternalSearchBuilder.build(
+            title: "",
+            searchTerms: ["some term"],
+            kind: .grammar
+        )
+        #expect(links.isEmpty)
+    }
+
+    @Test func whitespaceOnlyTitleReturnsEmpty() {
+        let links = HelpExternalSearchBuilder.build(
+            title: "   ",
+            searchTerms: [],
+            kind: .grammar
+        )
+        #expect(links.isEmpty)
+    }
+
+    @Test func emptySearchTermsDoesNotCrash() {
+        let links = HelpExternalSearchBuilder.build(
+            title: "Bold Text",
+            searchTerms: [],
+            kind: .markdown
+        )
+        #expect(links.count == 1)
+    }
+
+    // MARK: Label format
+
+    @Test func labelContainsTitleAndContextWord() {
+        let links = HelpExternalSearchBuilder.build(
+            title: "Colons",
+            searchTerms: [],
+            kind: .grammar
+        )
+        #expect(links[0].label.contains("Colons"))
+        #expect(links[0].label.contains("grammar"))
+    }
+
+    @Test func secondLinkLabelContainsExamples() {
+        let links = HelpExternalSearchBuilder.build(
+            title: "Colons",
+            searchTerms: ["colon usage"],
+            kind: .grammar
+        )
+        #expect(links.count == 2)
+        #expect(links[1].label.contains("examples"))
+    }
+}
+
 // MARK: - GrammarHelpIndexTests
 
 struct GrammarHelpIndexTests {
@@ -725,5 +914,194 @@ struct GrammarHelpIndexTests {
     @Test func searchByTermReturnsEmptyForWhitespaceOnly() async {
         let results = await GrammarHelpIndex.shared.searchByTerm("   ")
         #expect(results.isEmpty)
+    }
+
+    // MARK: - Structural-Aware Search
+
+    @Test func structuralBoostPrioritizesStructuralTopics() async {
+        let standardResults = await GrammarHelpIndex.shared.searchByTerm("subject")
+        let structuralResults = await GrammarHelpIndex.shared.searchByTerm("subject", preferStructural: true)
+
+        // Both should return results
+        #expect(!standardResults.isEmpty)
+        #expect(!structuralResults.isEmpty)
+
+        // Structural search should prioritize structural topics higher
+        // The first result should ideally be a structural topic when preferStructural is true
+        if let firstStructural = structuralResults.first {
+            #expect(firstStructural.structuralLevel == .structural)
+        }
+    }
+
+    @Test func structuralLevelFieldDecodes() async {
+        let topics = await GrammarHelpIndex.shared.allTopics()
+        #expect(!topics.isEmpty)
+
+        // All topics should have a structuralLevel set (defaults to .lexical)
+        for topic in topics {
+            #expect(topic.structuralLevel == .lexical || topic.structuralLevel == .structural)
+        }
+
+        // There should be at least some structural topics
+        let structuralTopics = topics.filter { $0.structuralLevel == .structural }
+        #expect(!structuralTopics.isEmpty)
+    }
+
+    @Test func allStructuralTopicsAreMarked() async {
+        let topics = await GrammarHelpIndex.shared.allTopics()
+        let structuralIDs = Set([
+            "sentence-structure/clause-types",
+            "sentence-structure/diagramming-basics",
+            "sentence-structure/direct-and-indirect-objects",
+            "sentence-structure/phrase-types",
+            "sentence-structure/sentence-types",
+            "sentence-structure/subject-and-predicate",
+            "grammar/subject-verb-agreement",
+            "grammar/dangling-modifiers",
+            "grammar/conjunctions",
+            "grammar/prepositions",
+            "grammar/articles-a-an-the",
+            "punctuation/apostrophes",
+            "punctuation/colons",
+            "punctuation/commas",
+            "punctuation/dashes-and-hyphens",
+            "punctuation/parentheses-and-brackets",
+            "punctuation/quotation-marks",
+            "punctuation/semicolons"
+        ])
+
+        for topic in topics {
+            if structuralIDs.contains(topic.id) {
+                #expect(topic.structuralLevel == .structural,
+                    "Expected \(topic.id) to be structural but was \(topic.structuralLevel)")
+            }
+        }
+    }
+}
+
+// MARK: - GrammarSelectionAnalyzerTests
+
+struct GrammarSelectionAnalyzerTests {
+
+    // MARK: - Word Count Detection
+
+    @Test func singleWordSelectionCountsAsOne() async {
+        let analysis = await GrammarSelectionAnalyzer.analyze(
+            fullText: "The cat sat on the mat",
+            cursorOffset: 4,  // "cat"
+            selectionLength: 3
+        )
+        #expect(analysis.wordCount == 1)
+    }
+
+    @Test func multiWordSelectionCountsCorrectly() async {
+        let analysis = await GrammarSelectionAnalyzer.analyze(
+            fullText: "The cat sat on the mat",
+            cursorOffset: 4,  // "cat sat on"
+            selectionLength: 11
+        )
+        #expect(analysis.wordCount == 3)
+    }
+
+    @Test func zeroLengthSelectionCountsAsOne() async {
+        let analysis = await GrammarSelectionAnalyzer.analyze(
+            fullText: "The cat sat",
+            cursorOffset: 0,
+            selectionLength: 0
+        )
+        #expect(analysis.wordCount == 1)  // Empty string splits to [""] which counts as 1
+    }
+
+    // MARK: - Role Detection (Subject vs Object)
+
+    @Test func nounPhraseBeforeVerbIsSubject() async {
+        let text = "The cat sat"
+        // "cat" is position 4, before main verb "sat"
+        let analysis = await GrammarSelectionAnalyzer.analyze(
+            fullText: text,
+            cursorOffset: 4,
+            selectionLength: 3
+        )
+        #expect(analysis.role == .subject)
+    }
+
+    @Test func nounPhraseAfterVerbIsObject() async {
+        let text = "The cat sat on the mat"
+        // "mat" is position 18, after main verb "sat"
+        let analysis = await GrammarSelectionAnalyzer.analyze(
+            fullText: text,
+            cursorOffset: 18,
+            selectionLength: 3
+        )
+        #expect(analysis.role == .object)
+    }
+
+    @Test func selectionWithoutVerbIsUnknown() async {
+        let text = "Running quickly"  // Gerund + adverb, no finite verb
+        let analysis = await GrammarSelectionAnalyzer.analyze(
+            fullText: text,
+            cursorOffset: 0,
+            selectionLength: 7
+        )
+        #expect(analysis.role == .unknown)
+    }
+
+    // MARK: - Heuristic Limitations
+
+    @Test func passiveVoiceMisclassifiesRole() async {
+        // "The mat was sat on by the cat"
+        // In passive voice, the original object appears first
+        // This is a known heuristic limitation
+        let text = "The mat was sat on by the cat"
+        let analysis = await GrammarSelectionAnalyzer.analyze(
+            fullText: text,
+            cursorOffset: 4,  // "mat" — logically the object, but heuristic sees it before verb
+            selectionLength: 3
+        )
+        // The heuristic will misclassify this — document as a limitation
+        // Passive voice is expected to misclassify
+        #expect(analysis.role == .subject)  // Heuristic says subject (before verb) — INCORRECT for passive
+    }
+}
+
+// MARK: - GrammarHelpCoordinatorTests
+
+struct GrammarHelpCoordinatorTests {
+
+    @Test func singleWordSelectionUsesStandardSearch() async {
+        let result = await GrammarHelpCoordinator.shared.lookup(
+            word: "their",
+            source: .editor,
+            analysisResult: GrammarSelectionAnalyzer.AnalysisResult(wordCount: 1, role: .unknown)
+        )
+
+        #expect(result != nil)
+        #expect(result?.primaryTopic.title.contains("Their") ?? false)
+    }
+
+    @Test func multiWordSelectionBootsStructuralTopics() async {
+        // Looking up "subject predicate" — a multi-word structural phrase
+        let result = await GrammarHelpCoordinator.shared.lookup(
+            word: "subject",
+            source: .editor,
+            analysisResult: GrammarSelectionAnalyzer.AnalysisResult(wordCount: 2, role: .subject)
+        )
+
+        // With the structural boost, we should get a structural topic if one matches
+        #expect(result != nil)
+        if let primary = result?.primaryTopic {
+            // If "subject" matched both a lexical and structural topic, structural should rank first
+            #expect(primary.structuralLevel == .structural || primary.title.contains("Subject"))
+        }
+    }
+
+    @Test func nilAnalysisResultDefaultsToStandardSearch() async {
+        let result = await GrammarHelpCoordinator.shared.lookup(
+            word: "their",
+            source: .editor,
+            analysisResult: nil
+        )
+
+        #expect(result != nil)
     }
 }

@@ -321,6 +321,17 @@ public struct SputnikHelpPanel<Topic: HelpTopicProtocol, ContentView: View>: Vie
                         Divider()
                         relatedTopicsSection(topic)
                     }
+
+                    // More details: external search links
+                    let moreLinks = HelpExternalSearchBuilder.build(
+                        title: topic.title,
+                        searchTerms: topic.searchTerms,
+                        kind: helpKind
+                    )
+                    if !moreLinks.isEmpty {
+                        Divider()
+                        moreDetailsSection(moreLinks)
+                    }
                 }
                 .padding(SputnikSpacing.md)
             }
@@ -393,6 +404,29 @@ public struct SputnikHelpPanel<Topic: HelpTopicProtocol, ContentView: View>: Vie
                         .font(.system(size: SputnikFont.caption))
                         .foregroundStyle(SputnikColor.tertiaryText)
                         .strikethrough()
+                }
+            }
+        }
+    }
+
+    // MARK: - More Details
+
+    private func moreDetailsSection(_ links: [HelpExternalSearch]) -> some View {
+        VStack(alignment: .leading, spacing: SputnikSpacing.xs) {
+            Text("More details:")
+                .font(.system(size: SputnikFont.caption, weight: .semibold))
+                .foregroundStyle(SputnikColor.secondaryText)
+
+            ForEach(links, id: \.label) { link in
+                Link(destination: link.url) {
+                    HStack(alignment: .top, spacing: 4) {
+                        Text("•")
+                            .font(.system(size: SputnikFont.caption))
+                            .foregroundStyle(SputnikColor.tertiaryText)
+                        Text(link.label)
+                            .font(.system(size: SputnikFont.caption))
+                            .foregroundStyle(SputnikColor.accent)
+                    }
                 }
             }
         }

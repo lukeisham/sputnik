@@ -320,6 +320,7 @@ public final class EditorTextView: NSTextView {
             kinds: [kind],
             fullText: string,
             cursorOffset: selection.location,
+            selectionLength: selection.length,
             resolver: resolver,
             onRequest: { [weak self] request in
                 if let request = request {

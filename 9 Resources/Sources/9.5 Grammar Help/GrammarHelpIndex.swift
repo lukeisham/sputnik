@@ -80,6 +80,52 @@ public actor GrammarHelpIndex {
         return scored.sorted { $0.score > $1.score }.map { $0.topic }
     }
 
+    /// Targeted fuzzy-match search with structural-level bias for multi-word selections.
+    ///
+    /// When `preferStructural` is true, adds a weight bonus to `.structural` topics,
+    /// causing them to sort above lexical topics. This is used when the user selects
+    /// a multi-word phrase — structural grammar topics (sentence parts, modifiers,
+    /// punctuation) are more relevant than word-level topics (spelling, homophones).
+    ///
+    /// If no structural topics match, the lexical fallback ensures a result is returned
+    /// whenever a single-word search would match.
+    ///
+    /// - Parameters:
+    ///   - term: The word or phrase to search for.
+    ///   - preferStructural: If true, boost structural topics above lexical ones.
+    /// - Returns: Scored topics sorted by relevance, highest first.
+    public func searchByTerm(_ term: String, preferStructural: Bool) async -> [GrammarHelpContent] {
+        await ensureLoaded()
+        let t = term.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+        guard !t.isEmpty else { return [] }
+
+        var scored: [(topic: GrammarHelpContent, score: Int)] = []
+        for topic in topics {
+            var score = 0
+            let lowerTitle = topic.title.lowercased()
+            // Exact match on search term
+            if topic.searchTerms.contains(where: { $0.lowercased() == t }) {
+                score += 10
+            }
+            // Substring match on search term
+            if topic.searchTerms.contains(where: { $0.lowercased().contains(t) }) {
+                score += 5
+            }
+            // Title match
+            if lowerTitle.contains(t) {
+                score += 3
+            }
+            // Structural boost (only if preferStructural is true and topic is structural)
+            if preferStructural && topic.structuralLevel == .structural {
+                score += 20  // Large boost to prioritize structural topics
+            }
+            if score > 0 {
+                scored.append((topic, score))
+            }
+        }
+        return scored.sorted { $0.score > $1.score }.map { $0.topic }
+    }
+
     /// Returns the topic with the given ID, or `nil` if not found.
     public func topic(id: String) async -> GrammarHelpContent? {
         await ensureLoaded()

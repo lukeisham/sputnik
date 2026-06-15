@@ -17,6 +17,9 @@ public struct HelpContextQuery: Sendable, Equatable {
     public let fullText: String
     /// The UTF-16 offset of the cursor or selection start.
     public let cursorOffset: Int
+    /// The length of the selection in UTF-16 code units (default 0 for cursor-only).
+    /// Used by grammar help to detect multi-word selections and prioritize structural topics.
+    public let selectionLength: Int
 
     /// Creates a help context query.
     /// - Parameters:
@@ -24,16 +27,19 @@ public struct HelpContextQuery: Sendable, Equatable {
     ///   - selectedText: The user's selected text.
     ///   - fullText: The full document text (default empty).
     ///   - cursorOffset: The cursor offset (default 0).
+    ///   - selectionLength: The length of the selection (default 0).
     public init(
         kind: HelpTopic,
         selectedText: String,
         fullText: String = "",
-        cursorOffset: Int = 0
+        cursorOffset: Int = 0,
+        selectionLength: Int = 0
     ) {
         self.kind = kind
         self.selectedText = selectedText
         self.fullText = fullText
         self.cursorOffset = cursorOffset
+        self.selectionLength = selectionLength
     }
 }
 

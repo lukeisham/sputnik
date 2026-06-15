@@ -68,20 +68,30 @@ public final class GrammarHelpCoordinator: ObservableObject {
 
     /// Performs a context-sensitive lookup for the given word from the specified source.
     ///
-    /// The lookup searches `GrammarHelpIndex` by both title and `searchTerms` using
-    /// `searchByTerm(_:)`, which scores matches: exact search-term hits rank highest,
-    /// followed by substring matches, and finally title matches. When a word matches
-    /// multiple topics, the highest-scoring match becomes `primaryTopic` and the
-    /// rest become `alternatives`.
+    /// The lookup searches `GrammarHelpIndex` by both title and `searchTerms`. For single-word
+    /// selections, the standard lexical-first scoring is used. For multi-word selections,
+    /// structural topics (sentence parts, modifiers, punctuation) are prioritized over
+    /// lexical ones (spelling, homophones) via `searchByTerm(_:preferStructural:)`.
+    ///
+    /// When a word matches multiple topics, the highest-scoring match becomes `primaryTopic`
+    /// and the rest become `alternatives`.
     ///
     /// - Parameters:
     ///   - word: The word or phrase to look up (e.g. "their", "run", "its").
     ///   - source: The panel that initiated the lookup (`.editor` or `.markdownPreview`).
+    ///   - analysiResult: Optional analysis from `GrammarSelectionAnalyzer`. If provided and
+    ///     indicates a multi-word selection, structural topics are boosted.
     /// - Returns: A `GrammarHelpLookupResult` with the primary topic and alternatives,
     ///            or `nil` if no topic matched the word.
     @discardableResult
-    public func lookup(word: String, source: GrammarHelpSource) async -> GrammarHelpLookupResult? {
-        let matches = await index.searchByTerm(word)
+    public func lookup(
+        word: String,
+        source: GrammarHelpSource,
+        analysisResult: GrammarSelectionAnalyzer.AnalysisResult? = nil
+    ) async -> GrammarHelpLookupResult? {
+        // Multi-word selection: prefer structural topics. Single-word: use standard search.
+        let preferStructural = (analysisResult?.wordCount ?? 1) > 1
+        let matches = await index.searchByTerm(word, preferStructural: preferStructural)
 
         guard let primary = matches.first else {
             lastResult = nil
