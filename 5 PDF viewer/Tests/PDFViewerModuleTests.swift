@@ -6,6 +6,24 @@ import PDFKit
 import AppKit
 @testable import PDFViewerModule
 
+// MARK: - Test helpers
+
+/// Integer-keyed subscript over the thumbnail `NSCache` so tests read like the
+/// dictionary the cache replaced (ISS-106). `NSCache` exposes no subscript and no
+/// way to enumerate or count entries, so emptiness is asserted per-key instead.
+private extension NSCache where KeyType == NSNumber, ObjectType == NSImage {
+    subscript(_ index: Int) -> NSImage? {
+        get { object(forKey: index as NSNumber) }
+        set {
+            if let newValue {
+                setObject(newValue, forKey: index as NSNumber)
+            } else {
+                removeObject(forKey: index as NSNumber)
+            }
+        }
+    }
+}
+
 // MARK: - Helpers
 
 /// Creates a view model with a single blank PDF page already loaded.
@@ -84,7 +102,8 @@ struct PDFViewerViewModelTests {
 
     @Test func initialThumbnailCacheIsEmpty() {
         let vm = PDFViewerViewModel()
-        #expect(vm.thumbnailCache.isEmpty)
+        // NSCache has no isEmpty/count; a fresh cache returns nil for any key.
+        #expect(vm.thumbnailCache[0] == nil)
     }
 
     // MARK: totalPageCount
@@ -398,7 +417,7 @@ struct PDFViewerViewModelTests {
         let vm = makeViewModelWithSinglePage()
         vm.thumbnailCache[0] = NSImage()
         vm.closeDocument()
-        #expect(vm.thumbnailCache.isEmpty)
+        #expect(vm.thumbnailCache[0] == nil)
     }
 
     // MARK: Thumbnail Generation
@@ -406,7 +425,7 @@ struct PDFViewerViewModelTests {
     @Test func generateThumbnailWithNilDocumentDoesNotCrash() {
         let vm = PDFViewerViewModel()
         vm.generateThumbnail(for: 0)
-        #expect(vm.thumbnailCache.isEmpty)
+        #expect(vm.thumbnailCache[0] == nil)
     }
 
     @Test func generateThumbnailForOutOfBoundsIndexDoesNotCrash() {
@@ -447,7 +466,7 @@ struct PDFViewerViewModelTests {
         vm.thumbnailCache[0] = NSImage()
         let badURL = URL(fileURLWithPath: "/tmp/sputnik_test_nonexistent_c.pdf")
         await vm.loadPDF(badURL)
-        #expect(vm.thumbnailCache.isEmpty)
+        #expect(vm.thumbnailCache[0] == nil)
     }
 
     @Test func loadPDFResetsRotationBeforeLoad() async {
