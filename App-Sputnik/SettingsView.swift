@@ -20,6 +20,8 @@ struct SettingsView: View {
                 .tabItem { Label("AI", systemImage: "brain") }
             TemplatesTab(settings: settings, appState: appState)
                 .tabItem { Label("Templates", systemImage: "doc.badge.plus") }
+            ShortcutsTab()
+                .tabItem { Label("Shortcuts", systemImage: "keyboard") }
         }
         .frame(width: 460)
         .padding(SputnikSpacing.lg)

@@ -220,6 +220,10 @@ public struct EditorView: NSViewRepresentable {
                 edTextView.currentLineHighlightEnabled = settings.currentLineHighlightEnabled
                 edTextView.needsDisplay = true
             }
+            if edTextView.indentGuidesEnabled != settings.indentGuidesEnabled {
+                edTextView.indentGuidesEnabled = settings.indentGuidesEnabled
+                edTextView.needsDisplay = true
+            }
         }
 
         // Propagate code-block highlighting toggle.

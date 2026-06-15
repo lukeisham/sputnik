@@ -135,11 +135,10 @@ public struct MinimapScrollBinder: NSViewRepresentable {
         // MARK: - Model rebuild
 
         func rebuildModel(target: NSScrollView?) {
-            guard let target, let textView = target.documentView as? NSTextView else {
+            guard let target, target.documentView is NSTextView else {
                 minimapView?.model = .empty
                 return
             }
-            let text = textView.string
             scheduleRebuild(target: target)
         }
 

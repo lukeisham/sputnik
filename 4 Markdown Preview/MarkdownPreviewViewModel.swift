@@ -129,7 +129,7 @@ public final class MarkdownPreviewViewModel {
             let (nsResult, newSourceMap, newEntries) = await buildBlockCachedAttributedString(
                 markdown: markdown, baseDir: baseDir, cache: cacheSnapshot)
             let wrapped = SendableAttributedString(value: nsResult)
-            await self?.applyRenderedResult(
+            self?.applyRenderedResult(
                 wrapped.value,
                 sourceMap: newSourceMap,
                 newCacheEntries: newEntries,

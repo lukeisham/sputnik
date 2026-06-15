@@ -151,6 +151,9 @@ public final class SettingsStore {
     /// Whether the current line is subtly highlighted in the text editor. Default: `true`.
     public var currentLineHighlightEnabled: Bool = true
 
+    /// Whether vertical indentation guide lines are drawn in the text editor. Default: `true`.
+    public var indentGuidesEnabled: Bool = true
+
     /// Whether fenced code blocks in Markdown receive language-specific token colours.
     /// When `false`, all code blocks render as plain monospace. Default: `true`.
     public var codeBlockHighlightEnabled: Bool = true
@@ -231,6 +234,7 @@ public final class SettingsStore {
         static let spellCheckLocale = "sputnik.settings.spellCheckLocale"
         // Editor appearance
         static let currentLineHighlight = "sputnik.settings.currentLineHighlight"
+        static let indentGuides = "sputnik.settings.indentGuides"
         static let codeBlockHighlight = "sputnik.settings.codeBlockHighlight"
         static let htmlSyntaxCheck = "sputnik.settings.htmlSyntaxCheck"
         // JSON
@@ -323,6 +327,12 @@ public final class SettingsStore {
     public func setCurrentLineHighlightEnabled(_ value: Bool) {
         currentLineHighlightEnabled = value
         persistence.saveSetting(value, forKey: DefaultsKey.currentLineHighlight)
+    }
+
+    /// Enables or disables vertical indentation guide lines and persists the setting.
+    public func setIndentGuidesEnabled(_ value: Bool) {
+        indentGuidesEnabled = value
+        persistence.saveSetting(value, forKey: DefaultsKey.indentGuides)
     }
 
     /// Enables or disables code-block syntax highlighting and persists the setting.

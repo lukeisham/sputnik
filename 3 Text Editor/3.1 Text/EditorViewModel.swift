@@ -397,8 +397,7 @@ public final class EditorViewModel: EditorCommandHandling {
     /// Called by the Edit menu "Interact with" item (⌘I) and right-click menu.
     public func triggerInteraction() {
         guard let coordinator = interactionCoordinator,
-            let textView,
-            let element = coordinator.detectedElement
+            let textView
         else { return }
 
         let selected = editorSelectionOrCurrentLine()
@@ -433,7 +432,7 @@ public final class EditorViewModel: EditorCommandHandling {
         let glyphRange = layoutManager.glyphRange(
             forCharacterRange: range, actualCharacterRange: nil)
         let boundingRect = layoutManager.boundingRect(forGlyphRange: glyphRange, in: container)
-        return textView.convert(boundingRect, to: nil) ?? boundingRect
+        return textView.convert(boundingRect, to: nil)
     }
 
     /// Opens the HTML Preview panel with the current file (⌘⌥P, File menu).

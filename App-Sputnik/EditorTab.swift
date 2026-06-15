@@ -29,6 +29,11 @@ struct EditorTab: View {
                 isOn: Binding(
                     get: { settings.htmlSyntaxCheckEnabled },
                     set: { settings.setHtmlSyntaxCheckEnabled($0) }))
+            Toggle(
+                "Vertical indent lines",
+                isOn: Binding(
+                    get: { settings.indentGuidesEnabled },
+                    set: { settings.setIndentGuidesEnabled($0) }))
 
             Divider()
 

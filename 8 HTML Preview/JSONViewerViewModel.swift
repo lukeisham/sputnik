@@ -18,6 +18,9 @@ enum JSONViewerError: Error {
 ///
 /// Threading: all properties are written on `@MainActor`; the serialization work runs
 /// detached at `.utility` priority and hops back before writing `renderedContent`.
+///
+/// `SendableAttributedString` bridges the non-Sendable `NSAttributedString` across
+/// actor boundaries required by `Task.detached` in Swift 6 language mode.
 @MainActor
 @Observable
 public final class JSONViewerViewModel {
@@ -77,8 +80,8 @@ public final class JSONViewerViewModel {
             let result = await Self.render(text: text, mode: mode)
             guard !Task.isCancelled else { return }
             switch result {
-            case .success(let attributed):
-                self.renderedContent = attributed
+            case .success(let wrapped):
+                self.renderedContent = wrapped.value
                 self.lastError = nil
             case .failure(let error):
                 if case .message(let message) = error {
@@ -92,11 +95,11 @@ public final class JSONViewerViewModel {
     nonisolated private static func render(
         text: String,
         mode: DisplayMode
-    ) async -> Result<NSAttributedString, JSONViewerError> {
+    ) async -> Result<SendableAttributedString, JSONViewerError> {
         return await Task.detached(priority: .utility) {
             let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
             guard !trimmed.isEmpty else {
-                return .success(NSAttributedString())
+                return Result.success(SendableAttributedString(value: NSAttributedString()))
             }
             guard let data = trimmed.data(using: .utf8) else {
                 return .failure(.message("Could not encode text as UTF-8."))
@@ -126,7 +129,7 @@ public final class JSONViewerViewModel {
             }
 
             let attributed = Self.colorize(formatted)
-            return .success(attributed)
+            return .success(SendableAttributedString(value: attributed))
         }.value
     }
 
@@ -192,4 +195,10 @@ public final class JSONViewerViewModel {
 
         return result
     }
+}
+
+/// Bridges non-Sendable `NSAttributedString` across actor boundaries.
+/// Used by `Task.detached` in the JSON render path to satisfy Swift 6 Sendable checking.
+private struct SendableAttributedString: @unchecked Sendable {
+    let value: NSAttributedString
 }

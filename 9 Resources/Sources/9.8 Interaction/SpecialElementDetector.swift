@@ -160,7 +160,6 @@ public final class SpecialElementDetector: SpecialElementDetecting {
     }
 
     private func isInsideFencedCodeBlock(text: String, at offset: Int) -> Bool {
-        let nsText = text as NSString
         let lines = text.components(separatedBy: .newlines)
         var lineStart = 0
         var fenceCount = 0
@@ -388,7 +387,8 @@ public final class SpecialElementDetector: SpecialElementDetecting {
         let nsText = text as NSString
         let searchText = nsText.substring(from: offset)
         if let fenceRange = searchText.range(of: "```") {
-            let distance = searchText.distance(from: searchText.startIndex, to: fenceRange.upperBound)
+            let distance = searchText.distance(
+                from: searchText.startIndex, to: fenceRange.upperBound)
             return offset + distance
         }
         return offset

@@ -120,6 +120,9 @@ struct SettingsLoader {
         if let saved: Bool = persistence.loadSetting(forKey: DefaultsKey.currentLineHighlight) {
             store.currentLineHighlightEnabled = saved
         }
+        if let saved: Bool = persistence.loadSetting(forKey: DefaultsKey.indentGuides) {
+            store.indentGuidesEnabled = saved
+        }
         if let saved: Bool = persistence.loadSetting(forKey: DefaultsKey.codeBlockHighlight) {
             store.codeBlockHighlightEnabled = saved
         }
@@ -209,6 +212,7 @@ private enum DefaultsKey {
     static let asciiTriggerKey = "sputnik.settings.asciiTriggerKey"
     static let spellCheckLocale = "sputnik.settings.spellCheckLocale"
     static let currentLineHighlight = "sputnik.settings.currentLineHighlight"
+    static let indentGuides = "sputnik.settings.indentGuides"
     static let codeBlockHighlight = "sputnik.settings.codeBlockHighlight"
     static let htmlSyntaxCheck = "sputnik.settings.htmlSyntaxCheck"
     static let jsonAutoCompleteEnabled = "sputnik.settings.jsonAutoCompleteEnabled"

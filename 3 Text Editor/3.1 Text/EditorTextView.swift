@@ -42,6 +42,9 @@ public final class EditorTextView: NSTextView {
     /// Whether the current-line highlight is enabled. Set by `EditorView.updateNSView`.
     var currentLineHighlightEnabled: Bool = true
 
+    /// Whether vertical indentation guide lines are enabled. Set by `EditorView.updateNSView`.
+    var indentGuidesEnabled: Bool = false
+
     /// Sets the Foundation help target to reveal + navigate a help panel. Wired by
     /// `EditorView` so the AppKit text view never reaches into `AppState` directly.
     var onRequestHelp: ((HelpRequest) -> Void)?
@@ -267,6 +270,106 @@ public final class EditorTextView: NSTextView {
         fragRect.fill()
 
         lastHighlightedLineRect = fragRect
+
+        // Draw vertical indentation guides after the current-line highlight (step 3).
+        drawIndentGuides(in: rect)
+    }
+
+    // MARK: - Indentation guides
+
+    /// Draws thin vertical guide lines at each indentation level for visible line fragments.
+    /// Runs in the display pass after the current-line highlight. Guides clip to the dirty
+    /// `rect` and use a low-alpha separator-adaptive colour so they stay subtle in both
+    /// light and dark modes. Word-wrapped continuation lines only draw guides for their
+    /// own leading whitespace, never restarting the indent count.
+    private func drawIndentGuides(in rect: NSRect) {
+        guard indentGuidesEnabled,
+            let layoutMgr = layoutManager,
+            let textContainer = textContainer,
+            let font = self.font
+        else { return }
+
+        let origin = textContainerOrigin
+        let indentSize = 4  // standard editor indent width in columns
+
+        // Measure the width of one column (a space character) using the current font.
+        let spaceStr = NSAttributedString(string: " ", attributes: [.font: font])
+        let columnWidth = spaceStr.size().width
+        guard columnWidth > 0 else { return }
+        let indentWidth = columnWidth * CGFloat(indentSize)
+
+        let guideColour = (self.textColor ?? NSColor.textColor).withAlphaComponent(0.10)
+
+        // Find the glyph range that intersects the dirty rect so we only visit visible lines.
+        let glyphRange = layoutMgr.glyphRange(
+            forBoundingRect: rect.offsetBy(
+                dx: -origin.x, dy: -origin.y), in: textContainer)
+        guard glyphRange.length > 0 else { return }
+
+        var glyphIndex = glyphRange.location
+        let endGlyph = NSMaxRange(glyphRange)
+
+        while glyphIndex < endGlyph {
+            var fragRange: NSRange = NSRange(location: 0, length: 0)
+            let fragRectRaw = layoutMgr.lineFragmentRect(
+                forGlyphAt: glyphIndex, effectiveRange: &fragRange)
+            let fragRect = fragRectRaw.offsetBy(dx: origin.x, dy: origin.y)
+            glyphIndex = NSMaxRange(fragRange)
+
+            // Clip to the dirty rect.
+            let clipped = rect.intersection(fragRect)
+            guard !clipped.isNull, !clipped.isInfinite else { continue }
+
+            // Get the text for this line fragment to measure leading whitespace.
+            let charRange = layoutMgr.characterRange(
+                forGlyphRange: fragRange, actualGlyphRange: nil)
+            guard charRange.length > 0,
+                let textStorage = textStorage
+            else { continue }
+
+            let lineText = (textStorage.string as NSString).substring(with: charRange)
+            let leading = leadingWhitespaceWidth(
+                lineText, columnWidth: columnWidth, indentSize: indentSize)
+            guard leading.spaces > 0 else { continue }
+
+            // Draw one guide per indent level.
+            for level in 1...leading.spaces {
+                let x = origin.x + indentWidth * CGFloat(level) - 0.5
+                let guideRect = NSRect(
+                    x: x, y: clipped.minY,
+                    width: 1, height: clipped.height)
+                guideColour.setFill()
+                guideRect.fill()
+            }
+        }
+    }
+
+    /// Returns the number of indent levels in a line's leading whitespace.
+    ///
+    /// - For tab-indented lines, each tab is one level.
+    /// - For space-indented lines, every `indentSize` spaces is one level.
+    /// - Mixed leading whitespace uses the first character type encountered.
+    private func leadingWhitespaceWidth(
+        _ line: String, columnWidth _: CGFloat, indentSize: Int
+    ) -> (spaces: Int, tabs: Int) {
+        var spaceCount = 0
+        var tabCount = 0
+        var sawTab = false
+        for ch in line {
+            if ch == "\t" {
+                sawTab = true
+                tabCount += 1
+            } else if ch == " " {
+                if sawTab { break }  // mixed: stop at first non-tab after tabs
+                spaceCount += 1
+            } else {
+                break
+            }
+        }
+        if tabCount > 0 {
+            return (spaces: tabCount, tabs: tabCount)
+        }
+        return (spaces: spaceCount / indentSize, tabs: 0)
     }
 
     // MARK: - Right-click More Context (3.5 / module 9 / shared utility)
