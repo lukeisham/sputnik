@@ -99,6 +99,17 @@ public struct EditorView: NSViewRepresentable {
             appState?.requestedHelpTarget = request
         }
 
+        // Interaction coordinator for special-element detection and auto-fill.
+        let interactionCoordinator = InteractionCoordinator(settingsStore: settings)
+        interactionCoordinator.onAvailabilityChanged = { [weak appState] available in
+            MainActor.assumeIsolated {
+                appState?.isInteractionAvailable = available
+            }
+        }
+        viewModel.interactionCoordinator = interactionCoordinator
+        textView.interactionCoordinator = interactionCoordinator
+        textView.setupSelectionChangeObserver()
+
         // Completion corpus — created once, shared across all four providers (SR-3).
         let corpus = SputnikCompletionCorpus()
 

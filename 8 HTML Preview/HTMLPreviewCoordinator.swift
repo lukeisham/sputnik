@@ -1,6 +1,7 @@
 import AppKit
 import FoundationModule
 import WebKit
+import ResourcesModule
 
 /// The `NSViewRepresentable.Coordinator` for `HTMLPreviewView`.
 ///
@@ -43,6 +44,12 @@ public final class HTMLPreviewCoordinator: NSObject, WKNavigationDelegate {
 
     /// The shared help-context resolver.
     var helpContextResolver: HelpContextResolving?
+
+    /// The interaction coordinator for special-element detection and auto-fill.
+    var interactionCoordinator: InteractionCoordinator?
+
+    /// The settings store for toggle checks.
+    var settingsStore: SettingsStore?
 
     /// Weak reference to the web view, set by `HTMLPreviewView.updateNSView`.
     weak var webView: WKWebView?

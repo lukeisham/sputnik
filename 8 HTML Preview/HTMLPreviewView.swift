@@ -26,20 +26,45 @@ private final class MoreContextWebView: WKWebView {
         else { return }
 
         let resolver = coordinator.helpContextResolver ?? SputnikHelpContextResolver.shared
-        let moreItems = MoreContextMenu.items(
+
+        // Check Interaction gate.
+        let interactionEnabled =
+            coordinator.settingsStore?.writingAssist.isEnabled(.interaction, for: .html) ?? false
+        let detector = coordinator.interactionCoordinator?.detector ?? SpecialElementDetector()
+
+        let contextItems = SelectionContextMenu.items(
             forSelectedText: coordinator.capturedSelection,
-            kinds: [.grammar, .html],
             fullText: coordinator.fullSessionText,
             cursorOffset: 0,
+            selectionLength: coordinator.capturedSelection.utf16.count,
+            language: .html,
+            detector: detector,
+            interactionEnabled: interactionEnabled,
+            moreContextKinds: [.grammar, .html],
             resolver: resolver,
-            onRequest: { [weak coordinator] request in
+            onInteract: { [weak coordinator] element in
+                guard let coordinator, let ic = coordinator.interactionCoordinator else { return }
+                let selectionRect = NSRect(x: 0, y: 0, width: 10, height: 10)
+                ic.trigger(
+                    relativeTo: selectionRect,
+                    in: coordinator.webView ?? NSView(),
+                    selectedText: coordinator.capturedSelection,
+                    fullText: coordinator.fullSessionText,
+                    language: .html
+                ) { newText, range in
+                    // HTML preview is read-only; copy result to clipboard.
+                    NSPasteboard.general.clearContents()
+                    NSPasteboard.general.setString(newText, forType: .string)
+                }
+            },
+            onMoreContext: { [weak coordinator] request in
                 coordinator?.onRequestHelp?(request)
             }
         )
 
-        guard !moreItems.isEmpty else { return }
+        guard !contextItems.isEmpty else { return }
         menu.insertItem(.separator(), at: 0)
-        for item in moreItems.reversed() {
+        for item in contextItems.reversed() {
             menu.insertItem(item, at: 0)
         }
     }

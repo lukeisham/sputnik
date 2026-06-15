@@ -3,6 +3,10 @@ import Foundation
 import FoundationModule
 import Observation
 
+enum JSONViewerError: Error {
+    case message(String)
+}
+
 /// View-model for the JSON Viewer panel.
 ///
 /// Accepts raw JSON text from `DocumentSession`, pretty-prints it on a background
@@ -72,31 +76,33 @@ public final class JSONViewerViewModel {
             case .success(let attributed):
                 self.renderedContent = attributed
                 self.lastError = nil
-            case .failure(let message):
-                self.lastError = message
+            case .failure(let error):
+                if case .message(let message) = error {
+                    self.lastError = message
+                }
             }
         }
     }
 
     /// Parses and formats `text` off the main actor, returning a coloured attributed string.
-    private static func render(
+    nonisolated private static func render(
         text: String,
         mode: DisplayMode
-    ) async -> Result<NSAttributedString, String> {
+    ) async -> Result<NSAttributedString, JSONViewerError> {
         return await Task.detached(priority: .utility) {
             let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
             guard !trimmed.isEmpty else {
                 return .success(NSAttributedString())
             }
             guard let data = trimmed.data(using: .utf8) else {
-                return .failure("Could not encode text as UTF-8.")
+                return .failure(.message("Could not encode text as UTF-8."))
             }
 
             let jsonObject: Any
             do {
                 jsonObject = try JSONSerialization.jsonObject(with: data, options: .fragmentsAllowed)
             } catch {
-                return .failure(error.localizedDescription)
+                return .failure(.message(error.localizedDescription))
             }
 
             let outputData: Data
@@ -106,11 +112,11 @@ public final class JSONViewerViewModel {
                     : []
                 outputData = try JSONSerialization.data(withJSONObject: jsonObject, options: opts)
             } catch {
-                return .failure("Could not format JSON: \(error.localizedDescription)")
+                return .failure(.message("Could not format JSON: \(error.localizedDescription)"))
             }
 
             guard let formatted = String(data: outputData, encoding: .utf8) else {
-                return .failure("UTF-8 decode failed after formatting.")
+                return .failure(.message("UTF-8 decode failed after formatting."))
             }
 
             let attributed = Self.colorize(formatted)
@@ -125,7 +131,7 @@ public final class JSONViewerViewModel {
     /// - String values (strings not before `:`): `.systemGreen`
     /// - Numbers: `.systemOrange`
     /// - Keywords `true`, `false`, `null`: `.systemPurple`
-    private static func colorize(_ text: String) -> NSAttributedString {
+    nonisolated private static func colorize(_ text: String) -> NSAttributedString {
         let font = NSFont.monospacedSystemFont(ofSize: 12, weight: .regular)
         let result = NSMutableAttributedString(
             string: text,
@@ -144,9 +150,7 @@ public final class JSONViewerViewModel {
                 var nextNonSpace = afterEnd
                 while nextNonSpace < ns.length {
                     let ch = ns.character(at: nextNonSpace)
-                    if ch == UInt16(ascii: " ") || ch == UInt16(ascii: "\t")
-                        || ch == UInt16(ascii: "\n") || ch == UInt16(ascii: "\r")
-                    {
+                    if ch == 32 || ch == 9 || ch == 10 || ch == 13 {  // space, tab, newline, carriage return
                         nextNonSpace += 1
                     } else {
                         break
@@ -154,7 +158,7 @@ public final class JSONViewerViewModel {
                 }
                 let isKey =
                     nextNonSpace < ns.length
-                    && ns.character(at: nextNonSpace) == UInt16(ascii: ":")
+                    && ns.character(at: nextNonSpace) == 58  // colon
                 result.addAttribute(
                     .foregroundColor,
                     value: isKey ? NSColor.systemBlue : NSColor.systemGreen,

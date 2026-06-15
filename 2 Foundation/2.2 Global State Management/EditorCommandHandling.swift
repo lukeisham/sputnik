@@ -45,6 +45,10 @@ public protocol EditorCommandHandling: AnyObject {
     /// out of range. Used by preview panels for ⌘-click-to-source navigation (ISS-065).
     func revealLine(_ line: Int)
 
+    /// Triggers the Interaction action with the current detected special element.
+    /// Called by the Edit menu "Interact with" item (⌘I) and right-click menu.
+    func triggerInteraction()
+
     /// Flushes the editor's current caret position and scroll offset into the
     /// given `WindowState`'s `documentViewStates` dictionary, keyed by the active
     /// document's `id`.

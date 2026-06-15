@@ -1,0 +1,98 @@
+{
+  "comment": "Special Element Registry — declarative list for the Interaction feature",
+  "definitions": [
+    {
+      "id": "sentence-parser",
+      "displayName": "Sentence Parser",
+      "resourceLanguage": "grammar",
+      "container": "markdownTableRow",
+      "triggers": {
+        "syntaxTerms": ["table"],
+        "headingCues": ["Sentence parser", "Sentence Parser", "sentence parser", "Sentence analysis", "Parse sentence"]
+      },
+      "slots": [
+        { "role": "sentence", "label": "Your Sentence", "source": { "type": "userContent" } },
+        { "role": "lexical", "label": "Lexical Analysis", "source": { "type": "resource", "lookup": "lexicalDefinition" } },
+        { "role": "structural", "label": "Structural Analysis", "source": { "type": "resource", "lookup": "structuralAnalysis" } }
+      ]
+    },
+    {
+      "id": "markdown-table-generic",
+      "displayName": "Markdown Table",
+      "resourceLanguage": "markdown",
+      "container": "markdownTableRow",
+      "triggers": {
+        "syntaxTerms": ["table"],
+        "headingCues": []
+      },
+      "slots": [
+        { "role": "content", "label": "Content", "source": { "type": "resource", "lookup": "markdownTopic" } }
+      ]
+    },
+    {
+      "id": "html-table-generic",
+      "displayName": "HTML Table Row",
+      "resourceLanguage": "html",
+      "container": "htmlTableRow",
+      "triggers": {
+        "syntaxTerms": ["table"],
+        "headingCues": []
+      },
+      "slots": [
+        { "role": "content", "label": "Content", "source": { "type": "resource", "lookup": "htmlTopic" } }
+      ]
+    },
+    {
+      "id": "markdown-blockquote-generic",
+      "displayName": "Markdown Blockquote",
+      "resourceLanguage": "markdown",
+      "container": "markdownBlockquote",
+      "triggers": {
+        "syntaxTerms": ["blockquote"],
+        "headingCues": []
+      },
+      "slots": [
+        { "role": "note", "label": "Note", "source": { "type": "resource", "lookup": "markdownTopic" } }
+      ]
+    },
+    {
+      "id": "ascii-table-generic",
+      "displayName": "ASCII Table Row",
+      "resourceLanguage": "asciiArt",
+      "container": "asciiTableRow",
+      "triggers": {
+        "syntaxTerms": ["table"],
+        "headingCues": []
+      },
+      "slots": [
+        { "role": "content", "label": "Content", "source": { "type": "resource", "lookup": "asciiTopic" } }
+      ]
+    },
+    {
+      "id": "code-block-generic",
+      "displayName": "Code Block",
+      "resourceLanguage": "markdown",
+      "container": "fencedCodeBlock",
+      "triggers": {
+        "syntaxTerms": ["code block"],
+        "headingCues": []
+      },
+      "slots": [
+        { "role": "example", "label": "Example", "source": { "type": "resource", "lookup": "markdownTopic" } }
+      ]
+    },
+    {
+      "id": "html-code-block-generic",
+      "displayName": "HTML Code Block",
+      "resourceLanguage": "html",
+      "container": "htmlCodeBlock",
+      "triggers": {
+        "syntaxTerms": ["code block"],
+        "headingCues": []
+      },
+      "slots": [
+        { "role": "example", "label": "Example", "source": { "type": "resource", "lookup": "htmlTopic" } }
+      ]
+    }
+  ]
+}

@@ -124,6 +124,11 @@ public final class AppState {
         set { activeWindow?.requestedHelpTopic = newValue }
     }
 
+    /// `true` when a special element is detected at the current selection and Interaction
+    /// is enabled for the active editor mode. Observed by the Edit menu "Interact with" item.
+    @MainActor
+    public var isInteractionAvailable: Bool = false
+
     /// `true` if *any* open window is currently processing AI work.
     /// Used by `SputnikMenuBarController` (the menu-bar icon is global).
     public var isProcessing: Bool {
@@ -415,7 +420,8 @@ public final class AppState {
                         record: record, rawContent: content)
                 }
             } catch {
-                templateError = error as? SputnikAlert
+                templateError =
+                    error as? SputnikAlert
                     ?? .custom(title: "Template Error", message: error.localizedDescription)
             }
         }

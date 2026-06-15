@@ -2,6 +2,7 @@ import AppKit
 import Foundation
 import FoundationModule
 import Observation
+import ResourcesModule
 
 // EditorViewModel — editor state + view state persistence
 
@@ -97,6 +98,22 @@ public final class EditorViewModel: EditorCommandHandling {
     /// Read from the shared AppState.
     public var router: (any InterPanelRouter)? {
         appState.router
+    }
+
+    // MARK: - Interaction
+
+    /// The interaction coordinator for special-element detection and auto-fill.
+    public var interactionCoordinator: InteractionCoordinator?
+
+    /// The `WritingAssistLanguage` corresponding to the current editor mode.
+    public var interactionLanguage: WritingAssistLanguage {
+        switch mode {
+        case .markdown: return .markdown
+        case .html: return .html
+        case .json: return .json
+        case .asciiArt: return .asciiArt
+        case .plainText: return .markdown  // Default to markdown for plain text.
+        }
     }
 
     // MARK: - Init
@@ -217,9 +234,9 @@ public final class EditorViewModel: EditorCommandHandling {
     func modeForFileType(_ fileType: FileType) -> EditorMode {
         switch fileType {
         case .markdown: return .markdown
-        case .html:     return .html
-        case .json:     return .json
-        case .ascii:    return .asciiArt
+        case .html: return .html
+        case .json: return .json
+        case .ascii: return .asciiArt
         case .text, .pdf, .image, .binary, .unknown:
             return .plainText
         }
@@ -235,7 +252,8 @@ public final class EditorViewModel: EditorCommandHandling {
                 do {
                     try await self.openDocument(url)
                 } catch {
-                    SputnikLogger.editor.error("Reload failed for \(url.lastPathComponent): \(error)")
+                    SputnikLogger.editor.error(
+                        "Reload failed for \(url.lastPathComponent): \(error)")
                     self.pendingAlert = SputnikAlert.custom(
                         title: "Reload Failed",
                         message: error.localizedDescription
@@ -264,7 +282,8 @@ public final class EditorViewModel: EditorCommandHandling {
     private func promptReloadFailed(url: URL, error: Error) {
         let alert = NSAlert()
         alert.messageText = "Reload Failed"
-        alert.informativeText = "\"\(url.lastPathComponent)\" could not be reloaded.\n\n\(error.localizedDescription)"
+        alert.informativeText =
+            "\"\(url.lastPathComponent)\" could not be reloaded.\n\n\(error.localizedDescription)"
         alert.addButton(withTitle: "OK")
         alert.alertStyle = .warning
         alert.runModal()
@@ -275,7 +294,8 @@ public final class EditorViewModel: EditorCommandHandling {
     private func promptFileDeleted(url: URL) {
         let alert = NSAlert()
         alert.messageText = "File Deleted"
-        alert.informativeText = "\"\(url.lastPathComponent)\" was deleted or moved. Your unsaved buffer is still available — save it to a new location."
+        alert.informativeText =
+            "\"\(url.lastPathComponent)\" was deleted or moved. Your unsaved buffer is still available — save it to a new location."
         alert.addButton(withTitle: "Save As…")
         alert.addButton(withTitle: "Discard")
         alert.alertStyle = .warning
@@ -334,8 +354,9 @@ public final class EditorViewModel: EditorCommandHandling {
             let tempURL = url.deletingLastPathComponent()
                 .appendingPathComponent(url.lastPathComponent + ".sputnik-tmp")
             try text.write(to: tempURL, atomically: false, encoding: .utf8)
-            _ = try FileManager.default.replaceItemAt(url, withItemAt: tempURL,
-                                                       backupItemName: nil, options: [])
+            _ = try FileManager.default.replaceItemAt(
+                url, withItemAt: tempURL,
+                backupItemName: nil, options: [])
         }.value
 
         // Back on @MainActor after awaiting — no MainActor.run needed.
@@ -367,6 +388,49 @@ public final class EditorViewModel: EditorCommandHandling {
     }
 
     // MARK: - EditorCommandHandling protocol (steps 10–11)
+
+    /// Triggers the Interaction action with the current detected special element.
+    /// Called by the Edit menu "Interact with" item (⌘I) and right-click menu.
+    public func triggerInteraction() {
+        guard let coordinator = interactionCoordinator,
+            let textView,
+            let element = coordinator.detectedElement
+        else { return }
+
+        let selected = editorSelectionOrCurrentLine()
+        let fullText = textView.string
+
+        // Calculate the popup anchor rect from the selection.
+        let selectionRect = selectionRectForPopup(textView: textView)
+
+        coordinator.trigger(
+            relativeTo: selectionRect,
+            in: textView,
+            selectedText: selected,
+            fullText: fullText,
+            language: interactionLanguage
+        ) { [weak textView] newText, range in
+            guard let textView else { return }
+            if textView.shouldChangeText(in: range, replacementString: newText) {
+                textView.replaceCharacters(in: range, with: newText)
+                textView.didChangeText()
+            }
+        }
+    }
+
+    /// Returns the bounding rect of the current selection in the text view's coordinate space.
+    private func selectionRectForPopup(textView: NSTextView) -> NSRect {
+        let range = textView.selectedRange()
+        guard let layoutManager = textView.layoutManager,
+            let container = textView.textContainer
+        else {
+            return .zero
+        }
+        let glyphRange = layoutManager.glyphRange(
+            forCharacterRange: range, actualCharacterRange: nil)
+        let boundingRect = layoutManager.boundingRect(forGlyphRange: glyphRange, in: container)
+        return textView.convert(boundingRect, to: nil) ?? boundingRect
+    }
 
     /// Opens the HTML Preview panel with the current file (⌘⌥P, File menu).
     /// Routes via the app's InterPanelRouter; no-op if HTML mode is inactive or no file is open.
@@ -484,7 +548,7 @@ public final class EditorViewModel: EditorCommandHandling {
     @MainActor
     public func revealLine(_ line: Int) {
         guard let textView,
-              let storage = textView.textStorage
+            let storage = textView.textStorage
         else { return }
         let text = storage.string as NSString
         var lineCount = 0

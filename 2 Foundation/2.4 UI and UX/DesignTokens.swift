@@ -28,3 +28,9 @@ public enum SputnikFont {
     /// 20 pt — top-level panel titles.
     public static let title: CGFloat = 20
 }
+
+/// Layout dimensions shared across Sputnik panels.
+public enum SputnikLayout {
+    /// Height of panel header bars (toolbar rows).
+    public static let headerHeight: CGFloat = 32
+}

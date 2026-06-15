@@ -295,6 +295,15 @@ public final class SettingsStore {
         setWritingAssist(.instantCorrect, for: .grammar, to: value)
     }
 
+    /// Sets or clears the `.interaction` flag for all applicable languages and persists.
+    public func setWritingAssistAllInteraction(to value: Bool) {
+        for lang in WritingAssistLanguage.allCases
+        where WritingAssistMatrix.applies(.interaction, to: lang) {
+            writingAssist = writingAssist.setting(.interaction, for: lang, to: value)
+        }
+        persistence.saveSetting(writingAssist, forKey: DefaultsKey.writingAssist)
+    }
+
     // MARK: - Editor appearance mutators
 
     /// Enables or disables the current-line highlight and persists the setting.

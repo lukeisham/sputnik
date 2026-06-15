@@ -31,7 +31,7 @@ public struct SputnikCommands: Commands {
         FormatMenuGroup(appState: appState)
         ViewMenuGroup(appState: appState, settings: settings, focusCoordinator: focusCoordinator)
         WindowMenuGroup(appState: appState, router: router)
-        HelpMenuGroup(appState: appState)
+        HelpMenuGroup(appState: appState, settings: settings)
     }
 }
 

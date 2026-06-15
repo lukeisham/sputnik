@@ -102,6 +102,12 @@ struct EditMenuGroup: Commands {
 
                 Divider()
 
+                Button("Interact with") {
+                    appState.editorCommandHandler?.triggerInteraction()
+                }
+                .keyboardShortcut("i", modifiers: .command)
+                .disabled(!appState.isInteractionAvailable)
+
                 Button("Render as JSON") {
                     Task {
                         try? await appState.editorCommandHandler?.renderAsJSON()

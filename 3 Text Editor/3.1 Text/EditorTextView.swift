@@ -50,6 +50,9 @@ public final class EditorTextView: NSTextView {
     /// Wired by `EditorView`. Falls back to `SputnikHelpContextResolver.shared` when nil.
     var helpContextResolver: HelpContextResolving?
 
+    /// The interaction coordinator for special-element detection and auto-fill.
+    var interactionCoordinator: InteractionCoordinator?
+
     /// The live quick-fix popover, if shown. AppKit seam for the SwiftUI `QuickfixPopover`.
     private var quickfixPopover: NSPopover?
 
@@ -71,6 +74,31 @@ public final class EditorTextView: NSTextView {
             )
         }
         return result
+    }
+
+    // MARK: - Selection change (for Interaction detection)
+
+    func setupSelectionChangeObserver() {
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(textSelectionDidChange),
+            name: NSTextView.didChangeSelectionNotification,
+            object: self
+        )
+    }
+
+    @objc private func textSelectionDidChange() {
+        // Update interaction detection for the Edit menu "Interact with" item.
+        guard let coordinator = interactionCoordinator,
+            let viewModel = editorViewModel
+        else { return }
+
+        let range = selectedRange()
+        coordinator.updateDetection(
+            text: string,
+            selectedRange: range,
+            language: viewModel.interactionLanguage
+        )
     }
 
     // MARK: - Key handling
@@ -119,8 +147,9 @@ public final class EditorTextView: NSTextView {
         let charIndex = layoutManager.characterIndexForGlyph(at: glyphIndex)
 
         // Spelling/grammar takes priority; fall back to an HTML structural underline.
-        guard let annotation = spellingChecker?.annotation(at: charIndex)
-            ?? htmlSyntaxChecker?.annotation(at: charIndex)
+        guard
+            let annotation = spellingChecker?.annotation(at: charIndex)
+                ?? htmlSyntaxChecker?.annotation(at: charIndex)
         else {
             quickfixPopover?.close()
             return
@@ -315,24 +344,54 @@ public final class EditorTextView: NSTextView {
 
         let resolver = helpContextResolver ?? SputnikHelpContextResolver.shared
 
-        let moreItems = MoreContextMenu.items(
+        // Gate on the writingAssist matrix — check both Interaction and MoreContext.
+        let interactionEnabled: Bool
+        if let lang = assistLanguage(for: kind) {
+            interactionEnabled = settings?.writingAssist.isEnabled(.interaction, for: lang) ?? false
+        } else {
+            interactionEnabled = false
+        }
+
+        // Use SelectionContextMenu which handles Interaction-vs-More-Context precedence.
+        let lang = viewModel.interactionLanguage
+        let contextItems = SelectionContextMenu.items(
             forSelectedText: selected,
-            kinds: [kind],
             fullText: string,
             cursorOffset: selection.location,
             selectionLength: selection.length,
+            language: lang,
+            detector: interactionCoordinator?.detector ?? SpecialElementDetector(),
+            interactionEnabled: interactionEnabled,
+            moreContextKinds: [kind],
             resolver: resolver,
-            onRequest: { [weak self] request in
+            onInteract: { [weak self] element in
+                guard let self, let coordinator = self.interactionCoordinator else { return }
+                let selectionRect = self.selectionRectForPopover()
+                coordinator.trigger(
+                    relativeTo: selectionRect,
+                    in: self,
+                    selectedText: selected,
+                    fullText: self.string,
+                    language: lang
+                ) { [weak self] newText, range in
+                    guard let self else { return }
+                    if self.shouldChangeText(in: range, replacementString: newText) {
+                        self.replaceCharacters(in: range, with: newText)
+                        self.didChangeText()
+                    }
+                }
+            },
+            onMoreContext: { [weak self] request in
                 if let request = request {
                     self?.onRequestHelp?(request)
                 }
             }
         )
 
-        guard !moreItems.isEmpty else { return menu }
+        guard !contextItems.isEmpty else { return menu }
 
         menu.insertItem(.separator(), at: 0)
-        for item in moreItems.reversed() {
+        for item in contextItems.reversed() {
             menu.insertItem(item, at: 0)
         }
         return menu

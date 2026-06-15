@@ -23,6 +23,7 @@ let package = Package(
                 .process("9.4 Html Help"),
                 .process("9.5 Grammar Help"),
                 .process("9.7 JSON Help"),
+                .process("9.8 Interaction"),
             ]
         ),
         .testTarget(

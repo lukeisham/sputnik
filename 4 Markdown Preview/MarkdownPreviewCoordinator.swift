@@ -31,6 +31,12 @@ public final class MarkdownPreviewCoordinator: NSObject, NSTextViewDelegate {
     /// Falls back to `SputnikHelpContextResolver.shared` when `nil`.
     public var helpContextResolver: HelpContextResolving?
 
+    /// The interaction coordinator for special-element detection and auto-fill.
+    public var interactionCoordinator: InteractionCoordinator?
+
+    /// The settings store for toggle checks.
+    public var settingsStore: SettingsStore?
+
     /// When `false`, link-click handling is disabled entirely and all clicks
     /// become selection-only gestures. Toggled from the panel toolbar.
     public var linksEnabled: Bool = true
@@ -225,22 +231,46 @@ public final class MarkdownPreviewCoordinator: NSObject, NSTextViewDelegate {
         let fullText = textView.string
         let resolver = helpContextResolver ?? SputnikHelpContextResolver.shared
 
-        let moreItems = MoreContextMenu.items(
+        // Check Interaction gate.
+        let interactionEnabled =
+            settingsStore?.writingAssist.isEnabled(.interaction, for: .markdown) ?? false
+        let detector = interactionCoordinator?.detector ?? SpecialElementDetector()
+
+        let contextItems = SelectionContextMenu.items(
             forSelectedText: selected,
-            kinds: [.grammar, .markdown],
             fullText: fullText,
             cursorOffset: selectedRange.location,
+            selectionLength: selectedRange.length,
+            language: .markdown,
+            detector: detector,
+            interactionEnabled: interactionEnabled,
+            moreContextKinds: [.grammar, .markdown],
             resolver: resolver,
-            onRequest: { [weak self] request in
+            onInteract: { [weak self] element in
+                guard let self, let coordinator = self.interactionCoordinator else { return }
+                let selectionRect = textView.bounds
+                coordinator.trigger(
+                    relativeTo: selectionRect,
+                    in: textView,
+                    selectedText: selected,
+                    fullText: fullText,
+                    language: .markdown
+                ) { newText, range in
+                    // Markdown preview is read-only; offer to copy or edit in source.
+                    NSPasteboard.general.clearContents()
+                    NSPasteboard.general.setString(newText, forType: .string)
+                }
+            },
+            onMoreContext: { [weak self] request in
                 self?.onRequestHelp?(request)
             }
         )
 
-        guard !moreItems.isEmpty else { return menu }
+        guard !contextItems.isEmpty else { return menu }
 
         let updatedMenu = menu.copy() as? NSMenu ?? menu
         updatedMenu.insertItem(.separator(), at: 0)
-        for item in moreItems.reversed() {
+        for item in contextItems.reversed() {
             updatedMenu.insertItem(item, at: 0)
         }
         return updatedMenu

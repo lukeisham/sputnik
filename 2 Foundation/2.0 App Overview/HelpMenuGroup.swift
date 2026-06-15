@@ -4,9 +4,11 @@ import SwiftUI
 struct HelpMenuGroup: Commands {
 
     private let appState: AppState
+    private let settings: SettingsStore
 
-    init(appState: AppState) {
+    init(appState: AppState, settings: SettingsStore) {
         self.appState = appState
+        self.settings = settings
     }
 
     var body: some Commands {
@@ -40,6 +42,10 @@ struct HelpMenuGroup: Commands {
 
             Divider()
 
+            interactionSubmenu
+
+            Divider()
+
             Button("Release Notes") {
                 // Stub: no release notes URL yet
             }
@@ -52,5 +58,48 @@ struct HelpMenuGroup: Commands {
                 }
             }
         }
+    }
+
+    // MARK: - Interaction Submenu
+
+    /// The "Interaction ▶" submenu, parallel to the "More-Context" pattern.
+    /// Per-language toggles reading/writing `WritingAssistMatrix.interaction`.
+    @ViewBuilder
+    private var interactionSubmenu: some View {
+        Menu("Interaction") {
+            Menu("Markdown") {
+                toggleInteraction(.markdown)
+            }
+            Menu("HTML") {
+                toggleInteraction(.html)
+            }
+            Menu("ASCII Art") {
+                toggleInteraction(.asciiArt)
+            }
+            Menu("JSON") {
+                toggleInteraction(.json)
+            }
+            Menu("Grammar") {
+                toggleInteraction(.grammar)
+            }
+            Divider()
+            Button("All On") {
+                settings.setWritingAssistAllInteraction(to: true)
+            }
+            Button("All Off") {
+                settings.setWritingAssistAllInteraction(to: false)
+            }
+        }
+    }
+
+    @ViewBuilder
+    private func toggleInteraction(_ lang: WritingAssistLanguage) -> some View {
+        Toggle(
+            lang.rawValue,
+            isOn: Binding(
+                get: { settings.writingAssist.isEnabled(.interaction, for: lang) },
+                set: { settings.setWritingAssist(.interaction, for: lang, to: $0) }
+            )
+        )
     }
 }
