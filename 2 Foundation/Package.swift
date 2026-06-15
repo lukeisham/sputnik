@@ -26,6 +26,7 @@ let package = Package(
                 "2.7 Utilities",
                 "2.8 Apple Intent",
                 "2.9 Shared",
+                "2.10 Templates",
             ]
         ),
         .target(

@@ -171,6 +171,18 @@ public final class SettingsStore {
     /// Stepped debounce for JSON ghost-text auto-complete. Default: `.default`.
     public var jsonAutoCompleteStep: AutoCompleteDebounceStep = .default
 
+    // MARK: - Templates (2.10)
+
+    /// The user-selected template folder URL.
+    /// `nil` means use the default `~/Library/Application Support/Sputnik/Templates/`.
+    public var templateDirectoryURL: URL? = nil
+
+    /// Updates `templateDirectoryURL` and persists it as an absolute path string.
+    public func setTemplateDirectoryURL(_ value: URL?) {
+        templateDirectoryURL = value
+        persistence.saveSetting(value?.path, forKey: DefaultsKey.templateDirectoryURL)
+    }
+
     // MARK: - Persistence keys
 
     private enum DefaultsKey {
@@ -217,6 +229,8 @@ public final class SettingsStore {
         static let jsonAutoCompleteStep = "sputnik.settings.jsonAutoCompleteStep"
         // AI
         static let supportingAIConfig = "sputnik.settings.supportingAIConfig"
+        // Templates
+        static let templateDirectoryURL = "sputnik.settings.templateDirectoryURL"
     }
 
     // MARK: - Dependencies

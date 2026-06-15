@@ -42,6 +42,34 @@ func presentAlert(_ alert: SputnikAlert) {
     panel.runModal()
 }
 
+/// Presents a text-field alert to name a new template, then saves the active document as one.
+@MainActor
+func saveAsTemplate(appState: AppState) {
+    guard appState.editorCommandHandler != nil else { return }
+    let alert = NSAlert()
+    alert.messageText = "Save As Template"
+    alert.informativeText = "Enter a name for this template:"
+    alert.addButton(withTitle: "Save")
+    alert.addButton(withTitle: "Cancel")
+    let field = NSTextField(frame: NSRect(x: 0, y: 0, width: 240, height: 24))
+    field.placeholderString = "Template name"
+    alert.accessoryView = field
+    alert.window.initialFirstResponder = field
+    let response = alert.runModal()
+    guard response == .alertFirstButtonReturn else { return }
+    let name = field.stringValue.trimmingCharacters(in: .whitespaces)
+    guard !name.isEmpty else { return }
+    Task {
+        do {
+            try await appState.saveCurrentAsTemplate(name: name)
+        } catch {
+            if let sputnikAlert = error as? SputnikAlert {
+                presentAlert(sputnikAlert)
+            }
+        }
+    }
+}
+
 /// Presents a two-button alert asking whether to print as plain text or rendered preview.
 /// Called by FileMenuGroup when a preview panel is paired with the active document.
 @MainActor

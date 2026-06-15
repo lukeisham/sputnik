@@ -165,6 +165,12 @@ struct SettingsLoader {
             store.supportingAIConfig = legacy
             persistence.saveSetting(legacy, forKey: DefaultsKey.supportingAIConfig)
         }
+        // Templates
+        if let savedPath: String = persistence.loadSetting(
+            forKey: DefaultsKey.templateDirectoryURL)
+        {
+            store.templateDirectoryURL = URL(fileURLWithPath: savedPath)
+        }
     }
 }
 
@@ -206,4 +212,5 @@ private enum DefaultsKey {
     static let jsonDebounceInterval = "sputnik.settings.jsonDebounceInterval"
     static let jsonAutoCompleteStep = "sputnik.settings.jsonAutoCompleteStep"
     static let supportingAIConfig = "sputnik.settings.supportingAIConfig"
+    static let templateDirectoryURL = "sputnik.settings.templateDirectoryURL"
 }

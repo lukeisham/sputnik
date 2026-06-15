@@ -66,6 +66,11 @@ public struct SputnikApp: App {
             .environment(mainAIMonitor)
             .onAppear {
                 wireAppDelegate()
+                // Bootstrap the template store once (idempotent after first call).
+                Task {
+                    await TemplateStore.shared.bootstrap()
+                    await appState.applyTemplateDirectory(settingsStore.templateDirectoryURL)
+                }
                 // Ensure activeWindowID reflects which window just appeared.
                 appState.setActiveWindow(windowState.id)
                 // Tag the NSWindow with the WindowState UUID so Merge All Windows
@@ -107,6 +112,7 @@ public struct SputnikApp: App {
             SettingsView()
                 .environment(settingsStore)
                 .environment(supportingAIMonitor)
+                .environment(appState)
         }
     }
 

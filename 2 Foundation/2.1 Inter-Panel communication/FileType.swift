@@ -15,6 +15,23 @@ public enum FileType: String, Codable, Sendable, Hashable {
 }
 
 extension FileType {
+    /// The canonical file extension for this type (used when saving as a template).
+    public var defaultExtension: String {
+        switch self {
+        case .text: return "txt"
+        case .markdown: return "md"
+        case .html: return "html"
+        case .ascii: return "ascii"
+        case .json: return "json"
+        case .pdf, .image, .binary, .unknown: return "txt"
+        }
+    }
+
+    /// Derives the `FileType` from a bare extension string (e.g. `"md"`, `"html"`).
+    public init(extension ext: String) {
+        self.init(url: URL(fileURLWithPath: "f.\(ext)"))
+    }
+
     /// Derives the `FileType` from the file extension of `url`.
     public init(url: URL) {
         switch url.pathExtension.lowercased() {

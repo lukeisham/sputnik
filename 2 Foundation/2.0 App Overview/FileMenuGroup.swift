@@ -54,6 +54,48 @@ struct FileMenuGroup: Commands {
                     }
                 }
 
+                Menu("Open Template") {
+                    if appState.availableTemplates.isEmpty {
+                        Text("No Templates")
+                            .foregroundStyle(.secondary)
+                    } else {
+                        ForEach(appState.availableTemplates) { record in
+                            Button(record.name) {
+                                appState.openTemplate(record: record)
+                            }
+                        }
+                    }
+                }
+
+                Divider()
+
+                Button("Save As Template\u{2026}") {
+                    saveAsTemplate(appState: appState)
+                }
+                .keyboardShortcut("s", modifiers: [.control, .command])
+                .disabled(appState.editorCommandHandler == nil)
+
+                Menu("Remove Template") {
+                    if appState.availableTemplates.isEmpty {
+                        Text("No Templates")
+                            .foregroundStyle(.secondary)
+                    } else {
+                        ForEach(appState.availableTemplates) { record in
+                            Button(record.name) {
+                                Task {
+                                    do {
+                                        try await appState.deleteTemplate(record: record)
+                                    } catch {
+                                        if let alert = error as? SputnikAlert {
+                                            presentAlert(alert)
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+
                 Divider()
 
                 Button("Close Tab") {

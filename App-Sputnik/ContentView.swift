@@ -253,6 +253,32 @@ public struct ContentView: View {
                 documentURL: windowState.currentlyOpenFile
             )
         }
+        // Template placeholder sheet — shown when a template with {{key}} tokens is selected.
+        .sheet(item: Binding(
+            get: { appState.templatePendingRequest },
+            set: { appState.templatePendingRequest = $0 }
+        )) { request in
+            TemplatePlaceholderSheet(request: request) { values in
+                appState.templatePendingRequest = nil
+                guard !values.isEmpty else { return }
+                let expanded = TemplatePlaceholderExpander.expand(
+                    template: request.rawContent, values: values)
+                appState.openTemplateDocument(
+                    content: expanded, fileExtension: request.record.fileExtension)
+            }
+        }
+        // Template error alert — surfaced when openTemplate fails (e.g. file unreadable).
+        .alert(
+            appState.templateError?.title ?? "Template Error",
+            isPresented: Binding(
+                get: { appState.templateError != nil },
+                set: { if !$0 { appState.templateError = nil } }
+            )
+        ) {
+            Button("OK", role: .cancel) { appState.templateError = nil }
+        } message: {
+            Text(appState.templateError?.message ?? "")
+        }
         // Non-blocking crash-recovery notification (ISS-108). SwiftUI presents this
         // after the first frame renders, so the window is interactive immediately.
         .alert(

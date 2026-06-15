@@ -373,6 +373,81 @@ public final class AppState {
             ]))
     }
 
+    // MARK: - Templates (2.10)
+
+    /// The list of available templates in the current template directory.
+    /// Refreshed at launch and whenever the directory changes or a template is saved/deleted.
+    public var availableTemplates: [TemplateRecord] = []
+
+    /// Non-nil when the user has selected a template that contains placeholders.
+    /// Setting this triggers the placeholder-expansion sheet in `ContentView`.
+    public var templatePendingRequest: TemplatePendingRequest?
+
+    /// Non-nil when a template operation fails; drives an alert in `ContentView`.
+    public var templateError: SputnikAlert?
+
+    /// Reloads `availableTemplates` from `TemplateStore`.
+    public func refreshTemplates() async {
+        let list = await TemplateStore.shared.templates()
+        availableTemplates = list
+    }
+
+    /// Applies a template directory change: updates `TemplateStore` and refreshes the list.
+    /// Pass `nil` to revert to the default Application Support path.
+    public func applyTemplateDirectory(_ url: URL?) async {
+        let resolved = url ?? TemplateStore.defaultDirectoryURL()
+        await TemplateStore.shared.setDirectory(resolved)
+        await refreshTemplates()
+    }
+
+    /// Opens a template: reads its content, then either triggers the placeholder sheet
+    /// (if placeholders exist) or opens the document directly.
+    public func openTemplate(record: TemplateRecord) {
+        Task { [weak self] in
+            guard let self else { return }
+            do {
+                let content = try await TemplateStore.shared.rawContent(of: record)
+                let keys = TemplatePlaceholderExpander.placeholders(in: content)
+                if keys.isEmpty {
+                    openTemplateDocument(content: content, fileExtension: record.fileExtension)
+                } else {
+                    templatePendingRequest = TemplatePendingRequest(
+                        record: record, rawContent: content)
+                }
+            } catch {
+                templateError = error as? SputnikAlert
+                    ?? .custom(title: "Template Error", message: error.localizedDescription)
+            }
+        }
+    }
+
+    /// Creates a new untitled `DocumentSession` pre-loaded with the expanded template content.
+    public func openTemplateDocument(content: String, fileExtension: String) {
+        let fileType = FileType(extension: fileExtension)
+        guard let win = activeWindow else { return }
+        let session = DocumentSession(url: nil, fileType: fileType, text: content, isDirty: true)
+        win.openDocuments.append(session)
+        win.activeDocumentID = session.id
+    }
+
+    /// Reads the active document's content and saves it as a new template file.
+    ///
+    /// - Throws: `SputnikAlert` when the file cannot be written or the name collides.
+    public func saveCurrentAsTemplate(name: String) async throws {
+        guard let content = activeDocument?.text else { return }
+        let ext = activeDocument?.fileType.defaultExtension ?? "txt"
+        try await TemplateStore.shared.save(name: name, content: content, fileExtension: ext)
+        await refreshTemplates()
+    }
+
+    /// Moves a template file to the Trash and refreshes the list.
+    ///
+    /// - Throws: `SputnikAlert` when the trash operation fails.
+    public func deleteTemplate(record: TemplateRecord) async throws {
+        try await TemplateStore.shared.delete(record: record)
+        await refreshTemplates()
+    }
+
     // MARK: - Document lifecycle (delegates to active window + updates recent files)
 
     @discardableResult
