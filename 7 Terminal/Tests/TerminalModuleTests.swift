@@ -964,3 +964,179 @@ struct IncrementalLineDecoderTests {
         #expect(lines == ["text"])
     }
 }
+
+// MARK: - ZDOTDIRShimTests (ISS-077)
+// The shim is shell-script-in-a-string — the highest-risk surface. These pure tests
+// pin the exact emitted scripts: that each file re-sources the user's real dotfile,
+// re-points ZDOTDIR correctly, and that the OSC 133 hooks land ONLY in `.zshrc`
+// (after the user's config, so a precmd_functions=(...) reset cannot drop them).
+
+struct ZDOTDIRShimTests {
+
+    @Test func eachShimSourcesItsRealCounterpart() {
+        let c = ZDOTDIRShim.contents()
+        #expect(c.zshenv.contains(#"source "$real/.zshenv""#))
+        #expect(c.zprofile.contains(#"source "$real/.zprofile""#))
+        #expect(c.zshrc.contains(#"source "$real/.zshrc""#))
+        #expect(c.zlogin.contains(#"source "$real/.zlogin""#))
+    }
+
+    @Test func everyShimRestoresRealZDOTDIRBeforeSourcing() {
+        // `real` is seeded from SPUTNIK_USER_ZDOTDIR (default $HOME) and ZDOTDIR is
+        // set to it before the real file is sourced, so the user's config sees the
+        // correct $ZDOTDIR.
+        for body in [ZDOTDIRShim.contents().zshenv,
+                     ZDOTDIRShim.contents().zprofile,
+                     ZDOTDIRShim.contents().zshrc,
+                     ZDOTDIRShim.contents().zlogin] {
+            #expect(body.contains(#"local real="${SPUTNIK_USER_ZDOTDIR:-$HOME}""#))
+            #expect(body.contains(#"ZDOTDIR="$real""#))
+        }
+    }
+
+    @Test func nonTerminalShimsChainBackToShimDir() {
+        // .zshenv and .zprofile must hand control back to the shim dir so the next
+        // shim file still runs.
+        let c = ZDOTDIRShim.contents()
+        #expect(c.zshenv.contains("ZDOTDIR=\"${\(ZDOTDIRShim.shimDirVar):?"))
+        #expect(c.zprofile.contains("ZDOTDIR=\"${\(ZDOTDIRShim.shimDirVar):?"))
+    }
+
+    @Test func terminalShimsRestoreUserZDOTDIRPermanently() {
+        // .zshrc and .zlogin leave ZDOTDIR at the user's value for good.
+        let c = ZDOTDIRShim.contents()
+        #expect(c.zshrc.contains("ZDOTDIR=\"$\(ZDOTDIRShim.userZDOTDIRVar)\""))
+        #expect(c.zlogin.contains("ZDOTDIR=\"$\(ZDOTDIRShim.userZDOTDIRVar)\""))
+        // ...and they do NOT chain back to the shim dir.
+        #expect(!c.zshrc.contains(ZDOTDIRShim.shimDirVar))
+        #expect(!c.zlogin.contains(ZDOTDIRShim.shimDirVar))
+    }
+
+    @Test func everyShimRecapturesUserRelocatedZDOTDIR() {
+        // After sourcing, a user file may have reset ZDOTDIR; the shim re-captures it
+        // so the relocation is honoured for later files (and the final value).
+        for body in [ZDOTDIRShim.contents().zshenv,
+                     ZDOTDIRShim.contents().zprofile,
+                     ZDOTDIRShim.contents().zshrc,
+                     ZDOTDIRShim.contents().zlogin] {
+            #expect(body.contains(#"SPUTNIK_USER_ZDOTDIR="${ZDOTDIR:-$real}""#))
+        }
+    }
+
+    @Test func osc133HooksAppearOnlyInZshrc() {
+        let c = ZDOTDIRShim.contents()
+        #expect(c.zshrc.contains("precmd_functions+=(__sputnik_precmd)"))
+        #expect(c.zshrc.contains("preexec_functions+=(__sputnik_preexec)"))
+        #expect(!c.zshenv.contains("__sputnik_precmd"))
+        #expect(!c.zprofile.contains("__sputnik_precmd"))
+        #expect(!c.zlogin.contains("__sputnik_precmd"))
+    }
+
+    @Test func hooksAreAppendedAfterTheUserConfigSource() {
+        // The append must come AFTER `source "$real/.zshrc"` so a wholesale
+        // precmd_functions=(...) reset in the user's config cannot drop our hook.
+        let body = ZDOTDIRShim.contents().zshrc
+        guard let sourceRange = body.range(of: #"source "$real/.zshrc""#),
+              let hookRange = body.range(of: "precmd_functions+=(__sputnik_precmd)") else {
+            Issue.record("Expected both the source line and the hook append in .zshrc")
+            return
+        }
+        #expect(sourceRange.lowerBound < hookRange.lowerBound)
+    }
+
+    @Test func hooksEmitTheFourOSC133Markers() {
+        // The literal escape/bell bytes must be present so the emitted printf writes
+        // real OSC 133 sequences (A/B/C/D).
+        let hooks = ZDOTDIRShim.osc133Hooks
+        #expect(hooks.contains(#"\033]133;A\007"#))
+        #expect(hooks.contains(#"\033]133;B\007"#))
+        #expect(hooks.contains(#"\033]133;C\007"#))
+        #expect(hooks.contains(#"\033]133;D;%s\007"#))
+    }
+
+    @Test func installWritesAllFourFilesWithRestrictivePermissions() throws {
+        let dir = try ZDOTDIRShim.install()
+        defer { try? FileManager.default.removeItem(at: dir) }
+
+        for name in [".zshenv", ".zprofile", ".zshrc", ".zlogin"] {
+            let url = dir.appendingPathComponent(name)
+            #expect(FileManager.default.fileExists(atPath: url.path))
+            let perms = try FileManager.default.attributesOfItem(atPath: url.path)[.posixPermissions] as? NSNumber
+            #expect(perms?.int16Value == 0o600)
+        }
+        let dirPerms = try FileManager.default.attributesOfItem(atPath: dir.path)[.posixPermissions] as? NSNumber
+        #expect(dirPerms?.int16Value == 0o700)
+    }
+}
+
+// MARK: - ZDOTDIRShim integration (ISS-077)
+// Spawns a real `zsh --login` over a real PTY with the shim wired in, using a fixture
+// "home" whose .zshrc both defines an alias AND clobbers precmd_functions wholesale —
+// the exact failure the old timed stdin injection could not survive. Proves the user's
+// config loads (alias works) and the OSC 133 prompt marker still appears.
+
+struct ZDOTDIRShimIntegrationTests {
+
+    @Test func shimLoadsUserConfigAndInstallsHooksDespiteClobber() async throws {
+        let fixture = FileManager.default.temporaryDirectory
+            .appendingPathComponent("sputnik-shim-fixture-\(UUID().uuidString)", isDirectory: true)
+        try FileManager.default.createDirectory(at: fixture, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: fixture) }
+
+        let zshrc = """
+            alias sputnik_marker='echo MARKER_OK'
+            precmd_functions=()
+            preexec_functions=()
+            """
+        try Data((zshrc + "\n").utf8).write(to: fixture.appendingPathComponent(".zshrc"))
+
+        let shimDir = try ZDOTDIRShim.install()
+        defer { try? FileManager.default.removeItem(at: shimDir) }
+
+        var env = ProcessInfo.processInfo.environment
+        env["TERM"] = "xterm-256color"
+        env["ZDOTDIR"] = shimDir.path
+        env[ZDOTDIRShim.shimDirVar] = shimDir.path
+        env[ZDOTDIRShim.userZDOTDIRVar] = fixture.path
+
+        let launched = try PTYSpawn.spawnLoginShell(
+            executable: "/bin/zsh", arguments: ["--login"],
+            workingDirectory: fixture.path, environment: env)
+        let fd = launched.masterFD
+        defer {
+            kill(launched.pid, SIGKILL)
+            var status: Int32 = 0
+            waitpid(launched.pid, &status, 0)
+            close(fd)
+        }
+
+        let accumulator = OutputAccumulator()
+        let drain = Task.detached {
+            var buffer = [UInt8](repeating: 0, count: 4096)
+            while !Task.isCancelled {
+                let n = read(fd, &buffer, buffer.count)
+                if n <= 0 { break }
+                if let text = String(bytes: buffer[0..<n], encoding: .utf8) {
+                    await accumulator.append(text)
+                }
+            }
+        }
+        defer { drain.cancel() }
+
+        // Let the login shell finish loading, then trigger a command + a fresh prompt.
+        try? await Task.sleep(nanoseconds: 1_500_000_000)
+        _ = "sputnik_marker\n".withCString { write(fd, $0, strlen($0)) }
+
+        let ok = await withTimeout(seconds: 10) {
+            while !Task.isCancelled {
+                // MARKER_OK → the user's alias loaded (real .zshrc sourced);
+                // ESC]133;A → the precmd hook fired despite the wholesale clobber.
+                if await accumulator.contains("MARKER_OK"),
+                   await accumulator.contains("\u{1b}]133;A") { return true }
+                try? await Task.sleep(nanoseconds: 100_000_000)
+            }
+            return false
+        }
+        #expect(ok == true)
+    }
+}

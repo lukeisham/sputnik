@@ -51,6 +51,11 @@ public actor TerminalSession {
     private var channel: PTYChannel?
     private let continuation: AsyncStream<Data>.Continuation
 
+    /// Temp directory holding the `ZDOTDIR` shim files for this session, removed on
+    /// teardown. `nil` when no shim was installed (creation failed → the shell was
+    /// launched without shell integration, ISS-077).
+    private var shimDirectory: URL?
+
     /// Upper bound on buffered output chunks. Bounding the stream caps raw `Data`
     /// growth when a fast producer (e.g. `cat` of a large file) outruns the
     /// emulator pump; `.bufferingNewest` keeps the most recent output — the correct
@@ -76,6 +81,7 @@ public actor TerminalSession {
         if let pid, !hasExited { kill(pid, SIGKILL) }
         exitSource?.cancel()
         channel?.teardown()
+        if let shimDirectory { try? FileManager.default.removeItem(at: shimDirectory) }
         continuation.finish()
     }
 
@@ -111,7 +117,7 @@ public actor TerminalSession {
                 executable: "/bin/zsh",
                 arguments: ["--login"],
                 workingDirectory: cwd,
-                environment: buildEnvironment()
+                environment: buildEnvironment(installShellIntegration: true)
             )
         } catch let err as SputnikError {
             state = .failed(err)
@@ -163,9 +169,10 @@ public actor TerminalSession {
         self.channel = channel
         channel.activate()
 
-        // 5. Inject OSC 133 shell-integration hooks after a brief delay
-        // so Zsh has finished loading .zshrc / .zprofile.
-        injectShellIntegration(after: 300_000_000)  // 300 ms delay
+        // Shell integration is now installed deterministically at startup via the
+        // ZDOTDIR shim wired into the child environment (see buildEnvironment), not
+        // by writing a snippet to stdin after a fixed delay — which raced slow rc
+        // loads and echoed into the first prompt (ISS-077).
     }
 
     /// Queues bytes for the PTY master fd (i.e. to Zsh's stdin).
@@ -229,28 +236,14 @@ public actor TerminalSession {
 
     // MARK: - Private helpers
 
-    /// Injects OSC 133 shell-integration hooks after the specified nanosecond delay.
-    /// The hooks append to `precmd_functions` and `preexec_functions` so the user's
-    /// own `.zshrc` hooks are preserved.
-    private func injectShellIntegration(after nanoseconds: UInt64) {
-        Task(priority: .background) { [weak self] in
-            try? await Task.sleep(nanoseconds: nanoseconds)
-            guard let self else { return }
-            let snippet = """
-                __sputnik_precmd() {
-                    printf '\\033]133;D;%s\\007' "$?"
-                    printf '\\033]133;A\\007'
-                }
-                __sputnik_preexec() {
-                    printf '\\033]133;B\\007'
-                    printf '\\033]133;C\\007'
-                }
-                preexec_functions+=(__sputnik_preexec)
-                precmd_functions+=(__sputnik_precmd)
-                """
-            guard let data = (snippet + "\n").data(using: .utf8) else { return }
-            try? await self.send(data)
-        }
+    /// Removes this session's `ZDOTDIR` shim directory, if one was installed.
+    /// Idempotent — nulls out the reference so a second call is a no-op. Called on
+    /// teardown (after the shell has read its startup files), never right after
+    /// spawn, so a slow login shell still finds the files (ISS-077).
+    private func removeShimDirectory() {
+        guard let directory = shimDirectory else { return }
+        shimDirectory = nil
+        try? FileManager.default.removeItem(at: directory)
     }
 
     /// Called by the exit source once the shell has exited and been reaped.
@@ -274,13 +267,35 @@ public actor TerminalSession {
         channel?.teardown()
         channel = nil
         masterFD = nil
+        removeShimDirectory()
         continuation.finish()
     }
 
-    private func buildEnvironment() -> [String: String] {
+    private func buildEnvironment(installShellIntegration: Bool) -> [String: String] {
         var env = ProcessInfo.processInfo.environment
         env["TERM"] = "xterm-256color"
         env["COLORTERM"] = "truecolor"
+
+        guard installShellIntegration else { return env }
+
+        // Install the OSC 133 shell-integration hooks via a ZDOTDIR shim. The shim
+        // re-sources the user's real dotfiles and appends the hooks after `.zshrc`,
+        // so they always install (no race) and never echo into the first prompt
+        // (ISS-077). On any I/O failure we log and launch *without* integration —
+        // a working shell must never be blocked by this enhancement (SR-2).
+        do {
+            let directory = try ZDOTDIRShim.install()
+            shimDirectory = directory
+            // The user's real ZDOTDIR (their own if set, else $HOME); the shim
+            // restores this before sourcing each real startup file.
+            let realZDOTDIR = env["ZDOTDIR"] ?? NSHomeDirectory()
+            env["ZDOTDIR"] = directory.path
+            env[ZDOTDIRShim.shimDirVar] = directory.path
+            env[ZDOTDIRShim.userZDOTDIRVar] = realZDOTDIR
+        } catch {
+            SputnikLogger.terminal.warning(
+                "ZDOTDIR shim install failed; launching without shell integration: \(error.localizedDescription, privacy: .public)")
+        }
         return env
     }
 }
