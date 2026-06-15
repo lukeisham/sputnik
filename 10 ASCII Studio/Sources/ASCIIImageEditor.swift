@@ -45,6 +45,9 @@ public final class ASCIIImageEditor: ObservableObject {
     /// The setter is internal so the Studio view can reset it on re-convert.
     @Published public var hasManualEdits: Bool = false
 
+    /// The cell currently selected via tap-to-edit in `MonoGridView`.
+    @Published public var selectedCell: (row: Int, col: Int)? = nil
+
     // MARK: - Undo manager
 
     /// Undo manager scoped to this editor instance.
@@ -232,5 +235,19 @@ public final class ASCIIImageEditor: ObservableObject {
             grid[i] = char
         }
         hasManualEdits = true
+    }
+
+    // MARK: - Tap-to-edit
+
+    /// Selects a cell by (row, col) for tap-to-edit via `MonoGridView`.
+    public func selectCell(row: Int, col: Int) {
+        guard row >= 0, row < rows, col >= 0, col < columns else { return }
+        selectedCell = (row: row, col: col)
+    }
+
+    /// Replaces the character at `selectedCell` with `char`, registering undo.
+    public func replaceSelectedCell(with char: Character) {
+        guard let cell = selectedCell else { return }
+        replaceCharacter(at: cell.row * columns + cell.col, with: char)
     }
 }

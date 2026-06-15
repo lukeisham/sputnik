@@ -42,6 +42,10 @@ public struct ASCIIStudioView: View {
     @State private var showEditTools: Bool = false
     @State private var replaceChar: String = ""
     @State private var fillChar: String = ""
+    @State private var insertChar: String = " "
+
+    // Library search
+    @State private var librarySearchQuery: String = ""
 
     // Source tracking
     @State private var sourceImageName: String = ""
@@ -184,6 +188,10 @@ public struct ASCIIStudioView: View {
             }
             .disabled(imageEditor.grid.isEmpty)
             .help("Re-convert at a fixed column width and save, without changing the live canvas")
+
+            Button("Copy") { copyToClipboard() }
+                .disabled(imageEditor.grid.isEmpty)
+                .help("Copy ASCII art to clipboard")
 
             Button("Insert at Cursor") {
                 insertASCII(imageEditor.asString())
@@ -441,38 +449,63 @@ public struct ASCIIStudioView: View {
     // MARK: - Editable canvas
 
     private var editableCanvas: some View {
-        let text = imageEditor.asString()
-        return Text(text)
-            .font(.system(size: 9, design: .monospaced))
-            .padding(8)
-            .contentShape(Rectangle())
-            .onTapGesture { location in
-                // Convert tap location to grid index.
-                // This is a simplified tap-to-select; a full implementation
-                // would track individual character rects.
+        VStack(spacing: 4) {
+            MonoGridView(editor: imageEditor)
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+            HStack(spacing: 6) {
+                Text("Insert character:")
+                    .font(.caption)
+                TextField("Char", text: $insertChar)
+                    .frame(width: 36)
+                    .onChange(of: insertChar) { _, newVal in
+                        if newVal.count > 1 { insertChar = String(newVal.suffix(1)) }
+                    }
+                Button("Apply") {
+                    guard let char = insertChar.first else { return }
+                    imageEditor.replaceSelectedCell(with: char)
+                }
+                .disabled(imageEditor.selectedCell == nil)
             }
+            .padding(.horizontal, 8)
+            .padding(.bottom, 4)
+        }
     }
 
     // MARK: - Library tab
 
+    private var filteredLibraryClips: [ASCIILibraryBrowser.Clip] {
+        if librarySearchQuery.isEmpty {
+            return library.clips(for: selectedCategory)
+        }
+        return ASCIILibraryBrowser.Category.allCases.flatMap { library.clips(for: $0) }
+            .filter { $0.name.localizedCaseInsensitiveContains(librarySearchQuery) }
+    }
+
     private var libraryTab: some View {
         VStack(alignment: .leading, spacing: 8) {
+            TextField("Search library…", text: $librarySearchQuery)
+
             Picker("Category:", selection: $selectedCategory) {
                 ForEach(ASCIILibraryBrowser.Category.allCases, id: \.self) {
                     Text($0.rawValue).tag($0)
                 }
             }
             .pickerStyle(.segmented)
+            .disabled(!librarySearchQuery.isEmpty)
 
-            let clips = library.clips(for: selectedCategory)
+            let clips = filteredLibraryClips
             if clips.isEmpty {
                 VStack {
                     Spacer()
-                    Text("No clips available for \(selectedCategory.rawValue).")
+                    Text(librarySearchQuery.isEmpty
+                        ? "No clips available for \(selectedCategory.rawValue)."
+                        : "No clips match \"\(librarySearchQuery)\".")
                         .foregroundStyle(.secondary)
-                    Text("Add .txt files to Resources/ASCIILibrary/\(selectedCategory.rawValue)/")
-                        .font(.caption)
-                        .foregroundStyle(.tertiary)
+                    if librarySearchQuery.isEmpty {
+                        Text("Add .txt files to Resources/ASCIILibrary/\(selectedCategory.rawValue)/")
+                            .font(.caption)
+                            .foregroundStyle(.tertiary)
+                    }
                     Spacer()
                 }
                 .frame(maxWidth: .infinity)
@@ -652,5 +685,11 @@ public struct ASCIIStudioView: View {
         guard !text.isEmpty else { return }
         guard let textView = ASCIIStudioCoordinator.activeTextView() else { return }
         ASCIIStudioCoordinator.insertAtCursor(text, into: textView)
+    }
+
+    private func copyToClipboard() {
+        let text = imageEditor.asString()
+        NSPasteboard.general.clearContents()
+        NSPasteboard.general.setString(text, forType: .string)
     }
 }

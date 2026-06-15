@@ -139,6 +139,28 @@ public final class ASCIIArtLanguageProvider {
             return .block(payload)
         }
 
+        // Double-line box frame: `╔═`
+        if currentLine.hasSuffix("╔═") {
+            let frame = "╔══════╗\n║      ║\n╚══════╝"
+            let payload = BlockCompletion.Payload(
+                pattern: String(currentLine.suffix(2)),
+                frame: frame,
+                preview: "╔══════╗"
+            )
+            return .block(payload)
+        }
+
+        // Rounded-corner box frame: `╭─`
+        if currentLine.hasSuffix("╭─") {
+            let frame = "╭──────╮\n│      │\n╰──────╯"
+            let payload = BlockCompletion.Payload(
+                pattern: String(currentLine.suffix(2)),
+                frame: frame,
+                preview: "╭──────╮"
+            )
+            return .block(payload)
+        }
+
         // Single vertical pipe on its own line → ghost-hint the closing pipe
         if currentLine == "|" {
             return .ghost("        |")
