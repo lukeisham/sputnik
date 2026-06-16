@@ -400,7 +400,16 @@ public final class EditorViewModel: EditorCommandHandling {
             let textView
         else { return }
 
-        let selected = editorSelectionOrCurrentLine()
+        let nsString = textView.string as NSString
+        let selectionRange = textView.selectedRange()
+        let selected: String
+        if selectionRange.length > 0 {
+            selected = nsString.substring(with: selectionRange)
+        } else {
+            let currentLineRange = nsString.lineRange(for: selectionRange)
+            selected = nsString.substring(with: currentLineRange)
+                .trimmingCharacters(in: .whitespacesAndNewlines)
+        }
         let fullText = textView.string
 
         // Calculate the popup anchor rect from the selection.
@@ -459,86 +468,30 @@ public final class EditorViewModel: EditorCommandHandling {
     /// Sends the editor's current text selection to the active terminal session.
     /// With nothing selected, sends the current line instead.
     public func sendSelectionToTerminal() {
-        guard let router = appState.router else { return }
-        let text = editorSelectionOrCurrentLine()
-        guard !text.isEmpty else { return }
-        router.sendToTerminal(text)
-        router.focusTerminal()
+        guard let router = appState.router, let textView else { return }
+        EditorTerminalBridge.sendSelection(to: router, from: textView)
     }
 
     /// Builds a shell command referencing the active document's file path
     /// (shell-escaped) and runs it in the active terminal.
     /// No-op when there is no active file.
     public func runCurrentFileInTerminal() {
-        guard let router = appState.router,
-            let url = fileURL
-        else { return }
-        let escaped = url.path.shellEscaped
-        let command: String
-        switch mode {
-        case .markdown:
-            command = "cat \(escaped)"
-        case .html:
-            command = "open \(escaped)"
-        case .json:
-            command = "cat \(escaped) | python3 -m json.tool"
-        case .asciiArt:
-            command = "cat \(escaped)"
-        case .plainText:
-            command = "cat \(escaped)"
-        }
-        router.runInTerminal(command)
-        router.focusTerminal()
+        guard let router = appState.router, let url = fileURL else { return }
+        EditorTerminalBridge.runFile(url: url, mode: mode, router: router)
     }
 
     /// Inserts the terminal's current selected text at the editor cursor.
     public func insertTerminalSelection() {
-        guard let router = appState.router,
-            let text = router.terminalCurrentSelection(),
-            let textView
-        else { return }
-        insertTextIntoEditor(text, at: textView)
+        guard let router = appState.router, let textView else { return }
+        EditorTerminalBridge.insertTerminalSelection(router: router, textView: textView)
     }
 
     /// Inserts the output of the last completed terminal command at the editor
     /// cursor. Falls back to terminal selection when no OSC 133 command output
     /// is available (integration not yet active, e.g. first prompt).
     public func insertLastCommandOutput() {
-        guard let router = appState.router,
-            let textView
-        else { return }
-        // Prefer exact command-output capture; degrade to selection.
-        let text =
-            router.terminalLastCommandOutput()
-            ?? router.terminalCurrentSelection()
-        guard let text else { return }
-        insertTextIntoEditor(text, at: textView)
-    }
-
-    // MARK: - Private helpers for terminal integration
-
-    /// Returns the selected text in the editor, or the current line if nothing
-    /// is selected. Empty on an empty editor.
-    private func editorSelectionOrCurrentLine() -> String {
-        guard let textView else { return "" }
-        let range = textView.selectedRange()
-        let nsString = textView.string as NSString
-        if range.length > 0 {
-            return nsString.substring(with: range)
-        }
-        // Fall back to current line.
-        let currentLineRange = nsString.lineRange(for: range)
-        let line = nsString.substring(with: currentLineRange)
-        return line.trimmingCharacters(in: .whitespacesAndNewlines)
-    }
-
-    /// Inserts the given text at the editor cursor, replacing any selected range.
-    private func insertTextIntoEditor(_ text: String, at textView: NSTextView) {
-        let range = textView.selectedRange()
-        if textView.shouldChangeText(in: range, replacementString: text) {
-            textView.replaceCharacters(in: range, with: text)
-            textView.didChangeText()
-        }
+        guard let router = appState.router, let textView else { return }
+        EditorTerminalBridge.insertLastCommandOutput(router: router, textView: textView)
     }
 
     // MARK: - View state persistence

@@ -1,6 +1,5 @@
 import AppKit
 import FoundationModule
-import NaturalLanguage
 import ResourcesModule
 import SwiftUI
 
@@ -555,66 +554,10 @@ public final class EditorTextView: NSTextView {
         }
     }
 
-    /// Performs extractive summarization using NLTokenizer for sentence segmentation
-    /// and TF-based sentence scoring. Fully on-device — no network, no API key.
+    /// Performs extractive summarization via `ExtractiveSummarizer` (extracted to its own
+    /// type per SR-6; see `ExtractiveSummarizer.swift` and ISS-137).
     private static func extractiveSummary(of text: String, maxSentences: Int) -> String {
-        guard !text.isEmpty else {
-            return "No text selected."
-        }
-
-        // Tokenize into sentences using NaturalLanguage.
-        let tokenizer = NLTokenizer(unit: .sentence)
-        tokenizer.string = text
-        let sentences = tokenizer.tokens(for: text.startIndex..<text.endIndex).map {
-            String(text[$0])
-        }
-
-        guard sentences.count > 1 else {
-            // Single sentence — return it truncated.
-            return sentences.first.map { $0.count > 280 ? String($0.prefix(277)) + "…" : $0 }
-                ?? text
-        }
-
-        // Build term-frequency map (lowercased, non-trivial words).
-        var termFreq: [String: Int] = [:]
-        let wordTokenizer = NLTokenizer(unit: .word)
-        wordTokenizer.string = text
-        wordTokenizer.enumerateTokens(in: text.startIndex..<text.endIndex) { range, _ in
-            let word = String(text[range]).lowercased()
-            // Skip short words and stop words.
-            if word.count > 3 {
-                termFreq[word, default: 0] += 1
-            }
-            return true
-        }
-
-        // Score each sentence by summed term frequency (normalized by sentence length).
-        struct ScoredSentence {
-            let text: String
-            let score: Double
-        }
-        var scored: [ScoredSentence] = []
-        for sentence in sentences {
-            let cleaned = sentence.trimmingCharacters(in: .whitespacesAndNewlines)
-            guard !cleaned.isEmpty else { continue }
-            let words = cleaned.split(separator: " ").map(String.init)
-            guard words.count >= 4 else { continue }  // Skip very short fragments.
-            let totalScore = words.reduce(0.0) { score, word in
-                score + Double(termFreq[word.lowercased(), default: 0])
-            }
-            let normalized = totalScore / Double(max(words.count, 1))
-            scored.append(ScoredSentence(text: cleaned, score: normalized))
-        }
-
-        // Sort by score descending, take top N, re-sort by original position.
-        let top = scored.sorted { $0.score > $1.score }.prefix(maxSentences)
-        let result = top.sorted {
-            sentences.firstIndex(of: $0.text)! < sentences.firstIndex(of: $1.text)!
-        }
-        .map { $0.text }
-        .joined(separator: "\n\n")
-
-        return result.isEmpty ? "(Unable to generate summary.)" : result
+        ExtractiveSummarizer.summary(of: text, maxSentences: maxSentences)
     }
 
     /// Returns the bounding rect of the current selection in view coordinates,
@@ -637,7 +580,7 @@ public final class EditorTextView: NSTextView {
     /// Validates that the dragging pasteboard contains image file URLs.
     /// Accepts the drag with `.copy` operation if so.
     public override func draggingEntered(_ sender: NSDraggingInfo) -> NSDragOperation {
-        if hasImageFileURL(in: sender.draggingPasteboard) {
+        if ImageDropMarkupBuilder.hasImageFileURL(in: sender.draggingPasteboard) {
             return .copy
         }
         return super.draggingEntered(sender)
@@ -645,7 +588,7 @@ public final class EditorTextView: NSTextView {
 
     /// Continues accepting image file URL drags with `.copy`.
     public override func draggingUpdated(_ sender: NSDraggingInfo) -> NSDragOperation {
-        if hasImageFileURL(in: sender.draggingPasteboard) {
+        if ImageDropMarkupBuilder.hasImageFileURL(in: sender.draggingPasteboard) {
             return .copy
         }
         return super.draggingUpdated(sender)
@@ -655,7 +598,8 @@ public final class EditorTextView: NSTextView {
     /// 1. Opens the image in the PDF Viewer via the router.
     /// 2. Inserts Markdown/HTML markup at the drop point.
     public override func performDragOperation(_ sender: NSDraggingInfo) -> Bool {
-        guard let fileURL = imageFileURL(from: sender.draggingPasteboard) else {
+        guard let fileURL = ImageDropMarkupBuilder.imageFileURL(from: sender.draggingPasteboard)
+        else {
             return super.performDragOperation(sender)
         }
 
@@ -667,102 +611,13 @@ public final class EditorTextView: NSTextView {
         }
 
         // Compute relative path for markup insertion.
-        let markup = markupString(for: fileURL)
+        let markup = ImageDropMarkupBuilder.markupString(
+            for: fileURL,
+            mode: editorViewModel?.mode ?? .plainText,
+            editorFileURL: editorViewModel?.fileURL)
         insertText(markup, replacementRange: selectedRange())
 
         return true
     }
 
-    /// Checks if the pasteboard contains an image file URL.
-    private func hasImageFileURL(in pasteboard: NSPasteboard) -> Bool {
-        imageFileURL(from: pasteboard) != nil
-    }
-
-    /// Extracts the first image file URL from the pasteboard, if any.
-    private func imageFileURL(from pasteboard: NSPasteboard) -> URL? {
-        guard let items = pasteboard.pasteboardItems else { return nil }
-        for item in items {
-            guard let urlString = item.string(forType: .fileURL),
-                let url = URL(string: urlString)
-            else { continue }
-            // Normalise the file URL.
-            let fileURL = if url.isFileURL { url } else { URL(fileURLWithPath: url.path) }
-            guard fileURL.isFileURL else { continue }
-            let ext = fileURL.pathExtension.lowercased()
-            let imageExtensions: Set<String> = ["png", "jpg", "jpeg", "gif", "heic", "bmp", "tiff"]
-            if imageExtensions.contains(ext) {
-                return fileURL
-            }
-        }
-        return nil
-    }
-
-    /// Computes the markup string to insert for the given image file URL.
-    /// Uses Markdown syntax `![filename](path)` for `.markdown` mode and
-    /// HTML `<img src="path" alt="filename">` for `.html` mode.
-    /// Falls back to Markdown for all other modes.
-    private func markupString(for imageURL: URL) -> String {
-        let useHTML = editorViewModel?.mode == .html
-        let filename = imageURL.deletingPathExtension().lastPathComponent
-        let path = relativePath(for: imageURL)
-
-        if useHTML {
-            let escapedPath =
-                path.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? path
-            let escapedAlt =
-                filename.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? filename
-            return "<img src=\"\(escapedPath)\" alt=\"\(escapedAlt)\">"
-        } else {
-            // Markdown syntax (default fallback)
-            return "![\(filename)](\(path))"
-        }
-    }
-
-    /// Computes a relative path from the editor's current file directory to `imageURL`.
-    /// Falls back to the absolute path when no editor file is open.
-    private func relativePath(for imageURL: URL) -> String {
-        guard let editorFileURL = editorViewModel?.fileURL else {
-            return imageURL.path
-        }
-        let editorDir = editorFileURL.deletingLastPathComponent()
-        let imagePath = imageURL.resolvingSymlinksInPath().path
-        let dirPath = editorDir.resolvingSymlinksInPath().path
-
-        guard imagePath.hasPrefix(dirPath) else {
-            // Image is outside the editor's directory tree — use absolute path.
-            return imageURL.path
-        }
-
-        var relative = String(imagePath.dropFirst(dirPath.count))
-        if relative.hasPrefix("/") {
-            relative = String(relative.dropFirst())
-        }
-        return relative.isEmpty ? imageURL.lastPathComponent : relative
-    }
-
-}
-
-// MARK: - Summarization Popover View
-
-/// A simple SwiftUI view for displaying a summary result (or loading/error state)
-/// inside an NSPopover.
-private struct SummaryPopoverContent: View {
-    let text: String
-    let isLoading: Bool
-
-    var body: some View {
-        HStack {
-            if isLoading {
-                ProgressView()
-                    .scaleEffect(0.7)
-                    .padding(.trailing, 4)
-            }
-            Text(text)
-                .textSelection(.enabled)
-                .font(.system(size: 12))
-                .padding(8)
-                .frame(maxWidth: 280, alignment: .leading)
-        }
-        .padding(4)
-    }
 }
