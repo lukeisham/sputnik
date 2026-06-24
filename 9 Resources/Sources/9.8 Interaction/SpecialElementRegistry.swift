@@ -72,8 +72,8 @@ public actor SpecialElementRegistry {
         }
 
         // Heading-cued entries outrank generic ones.
-        if !headingCued.isEmpty {
-            return headingCued.sorted { $0.score > $1.score }.first!.definition
+        if let best = headingCued.sorted(by: { $0.score > $1.score }).first {
+            return best.definition
         }
 
         // Fall back to the first generic entry matching the syntax term.

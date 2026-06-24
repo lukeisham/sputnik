@@ -60,7 +60,7 @@ public enum HeadingFuzzyMatcher {
 
     // MARK: - Levenshtein Distance
 
-    private static func levenshtehen(_ a: String, _ b: String) -> Int {
+    private static func levenshtein(_ a: String, _ b: String) -> Int {
         let aChars = Array(a)
         let bChars = Array(b)
         let m = aChars.count
@@ -86,10 +86,5 @@ public enum HeadingFuzzyMatcher {
         }
 
         return matrix[m][n]
-    }
-
-    /// Wrapper used in the implementation above — renamed to avoid conflict.
-    private static func levenshtein(_ a: String, _ b: String) -> Int {
-        levenshtehen(a, b)
     }
 }
