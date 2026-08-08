@@ -11,6 +11,13 @@ import Observation
 /// - `activeWindowID` tracks the frontmost window, updated via `setActiveWindow(_:)`.
 /// - All "current document / layout" reads delegate to `activeWindow`.
 ///
+/// **File organization (SR-6):** `AppState` is split across focused extension files in
+/// this directory (`AppState+WindowRegistry.swift`, `AppState+DocumentLifecycle.swift`,
+/// etc.). Stored properties and `init` live here because Swift forbids stored properties
+/// in extensions. Template state is owned by `templateManager`; the template members on
+/// `AppState` are thin pass-throughs kept for caller compatibility (see Step 4 of the
+/// SR-6 plan for the eventual migration).
+///
 /// **Threading:** `@MainActor` — all reads and writes happen on the main thread.
 ///
 /// **Sendable:** This class does not conform to `Sendable`. It is `@MainActor`-isolated,
@@ -22,177 +29,39 @@ import Observation
 @MainActor
 public final class AppState {
 
-    // MARK: - Window registry
+    // MARK: - Window registry (stored)
 
     /// Ordered list of window IDs (insertion order = creation order).
-    public private(set) var orderedWindowIDs: [UUID] = []
+    /// Mutated by the window-lifecycle methods in `AppState+WindowRegistry.swift` and the
+    /// restore logic in `AppState+WindowPersistence.swift`, hence `internal(set)`.
+    public internal(set) var orderedWindowIDs: [UUID] = []
 
     /// All open windows, keyed by their stable UUID.
-    public private(set) var windows: [UUID: WindowState] = [:]
+    public internal(set) var windows: [UUID: WindowState] = [:]
 
     /// The UUID of the currently frontmost window. Updated by `setActiveWindow(_:)`
     /// when the key window changes (via `@FocusedValue` or `NSApp.keyWindow` observation).
     public var activeWindowID: UUID?
 
-    /// The frontmost window's state. `nil` only if no windows exist yet.
-    public var activeWindow: WindowState? {
-        guard let id = activeWindowID else { return orderedWindowIDs.first.flatMap { windows[$0] } }
-        return windows[id]
-    }
-
-    // MARK: - Window lifecycle
-
-    /// Creates a new `WindowState`, registers it, and makes it the active window.
-    @discardableResult
-    public func createWindow() -> WindowState {
-        let w = WindowState()
-        windows[w.id] = w
-        orderedWindowIDs.append(w.id)
-        activeWindowID = w.id
-        return w
-    }
-
-    /// Removes a window from the registry and selects a new active window if needed.
-    /// Callers must have already killed the window's terminal and confirmed any dirty tabs.
-    public func closeWindow(_ id: UUID) {
-        windows.removeValue(forKey: id)
-        orderedWindowIDs.removeAll { $0 == id }
-        if activeWindowID == id {
-            activeWindowID = orderedWindowIDs.last
-        }
-    }
-
-    /// Returns the `WindowState` for `id`, or `nil` if it no longer exists.
-    public func windowForID(_ id: UUID) -> WindowState? {
-        windows[id]
-    }
-
-    /// Called by the frontmost-window tracker (via `@FocusedValue`) when the key
-    /// window changes.
-    public func setActiveWindow(_ id: UUID) {
-        guard windows[id] != nil else { return }
-        activeWindowID = id
-    }
-
-    // MARK: - Computed pass-throughs to active window
-    //
-    // These let all existing callers written against the single-window model
-    // continue to compile unchanged. Reads delegate to `activeWindow`; writes
-    // also delegate so that menu commands and `SputnikCommands` work naturally.
-
-    public var activeWorkspaceDirectory: URL? {
-        get { activeWindow?.activeWorkspaceDirectory }
-        set { activeWindow?.activeWorkspaceDirectory = newValue }
-    }
-
-    public var openDocuments: [DocumentSession] {
-        get { activeWindow?.openDocuments ?? [] }
-        set { activeWindow?.openDocuments = newValue }
-    }
-
-    public var activeDocumentID: UUID? {
-        get { activeWindow?.activeDocumentID }
-        set { activeWindow?.activeDocumentID = newValue }
-    }
-
-    public var activeDocument: DocumentSession? {
-        activeWindow?.activeDocument
-    }
-
-    public var currentlyOpenFile: URL? { activeDocument?.url }
-    public var currentlyOpenFileType: FileType { activeDocument?.fileType ?? .unknown }
-
-    public var layout: LayoutState {
-        get { activeWindow?.layout ?? .default }
-        set { activeWindow?.layout = newValue }
-    }
-
-    public var recentFiles: [URL] { layout.recentFiles }
-
-    public var editorScrollFraction: Double? {
-        get { activeWindow?.editorScrollFraction }
-        set { activeWindow?.editorScrollFraction = newValue }
-    }
-
-    public var requestedHelpTarget: HelpRequest? {
-        get { activeWindow?.requestedHelpTarget }
-        set { activeWindow?.requestedHelpTarget = newValue }
-    }
-
-    public var requestedHelpTopic: HelpTopic? {
-        get { activeWindow?.requestedHelpTopic }
-        set { activeWindow?.requestedHelpTopic = newValue }
-    }
+    // MARK: - Interaction state (stored)
 
     /// `true` when a special element is detected at the current selection and Interaction
     /// is enabled for the active editor mode. Observed by the Edit menu "Interact with" item.
-    @MainActor
     public var isInteractionAvailable: Bool = false
 
-    /// `true` if *any* open window is currently processing AI work.
-    /// Used by `SputnikMenuBarController` (the menu-bar icon is global).
-    public var isProcessing: Bool {
-        windows.values.contains { $0.isProcessing }
-    }
-
-    public func beginProcessing() { activeWindow?.beginProcessing() }
-    public func endProcessing() { activeWindow?.endProcessing() }
-
-    // MARK: - AI state (global — Supporting AI is app-level; Main AI is per-window)
+    // MARK: - AI state (stored — Supporting AI is app-level; Main AI is per-window)
 
     /// Cumulative Supporting AI token usage for the current session.
     public var supportingAIUsage: SupportingAIUsage?
 
-    /// Delegates to the active window for Main AI state.
-    public var mainAIState: MainAIState? {
-        get { activeWindow?.mainAIState }
-        set { activeWindow?.mainAIState = newValue }
-    }
-
-    // MARK: - Scratchpad (delegates to active window)
-
-    public var scratchpadVisible: Bool {
-        get { activeWindow?.scratchpadVisible ?? false }
-        set { activeWindow?.scratchpadVisible = newValue }
-    }
-
-    // MARK: - Minimap (delegates to active window)
-
-    public var minimapVisible: Bool {
-        get { activeWindow?.minimapVisible ?? false }
-        set { activeWindow?.minimapVisible = newValue }
-    }
-
-    /// Toggles the minimap for the active window.
-    public func toggleMinimap() {
-        activeWindow?.minimapVisible.toggle()
-    }
-
-    public var scratchpadText: String {
-        get { activeWindow?.scratchpadText ?? "" }
-        set { activeWindow?.scratchpadText = newValue }
-    }
-
-    public var scratchpadDockedWidth: CGFloat {
-        get { activeWindow?.scratchpadDockedWidth ?? 280 }
-        set { activeWindow?.scratchpadDockedWidth = newValue }
-    }
-
-    // MARK: - Document lookup
-
-    public func document(for id: UUID) -> DocumentSession? {
-        activeWindow?.document(for: id)
-    }
-
-    // MARK: - Terminal registry for clean shutdown
-
-    // MARK: - Editor command handler (SR-1)
+    // MARK: - Editor command handler (stored, SR-1)
 
     /// The registered editor command handler (Save, Save As, Render as HTML, ASCII Studio).
-    /// Set by the text editor module at launch via `registerEditorCommandHandler(_:)`.
-    public private(set) var editorCommandHandler: EditorCommandHandling?
+    /// Set by the text editor module at launch via `registerEditorCommandHandler(_:)`
+    /// (defined in `AppState+CommandRouting.swift`), hence `internal(set)`.
+    public internal(set) var editorCommandHandler: EditorCommandHandling?
 
-    // MARK: - Paired preview actions (SR-1)
+    // MARK: - Paired preview actions (stored, SR-1)
 
     /// Print closure supplied by the active Markdown or HTML preview panel.
     /// Non-nil only while a preview panel is open and rendering the active document.
@@ -208,123 +77,24 @@ public final class AppState {
     /// Set by the app at launch; required for Render as HTML and other routing operations.
     public weak var router: (any InterPanelRouter)?
 
-    /// Registers the editor command handler (called by EditorViewModel at init).
-    public func registerEditorCommandHandler(_ handler: EditorCommandHandling) {
-        editorCommandHandler = handler
-    }
-
-    // MARK: - Crash recovery (ISS-108)
+    // MARK: - Crash recovery (stored, ISS-108)
 
     /// Names of crash-recovery files awaiting user action. Set at launch by AppDelegate;
     /// cleared when the user accepts or dismisses each entry.
     public var pendingRecoveryNames: [String] = []
 
-    /// Removes a single recovery entry after the user accepts or discards it.
-    public func clearRecovery(name: String) {
-        pendingRecoveryNames.removeAll { $0 == name }
-    }
-
-    // MARK: - Multi-window persistence (step 9)
+    // MARK: - Multi-window persistence (stored, step 9)
 
     /// Window IDs that still need their SwiftUI scene opened after launch.
     /// Populated during `restoreWindows(from:)` for all windows beyond the first,
     /// which is already handled by the initial `WindowGroup` scene creation.
     public var pendingWindowIDs: [UUID] = []
 
-    /// Replaces all current windows with restored descriptors from persistence.
-    /// The first descriptor's window is already shown by the initial `WindowGroup`;
-    /// additional descriptors are collected in `pendingWindowIDs` for the scene
-    /// to open via `openWindow(id:value:)`.
-    ///
-    /// If `descriptors` is empty, the auto-created initial window from `init()`
-    /// is left intact.
-    public func restoreWindows(from descriptors: [WindowDescriptor]) {
-        guard !descriptors.isEmpty else { return }
+    // MARK: - Templates (2.10)
 
-        // Remove all existing windows (including the auto-created first one).
-        windows.removeAll()
-        orderedWindowIDs.removeAll()
-        pendingWindowIDs.removeAll()
-
-        for desc in descriptors {
-            let ws = WindowState(id: desc.id)
-            ws.activeWorkspaceDirectory = desc.workspaceDirectoryURL
-            ws.layout = desc.layout
-
-            // Re-open persisted tabs (non-untitled).
-            for url in desc.openTabURLs {
-                ws.openDocument(url: url)
-            }
-            // Restore which tab was active (match by URL).
-            if let activeURL = desc.activeDocumentURL {
-                ws.activeDocumentID = ws.openDocuments.first { $0.url == activeURL }?.id
-            }
-
-            // Restore per-document view state (caret + scroll).
-            ws.documentViewStates = desc.documentViewStates
-
-            // Restore window frame so it can be applied on window appear.
-            ws.restoredWindowFrame = desc.windowFrame
-
-            windows[ws.id] = ws
-            orderedWindowIDs.append(ws.id)
-        }
-
-        activeWindowID = orderedWindowIDs.first
-
-        // Windows beyond the first need their SwiftUI scene opened.
-        if orderedWindowIDs.count > 1 {
-            pendingWindowIDs = Array(orderedWindowIDs.dropFirst())
-        }
-    }
-
-    /// Flushes the active editor's caret/scroll state into the active window's
-    /// `documentViewStates` before the descriptors are collected.
-    ///
-    /// Called from `AppDelegate.applicationWillTerminate` before `collectDescriptors()`.
-    /// Only the active (frontmost) window's editor state is captured here because
-    /// the `editorCommandHandler` reference points to the last-registered editor
-    /// (the one from the most recently created or activated `ContentView`).
-    /// Other windows retain whatever state was last set (default if never flushed).
-    public func flushViewStates() {
-        guard let handler = editorCommandHandler,
-            let active = activeWindow
-        else { return }
-        handler.flushViewState(to: active)
-    }
-
-    /// Collects the current state of every open window into an array of
-    /// `WindowDescriptor` values, ready for `saveWindows(_:)`.
-    /// The caller should call `flushViewStates()` first to ensure the editor's
-    /// caret/scroll state is captured into `WindowState.documentViewStates`.
-    public func collectDescriptors() -> [WindowDescriptor] {
-        orderedWindowIDs.compactMap { id in
-            guard let ws = windows[id] else { return nil }
-            let frame: CGRect? = {
-                guard
-                    let nsWindow = NSApp.windows.first(where: {
-                        $0.identifier?.rawValue == id.uuidString
-                    })
-                else { return nil }
-                return nsWindow.frame
-            }()
-            return WindowDescriptor(
-                id: ws.id,
-                workspaceDirectoryURL: ws.activeWorkspaceDirectory,
-                openTabURLs: ws.openDocuments.compactMap { $0.url },
-                activeDocumentURL: ws.activeDocument?.url,
-                layout: ws.layout,
-                windowFrame: frame,
-                documentViewStates: ws.documentViewStates
-            )
-        }
-    }
-
-    /// All `TerminalLifecycle` instances across every open window.
-    /// `AppDelegate.applicationShouldTerminate` iterates these to kill every PTY.
-    public var allTerminalManagers: [any TerminalLifecycle] {
-        windows.values.flatMap { $0.terminalManagers }
-    }
+    /// Owns all template state and async operations. The template members on `AppState`
+    /// below are thin pass-throughs that delegate here.
+    public let templateManager = TemplateManager()
 
     // MARK: - Init
 
@@ -335,111 +105,50 @@ public final class AppState {
         windows[first.id] = first
         orderedWindowIDs.append(first.id)
         activeWindowID = first.id
-    }
 
-    // MARK: - Recent files
-
-    public func noteRecentFile(_ url: URL) {
-        var list = layout.recentFiles
-        list.removeAll { $0 == url }
-        list.insert(url, at: 0)
-        if list.count > LayoutState.maxRecentFiles {
-            list.removeLast(list.count - LayoutState.maxRecentFiles)
+        // Route template-document creation back through the window-aware path.
+        templateManager.onOpenDocument = { [weak self] content, ext in
+            self?.openTemplateDocument(content: content, fileExtension: ext)
         }
-        layout.recentFiles = list
     }
 
-    public func clearRecentFiles() {
-        layout.recentFiles.removeAll()
-    }
-
-    // MARK: - Panel visibility (dynamic layout)
-
-    /// Returns true if a column with the given render mode exists in the active window.
-    public func hasColumn(renderMode: PanelID) -> Bool {
-        activeWindow?.hasColumn(renderMode: renderMode) ?? false
-    }
-
-    /// Toggle a column by render mode: remove if present, add if absent.
-    public func toggleColumn(renderMode: PanelID) {
-        activeWindow?.toggleColumn(renderMode: renderMode)
-    }
-
-    public func toggleTerminal() {
-        activeWindow?.toggleTerminal()
-    }
-
-    public func restoreDefaultLayout() {
-        activeWindow?.restoreDefaultLayout()
-    }
-
-    /// Reconfigure the active window to a focused editor layout (text editor only).
-    public func focusEditor() {
-        activeWindow?.setDynamicLayout(
-            DynamicPanelLayout(columns: [
-                PanelColumn(renderMode: .fileTree, width: 0.20),
-                PanelColumn(renderMode: .textEditor, width: 0.80),
-            ]))
-    }
-
-    /// Reconfigure the active window to a focused reader layout (markdown preview only, no file tree).
-    public func focusReader() {
-        activeWindow?.setDynamicLayout(
-            DynamicPanelLayout(columns: [
-                PanelColumn(renderMode: .markdownPreview, width: 1.0)
-            ]))
-    }
-
-    // MARK: - Templates (2.10)
+    // MARK: - Template management (delegates to templateManager)
 
     /// The list of available templates in the current template directory.
-    /// Refreshed at launch and whenever the directory changes or a template is saved/deleted.
-    public var availableTemplates: [TemplateRecord] = []
+    public var availableTemplates: [TemplateRecord] {
+        templateManager.availableTemplates
+    }
 
     /// Non-nil when the user has selected a template that contains placeholders.
-    /// Setting this triggers the placeholder-expansion sheet in `ContentView`.
-    public var templatePendingRequest: TemplatePendingRequest?
+    public var templatePendingRequest: TemplatePendingRequest? {
+        get { templateManager.templatePendingRequest }
+        set { templateManager.templatePendingRequest = newValue }
+    }
 
     /// Non-nil when a template operation fails; drives an alert in `ContentView`.
-    public var templateError: SputnikAlert?
+    public var templateError: SputnikAlert? {
+        get { templateManager.templateError }
+        set { templateManager.templateError = newValue }
+    }
 
     /// Reloads `availableTemplates` from `TemplateStore`.
     public func refreshTemplates() async {
-        let list = await TemplateStore.shared.templates()
-        availableTemplates = list
+        await templateManager.refreshTemplates()
     }
 
-    /// Applies a template directory change: updates `TemplateStore` and refreshes the list.
-    /// Pass `nil` to revert to the default Application Support path.
+    /// Applies a template directory change. Pass `nil` to revert to the default path.
     public func applyTemplateDirectory(_ url: URL?) async {
-        let resolved = url ?? TemplateStore.defaultDirectoryURL()
-        await TemplateStore.shared.setDirectory(resolved)
-        await refreshTemplates()
+        await templateManager.applyTemplateDirectory(url)
     }
 
-    /// Opens a template: reads its content, then either triggers the placeholder sheet
-    /// (if placeholders exist) or opens the document directly.
+    /// Opens a template: either triggers the placeholder sheet or opens the document.
     public func openTemplate(record: TemplateRecord) {
-        Task { [weak self] in
-            guard let self else { return }
-            do {
-                let content = try await TemplateStore.shared.rawContent(of: record)
-                let keys = TemplatePlaceholderExpander.placeholders(in: content)
-                if keys.isEmpty {
-                    openTemplateDocument(content: content, fileExtension: record.fileExtension)
-                } else {
-                    templatePendingRequest = TemplatePendingRequest(
-                        record: record, rawContent: content)
-                }
-            } catch {
-                templateError =
-                    error as? SputnikAlert
-                    ?? .custom(title: "Template Error", message: error.localizedDescription)
-            }
-        }
+        templateManager.openTemplate(record: record)
     }
 
     /// Creates a new untitled `DocumentSession` pre-loaded with the expanded template content.
+    /// Stays on `AppState` because it directly manipulates `activeWindow.openDocuments`;
+    /// wired as `templateManager.onOpenDocument` in `init`.
     public func openTemplateDocument(content: String, fileExtension: String) {
         let fileType = FileType(extension: fileExtension)
         guard let win = activeWindow else { return }
@@ -454,46 +163,14 @@ public final class AppState {
     public func saveCurrentAsTemplate(name: String) async throws {
         guard let content = activeDocument?.text else { return }
         let ext = activeDocument?.fileType.defaultExtension ?? "txt"
-        try await TemplateStore.shared.save(name: name, content: content, fileExtension: ext)
-        await refreshTemplates()
+        try await templateManager.saveCurrentAsTemplate(
+            name: name, content: content, fileExtension: ext)
     }
 
     /// Moves a template file to the Trash and refreshes the list.
     ///
     /// - Throws: `SputnikAlert` when the trash operation fails.
     public func deleteTemplate(record: TemplateRecord) async throws {
-        try await TemplateStore.shared.delete(record: record)
-        await refreshTemplates()
-    }
-
-    // MARK: - Document lifecycle (delegates to active window + updates recent files)
-
-    @discardableResult
-    public func openDocument(url: URL) -> DocumentSession {
-        guard let win = activeWindow else {
-            let w = createWindow()
-            return w.openDocument(url: url)
-        }
-        let session = win.openDocument(url: url)
-        noteRecentFile(url)
-        return session
-    }
-
-    @discardableResult
-    public func newUntitledDocument() -> DocumentSession {
-        guard let win = activeWindow else {
-            let w = createWindow()
-            return w.newUntitledDocument()
-        }
-        return win.newUntitledDocument()
-    }
-
-    public func closeDocument(_ id: UUID) {
-        activeWindow?.closeDocument(id)
-    }
-
-    /// Reorders documents in the active window. Delegates to `WindowState.moveDocument(fromOffsets:toOffset:)`.
-    public func moveDocument(fromOffsets: IndexSet, toOffset: Int) {
-        activeWindow?.moveDocument(fromOffsets: fromOffsets, toOffset: toOffset)
+        try await templateManager.deleteTemplate(record: record)
     }
 }

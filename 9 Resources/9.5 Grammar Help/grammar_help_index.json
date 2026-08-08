@@ -4,7 +4,7 @@
       "id": "punctuation/commas",
       "title": "Commas",
       "category": "punctuation",
-      "body": "## Commas\n\nCommas separate clauses, items in a list, and set off introductory or parenthetical elements.\n\n### Serial (Oxford) Comma\n✅ I bought apples, oranges, and bananas.\n❌ I bought apples oranges and bananas.\n\n### Introductory Phrases\n✅ After the meeting, we went to lunch.\n❌ After the meeting we went to lunch.\n\n### Coordinating Conjunctions\n✅ She wanted to go, but she was tired.\n❌ She wanted to go but she was tired.\n\n### Non-restrictive Clauses\n✅ My brother, who lives in Paris, is visiting.\n❌ My brother who lives in Paris is visiting.\n\n### Direct Address\n✅ Let's eat, Grandma!\n❌ Let's eat Grandma!",
+      "body": "## Commas\n\nCommas separate clauses, items in a list, and set off introductory or parenthetical elements.\n\n### Serial (Oxford) Comma\n\u2705 I bought apples, oranges, and bananas.\n\u274c I bought apples oranges and bananas.\n\n### Introductory Phrases\n\u2705 After the meeting, we went to lunch.\n\u274c After the meeting we went to lunch.\n\n### Coordinating Conjunctions\n\u2705 She wanted to go, but she was tired.\n\u274c She wanted to go but she was tired.\n\n### Non-restrictive Clauses\n\u2705 My brother, who lives in Paris, is visiting.\n\u274c My brother who lives in Paris is visiting.\n\n### Direct Address\n\u2705 Let's eat, Grandma!\n\u274c Let's eat Grandma!",
       "searchTerms": [
         "comma",
         "commas",
@@ -18,8 +18,7 @@
         "list"
       ],
       "relatedTopics": [
-        "punctuation/semicolons",
-        "style/conciseness"
+        "punctuation/semicolons"
       ],
       "structuralLevel": "structural"
     },
@@ -27,7 +26,7 @@
       "id": "punctuation/semicolons",
       "title": "Semicolons",
       "category": "punctuation",
-      "body": "## Semicolons\n\nA semicolon connects closely related independent clauses without a coordinating conjunction. It is stronger than a comma but weaker than a period.\n\n### Connecting Related Clauses\n✅ I have a big test tomorrow; I can't go out tonight.\n❌ I have a big test tomorrow, I can't go out tonight.\n\n### With Conjunctive Adverbs\n✅ She studied hard; therefore, she passed.\n❌ She studied hard, therefore, she passed.\n\n### Complex Lists\n✅ We visited Paris, France; Rome, Italy; and Berlin, Germany.\n❌ We visited Paris, France, Rome, Italy, and Berlin, Germany.",
+      "body": "## Semicolons\n\nA semicolon connects closely related independent clauses without a coordinating conjunction. It is stronger than a comma but weaker than a period.\n\n### Connecting Related Clauses\n\u2705 I have a big test tomorrow; I can't go out tonight.\n\u274c I have a big test tomorrow, I can't go out tonight.\n\n### With Conjunctive Adverbs\n\u2705 She studied hard; therefore, she passed.\n\u274c She studied hard, therefore, she passed.\n\n### Complex Lists\n\u2705 We visited Paris, France; Rome, Italy; and Berlin, Germany.\n\u274c We visited Paris, France, Rome, Italy, and Berlin, Germany.",
       "searchTerms": [
         "semicolon",
         "semicolons",
@@ -40,8 +39,7 @@
         "semi-colan"
       ],
       "relatedTopics": [
-        "punctuation/commas",
-        "style/conciseness"
+        "punctuation/commas"
       ],
       "structuralLevel": "structural"
     },
@@ -49,7 +47,7 @@
       "id": "punctuation/apostrophes",
       "title": "Apostrophes",
       "category": "punctuation",
-      "body": "## Apostrophes\n\nApostrophes show possession or form contractions. They are **never** used to make words plural.\n\n### Possessives\n✅ The dog's leash (one dog)\n✅ The dogs' park (many dogs)\n❌ The dog's are barking (apostrophe for plural — wrong)\n\n### Contractions\n✅ It's raining outside. (it is)\n✅ Don't forget your keys.\n❌ Its raining outside. (missing apostrophe)\n\n### Its vs It's\n✅ The cat licked its paw. (possessive — no apostrophe)\n❌ The cat licked it's paw. (it is paw? — wrong)\n\n### Common Mistakes\n✅ The 1990s / CDs / FAQs (plurals — no apostrophe)\n❌ The 1990's / CD's / FAQ's (grocer's apostrophe — wrong)",
+      "body": "## Apostrophes\n\nApostrophes show possession or form contractions. They are **never** used to make words plural.\n\n### Possessives\n\u2705 The dog's leash (one dog)\n\u2705 The dogs' park (many dogs)\n\u274c The dog's are barking (apostrophe for plural \u2014 wrong)\n\n### Contractions\n\u2705 It's raining outside. (it is)\n\u2705 Don't forget your keys.\n\u274c Its raining outside. (missing apostrophe)\n\n### Its vs It's\n\u2705 The cat licked its paw. (possessive \u2014 no apostrophe)\n\u274c The cat licked it's paw. (it is paw? \u2014 wrong)\n\n### Common Mistakes\n\u2705 The 1990s / CDs / FAQs (plurals \u2014 no apostrophe)\n\u274c The 1990's / CD's / FAQ's (grocer's apostrophe \u2014 wrong)",
       "searchTerms": [
         "apostrophe",
         "apostrophes",
@@ -75,7 +73,7 @@
       "id": "grammar/subject-verb-agreement",
       "title": "Subject-Verb Agreement",
       "category": "grammar",
-      "body": "## Subject-Verb Agreement\n\nThe subject and verb in a sentence must agree in number: singular subjects take singular verbs, and plural subjects take plural verbs.\n\n### Basic Agreement\n✅ The cat runs fast. (singular)\n✅ The cats run fast. (plural)\n❌ The cat run fast.\n\n### Intervening Phrases\n✅ The box of chocolates is on the table.\n❌ The box of chocolates are on the table.\n\n### Indefinite Pronouns\n✅ Everyone knows the answer.\n❌ Everyone know the answer.\n\n### Compound Subjects with Or/Nor\n✅ Neither the teacher nor the students were late.\n✅ Neither the students nor the teacher was late.",
+      "body": "## Subject-Verb Agreement\n\nThe subject and verb in a sentence must agree in number: singular subjects take singular verbs, and plural subjects take plural verbs.\n\n### Basic Agreement\n\u2705 The cat runs fast. (singular)\n\u2705 The cats run fast. (plural)\n\u274c The cat run fast.\n\n### Intervening Phrases\n\u2705 The box of chocolates is on the table.\n\u274c The box of chocolates are on the table.\n\n### Indefinite Pronouns\n\u2705 Everyone knows the answer.\n\u274c Everyone know the answer.\n\n### Compound Subjects with Or/Nor\n\u2705 Neither the teacher nor the students were late.\n\u2705 Neither the students nor the teacher was late.",
       "searchTerms": [
         "subject verb",
         "subject-verb",
@@ -100,7 +98,7 @@
       "id": "grammar/verb-tense",
       "title": "Verb Tense Consistency",
       "category": "grammar",
-      "body": "## Verb Tense Consistency\n\nVerb tense indicates when an action takes place: past, present, or future. Within a sentence or paragraph, verb tenses should remain consistent.\n\n### Stay in One Tense\n✅ She walked to the store and bought milk.\n❌ She walked to the store and buys milk.\n\n### Past Perfect for Earlier Events\n✅ He had already left when I arrived.\n❌ He already left when I had arrived.\n\n### General Truths Stay Present\n✅ The study showed that water boils at 100°C.\n❌ The study showed that water boiled at 100°C.\n\n### Literary Present\n✅ Shakespeare writes about love and jealousy.\n❌ Shakespeare wrote about love and jealousy. (unless in historical context)",
+      "body": "## Verb Tense Consistency\n\nVerb tense indicates when an action takes place: past, present, or future. Within a sentence or paragraph, verb tenses should remain consistent.\n\n### Stay in One Tense\n\u2705 She walked to the store and bought milk.\n\u274c She walked to the store and buys milk.\n\n### Past Perfect for Earlier Events\n\u2705 He had already left when I arrived.\n\u274c He already left when I had arrived.\n\n### General Truths Stay Present\n\u2705 The study showed that water boils at 100\u00b0C.\n\u274c The study showed that water boiled at 100\u00b0C.\n\n### Literary Present\n\u2705 Shakespeare writes about love and jealousy.\n\u274c Shakespeare wrote about love and jealousy. (unless in historical context)",
       "searchTerms": [
         "tense",
         "tenses",
@@ -127,7 +125,7 @@
       "id": "grammar/pronouns",
       "title": "Pronouns",
       "category": "grammar",
-      "body": "## Pronouns\n\nPronouns replace nouns and must agree with their antecedents in number, gender, and case.\n\n### Subject vs Object Case\n✅ She and I went to the park. (subject)\n❌ Me and her went to the park.\n\n### After Prepositions\n✅ The gift is for you and me.\n❌ The gift is for you and I.\n\n### Object of Verb\n✅ They asked him and me to help.\n❌ They asked him and I to help.\n\n### Pronoun Agreement\n✅ Every student should bring their book. (modern accepted usage)\n✅ Every student should bring his or her book. (formal traditional)",
+      "body": "## Pronouns\n\nPronouns replace nouns and must agree with their antecedents in number, gender, and case.\n\n### Subject vs Object Case\n\u2705 She and I went to the park. (subject)\n\u274c Me and her went to the park.\n\n### After Prepositions\n\u2705 The gift is for you and me.\n\u274c The gift is for you and I.\n\n### Object of Verb\n\u2705 They asked him and me to help.\n\u274c They asked him and I to help.\n\n### Pronoun Agreement\n\u2705 Every student should bring their book. (modern accepted usage)\n\u2705 Every student should bring his or her book. (formal traditional)",
       "searchTerms": [
         "pronoun",
         "pronouns",
@@ -153,7 +151,7 @@
       "id": "grammar/adjectives",
       "title": "Adjectives",
       "category": "grammar",
-      "body": "## Adjectives\n\nAdjectives describe or modify nouns and pronouns. They answer the questions *Which one?*, *What kind?*, and *How many?* Adjectives can appear before a noun (attributive) or after a linking verb (predicative).\n\n## Key Rules\n\n1. **Attributive Placement** — Place adjectives directly before the noun they modify.\n2. **Predicative Placement** — After linking verbs (*be, seem, become, feel*), the adjective describes the subject.\n3. **Coordinate Adjectives** — When two adjectives equally modify a noun, separate them with a comma (or *and*).\n4. **Cumulative Adjectives** — When adjectives build on each other (size → age → color), do not use a comma.\n5. **Comparative & Superlative** — Use *-er / -est* for short adjectives; use *more / most* for longer ones.\n\n## Positive, Comparative, Superlative\n\n| Positive | Comparative | Superlative |\n|---|---|---|\n| tall | taller | tallest |\n| happy | happier | happiest |\n| beautiful | more beautiful | most beautiful |\n| good | better | best |\n| bad | worse | worst |\n| far | farther/further | farthest/furthest |\n\n## Coordinate vs Cumulative Adjectives\n\n✅ It was a **cold, rainy** day. (coordinate — comma needed)\n✅ She wore a **beautiful red** dress. (cumulative — no comma)\n\n**Quick test**: Can you swap the adjectives? If the sentence still reads naturally, they are coordinate and need a comma.\n\n✅ It was a rainy, cold day. (swap works → coordinate, comma)\n❌ She wore a red beautiful dress. (swap fails → cumulative, no comma)\n\n## Common Mistakes\n\n### Adjective vs Adverb After Linking Verbs\n✅ I **feel bad** about the mistake. (adjective modifying *I*)\n❌ I feel **badly** about the mistake. (adverb — implies poor sense of touch)\n\n### Double Comparatives\n✅ She is **more talented** than her brother.\n❌ She is **more talenteder** than her brother.\n\n### Absolute Adjectives\nSome adjectives cannot be logically compared:\n✅ That design is **unique**.\n❌ That design is **more unique**.\n✅ That design is **more unusual**.\n\nOther absolute adjectives: *perfect, complete, impossible, eternal, pregnant*.",
+      "body": "## Adjectives\n\nAdjectives describe or modify nouns and pronouns. They answer the questions *Which one?*, *What kind?*, and *How many?* Adjectives can appear before a noun (attributive) or after a linking verb (predicative).\n\n## Key Rules\n\n1. **Attributive Placement** \u2014 Place adjectives directly before the noun they modify.\n2. **Predicative Placement** \u2014 After linking verbs (*be, seem, become, feel*), the adjective describes the subject.\n3. **Coordinate Adjectives** \u2014 When two adjectives equally modify a noun, separate them with a comma (or *and*).\n4. **Cumulative Adjectives** \u2014 When adjectives build on each other (size \u2192 age \u2192 color), do not use a comma.\n5. **Comparative & Superlative** \u2014 Use *-er / -est* for short adjectives; use *more / most* for longer ones.\n\n## Positive, Comparative, Superlative\n\n| Positive | Comparative | Superlative |\n|---|---|---|\n| tall | taller | tallest |\n| happy | happier | happiest |\n| beautiful | more beautiful | most beautiful |\n| good | better | best |\n| bad | worse | worst |\n| far | farther/further | farthest/furthest |\n\n## Coordinate vs Cumulative Adjectives\n\n\u2705 It was a **cold, rainy** day. (coordinate \u2014 comma needed)\n\u2705 She wore a **beautiful red** dress. (cumulative \u2014 no comma)\n\n**Quick test**: Can you swap the adjectives? If the sentence still reads naturally, they are coordinate and need a comma.\n\n\u2705 It was a rainy, cold day. (swap works \u2192 coordinate, comma)\n\u274c She wore a red beautiful dress. (swap fails \u2192 cumulative, no comma)\n\n## Common Mistakes\n\n### Adjective vs Adverb After Linking Verbs\n\u2705 I **feel bad** about the mistake. (adjective modifying *I*)\n\u274c I feel **badly** about the mistake. (adverb \u2014 implies poor sense of touch)\n\n### Double Comparatives\n\u2705 She is **more talented** than her brother.\n\u274c She is **more talenteder** than her brother.\n\n### Absolute Adjectives\nSome adjectives cannot be logically compared:\n\u2705 That design is **unique**.\n\u274c That design is **more unique**.\n\u2705 That design is **more unusual**.\n\nOther absolute adjectives: *perfect, complete, impossible, eternal, pregnant*.",
       "searchTerms": [
         "adjective",
         "adjectives",
@@ -169,8 +167,7 @@
         "modifiers"
       ],
       "relatedTopics": [
-        "grammar/adverbs",
-        "style/conciseness"
+        "grammar/adverbs"
       ],
       "structuralLevel": "lexical"
     },
@@ -178,7 +175,7 @@
       "id": "grammar/adverbs",
       "title": "Adverbs",
       "category": "grammar",
-      "body": "## Adverbs\n\nAdverbs modify verbs, adjectives, or other adverbs. They answer the questions *How?*, *When?*, *Where?*, *How often?*, and *To what extent?* Many adverbs end in *-ly*, but not all do.\n\n## Types of Adverbs\n\n| Type | Questions Answered | Examples |\n|---|---|---|\n| **Manner** | How? | *quickly, softly, carefully, well* |\n| **Time** | When? | *now, yesterday, soon, later* |\n| **Place** | Where? | *here, there, inside, everywhere* |\n| **Degree** | To what extent? | *very, almost, quite, extremely* |\n| **Frequency** | How often? | *always, never, sometimes, daily* |\n\n## Key Rules\n\n1. **Placement Matters** — The position of an adverb can change the emphasis or meaning of a sentence.\n2. **Adverbs of Manner** — Usually go after the verb or after the object (if there is one).\n3. **Adverbs of Frequency** — Usually go before the main verb but after forms of *to be*.\n4. **Adverbs of Degree** — Usually go directly before the word they modify.\n\n### Mid-Position (Frequency & Degree)\n✅ She **always** arrives on time.\n✅ He **never** eats meat.\n✅ They **are** **always** happy to help.\n\n### End-Position (Manner & Place)\n✅ She sang **beautifully**.\n✅ He put the book **there**.\n✅ They walked **slowly** through the park.\n\n### Front-Position (Time & Emphasis)\n✅ **Yesterday**, we went to the beach.\n✅ **Suddenly**, the lights went out.\n\n## Comparative and Superlative Adverbs\n\n| Positive | Comparative | Superlative |\n|---|---|---|\n| fast | faster | fastest |\n| carefully | more carefully | most carefully |\n| well | better | best |\n| badly | worse | worst |\n| early | earlier | earliest |\n\n## Common Mistakes\n\n### Good vs Well\n**Good** is an adjective; **well** is an adverb (except when describing health).\n\n✅ She did a **good** job. (adjective modifying *job*)\n✅ She did **well** on the exam. (adverb modifying *did*)\n✅ I don't **feel well**. (health — adjective)\n❌ She did **good** on the exam. (adverb needed)\n\n### Misplaced Adverbs\nPlace the adverb as close as possible to the word it modifies to avoid ambiguity.\n\n✅ **Only** I said I loved her. (no one else said it)\n✅ I **only** said I loved her. (I said nothing else)\n✅ I said **only** I loved her. (I love no one else)\n\n### Splitting Infinitives (Stylistic)\n✅ She decided **to quickly finish** the report. (acceptable in modern usage)\n⚠️ She decided **to finish quickly** the report. (awkward — avoid)\n\n### Redundant Adverbs\n✅ They **returned** to the hotel.\n❌ They **returned back** to the hotel.\n✅ She **repeated** the question.\n❌ She **repeated again** the question.",
+      "body": "## Adverbs\n\nAdverbs modify verbs, adjectives, or other adverbs. They answer the questions *How?*, *When?*, *Where?*, *How often?*, and *To what extent?* Many adverbs end in *-ly*, but not all do.\n\n## Types of Adverbs\n\n| Type | Questions Answered | Examples |\n|---|---|---|\n| **Manner** | How? | *quickly, softly, carefully, well* |\n| **Time** | When? | *now, yesterday, soon, later* |\n| **Place** | Where? | *here, there, inside, everywhere* |\n| **Degree** | To what extent? | *very, almost, quite, extremely* |\n| **Frequency** | How often? | *always, never, sometimes, daily* |\n\n## Key Rules\n\n1. **Placement Matters** \u2014 The position of an adverb can change the emphasis or meaning of a sentence.\n2. **Adverbs of Manner** \u2014 Usually go after the verb or after the object (if there is one).\n3. **Adverbs of Frequency** \u2014 Usually go before the main verb but after forms of *to be*.\n4. **Adverbs of Degree** \u2014 Usually go directly before the word they modify.\n\n### Mid-Position (Frequency & Degree)\n\u2705 She **always** arrives on time.\n\u2705 He **never** eats meat.\n\u2705 They **are** **always** happy to help.\n\n### End-Position (Manner & Place)\n\u2705 She sang **beautifully**.\n\u2705 He put the book **there**.\n\u2705 They walked **slowly** through the park.\n\n### Front-Position (Time & Emphasis)\n\u2705 **Yesterday**, we went to the beach.\n\u2705 **Suddenly**, the lights went out.\n\n## Comparative and Superlative Adverbs\n\n| Positive | Comparative | Superlative |\n|---|---|---|\n| fast | faster | fastest |\n| carefully | more carefully | most carefully |\n| well | better | best |\n| badly | worse | worst |\n| early | earlier | earliest |\n\n## Common Mistakes\n\n### Good vs Well\n**Good** is an adjective; **well** is an adverb (except when describing health).\n\n\u2705 She did a **good** job. (adjective modifying *job*)\n\u2705 She did **well** on the exam. (adverb modifying *did*)\n\u2705 I don't **feel well**. (health \u2014 adjective)\n\u274c She did **good** on the exam. (adverb needed)\n\n### Misplaced Adverbs\nPlace the adverb as close as possible to the word it modifies to avoid ambiguity.\n\n\u2705 **Only** I said I loved her. (no one else said it)\n\u2705 I **only** said I loved her. (I said nothing else)\n\u2705 I said **only** I loved her. (I love no one else)\n\n### Splitting Infinitives (Stylistic)\n\u2705 She decided **to quickly finish** the report. (acceptable in modern usage)\n\u26a0\ufe0f She decided **to finish quickly** the report. (awkward \u2014 avoid)\n\n### Redundant Adverbs\n\u2705 They **returned** to the hotel.\n\u274c They **returned back** to the hotel.\n\u2705 She **repeated** the question.\n\u274c She **repeated again** the question.",
       "searchTerms": [
         "adverb",
         "adverbs",
@@ -203,7 +200,7 @@
       "id": "grammar/articles-a-an-the",
       "title": "Articles: A, An, The",
       "category": "grammar",
-      "body": "## Articles: A, An, The\n\nArticles are the most common determiners in English. They signal whether a noun is specific (*the*) or general (*a/an*).\n\n## Indefinite Articles: *A* vs *An*\n\nUse *a* before consonant **sounds** and *an* before vowel **sounds** — based on pronunciation, not spelling.\n\n✅ **a** university *(starts with \"yoo\" sound)*\n✅ **an** umbrella *(starts with \"uh\" sound)*\n✅ **a** European *(starts with \"yoo\" sound)*\n✅ **an** hour *(silent \"h\" — starts with \"ow\" sound)*\n✅ **a** one-time offer *(starts with \"w\" sound)*\n❌ an university\n❌ a hour\n\n### Edge Cases\n\n| Word | Article | Reason |\n|---|---|---|\n| herb | **an** herb (US) / **a** herb (UK) | US drops the \"h\" |\n| historic | **a** historic (common) / **an** historic (formal/old-fashioned) | Depends on whether \"h\" is pronounced |\n| FBI | **an** FBI agent | \"eff\" is a vowel sound |\n| UFO | **a** UFO | \"yoo\" is a consonant sound |\n| MBA | **an** MBA | \"em\" is a vowel sound |\n\n## Definite Article: *The*\n\nUse *the* when the listener/reader knows which specific thing you're referring to.\n\n✅ **The** sun rises in the east. *(only one)*\n✅ I saw a dog. **The** dog was brown. *(second mention — now specific)*\n✅ **The** book you recommended was excellent. *(specified by the relative clause)*\n✅ **The** President gave a speech. *(unique role)*\n\n## No Article (Zero Article)\n\nOmit articles with general plural nouns, uncountable nouns (general), most proper nouns, meals (general), languages, subjects, sports and games.\n\n✅ Dogs are loyal. *(not \"The dogs\")*\n✅ Water is essential.\n✅ She speaks French.\n\n## Common Errors\n\n| Error | Correction | Rule |\n|---|---|---|\n| The life is beautiful. | Life is beautiful. | Abstract nouns take no article |\n| She is the teacher. | She is a teacher. | First mention of a profession |\n| I went to a school. | I went to school. / I went to the school. | \"to school\" = attend as student; \"to the school\" = visit the building |\n\n✅ I need **an** honest answer.\n✅ He is **a** European diplomat.",
+      "body": "## Articles: A, An, The\n\nArticles are the most common determiners in English. They signal whether a noun is specific (*the*) or general (*a/an*).\n\n## Indefinite Articles: *A* vs *An*\n\nUse *a* before consonant **sounds** and *an* before vowel **sounds** \u2014 based on pronunciation, not spelling.\n\n\u2705 **a** university *(starts with \"yoo\" sound)*\n\u2705 **an** umbrella *(starts with \"uh\" sound)*\n\u2705 **a** European *(starts with \"yoo\" sound)*\n\u2705 **an** hour *(silent \"h\" \u2014 starts with \"ow\" sound)*\n\u2705 **a** one-time offer *(starts with \"w\" sound)*\n\u274c an university\n\u274c a hour\n\n### Edge Cases\n\n| Word | Article | Reason |\n|---|---|---|\n| herb | **an** herb (US) / **a** herb (UK) | US drops the \"h\" |\n| historic | **a** historic (common) / **an** historic (formal/old-fashioned) | Depends on whether \"h\" is pronounced |\n| FBI | **an** FBI agent | \"eff\" is a vowel sound |\n| UFO | **a** UFO | \"yoo\" is a consonant sound |\n| MBA | **an** MBA | \"em\" is a vowel sound |\n\n## Definite Article: *The*\n\nUse *the* when the listener/reader knows which specific thing you're referring to.\n\n\u2705 **The** sun rises in the east. *(only one)*\n\u2705 I saw a dog. **The** dog was brown. *(second mention \u2014 now specific)*\n\u2705 **The** book you recommended was excellent. *(specified by the relative clause)*\n\u2705 **The** President gave a speech. *(unique role)*\n\n## No Article (Zero Article)\n\nOmit articles with general plural nouns, uncountable nouns (general), most proper nouns, meals (general), languages, subjects, sports and games.\n\n\u2705 Dogs are loyal. *(not \"The dogs\")*\n\u2705 Water is essential.\n\u2705 She speaks French.\n\n## Common Errors\n\n| Error | Correction | Rule |\n|---|---|---|\n| The life is beautiful. | Life is beautiful. | Abstract nouns take no article |\n| She is the teacher. | She is a teacher. | First mention of a profession |\n| I went to a school. | I went to school. / I went to the school. | \"to school\" = attend as student; \"to the school\" = visit the building |\n\n\u2705 I need **an** honest answer.\n\u2705 He is **a** European diplomat.",
       "searchTerms": [
         "a",
         "an",
@@ -228,7 +225,7 @@
       "id": "grammar/dangling-modifiers",
       "title": "Dangling and Misplaced Modifiers",
       "category": "grammar",
-      "body": "## Dangling and Misplaced Modifiers\n\nA modifier is a word, phrase, or clause that describes another element in the sentence. When a modifier is placed too far from what it describes — or when what it describes is missing entirely — the sentence becomes confusing or unintentionally humorous.\n\n## Dangling Modifiers\n\nA dangling modifier is a descriptive phrase that has **nothing to modify** in the sentence. The implied subject is missing.\n\n✅ **Walking down the street**, I saw a beautiful garden. *(I was walking)*\n❌ **Walking down the street**, the garden was beautiful. *(gardens don't walk)*\n\n✅ **After reading the report**, she understood the problem.\n❌ **After reading the report**, the problem was clear. *(problems don't read)*\n\n✅ **To succeed in business**, you need determination.\n❌ **To succeed in business**, determination is needed. *(determination doesn't succeed)*\n\n## Misplaced Modifiers\n\nA misplaced modifier is correctly describing something, but it's in the wrong position, creating ambiguity.\n\nPlace limiting modifiers (*only, just, nearly, almost, merely*) immediately before the word they modify:\n\n✅ **Only** she lent me five dollars. *(no one else lent)*\n✅ She **only** lent me five dollars. *(she didn't give it)*\n✅ She lent **only** me five dollars. *(no one else got a loan)*\n✅ She lent me **only** five dollars. *(not more than five)*\n\n❌ She only lent me five dollars. *(ambiguous)*\n\n### Squinting Modifiers\n\nA squinting modifier sits between two elements and could modify either:\n\n❌ Students who study **often** get better grades.\n\n## Quick Test\n\nAsk: \"Who or what is doing the action in the modifier?\" If the answer isn't the subject of the main clause, the modifier is dangling.\n\n❌ **To apply for the job**, a résumé must be submitted.\n✅ **To apply for the job**, you must submit a résumé.",
+      "body": "## Dangling and Misplaced Modifiers\n\nA modifier is a word, phrase, or clause that describes another element in the sentence. When a modifier is placed too far from what it describes \u2014 or when what it describes is missing entirely \u2014 the sentence becomes confusing or unintentionally humorous.\n\n## Dangling Modifiers\n\nA dangling modifier is a descriptive phrase that has **nothing to modify** in the sentence. The implied subject is missing.\n\n\u2705 **Walking down the street**, I saw a beautiful garden. *(I was walking)*\n\u274c **Walking down the street**, the garden was beautiful. *(gardens don't walk)*\n\n\u2705 **After reading the report**, she understood the problem.\n\u274c **After reading the report**, the problem was clear. *(problems don't read)*\n\n\u2705 **To succeed in business**, you need determination.\n\u274c **To succeed in business**, determination is needed. *(determination doesn't succeed)*\n\n## Misplaced Modifiers\n\nA misplaced modifier is correctly describing something, but it's in the wrong position, creating ambiguity.\n\nPlace limiting modifiers (*only, just, nearly, almost, merely*) immediately before the word they modify:\n\n\u2705 **Only** she lent me five dollars. *(no one else lent)*\n\u2705 She **only** lent me five dollars. *(she didn't give it)*\n\u2705 She lent **only** me five dollars. *(no one else got a loan)*\n\u2705 She lent me **only** five dollars. *(not more than five)*\n\n\u274c She only lent me five dollars. *(ambiguous)*\n\n### Squinting Modifiers\n\nA squinting modifier sits between two elements and could modify either:\n\n\u274c Students who study **often** get better grades.\n\n## Quick Test\n\nAsk: \"Who or what is doing the action in the modifier?\" If the answer isn't the subject of the main clause, the modifier is dangling.\n\n\u274c **To apply for the job**, a r\u00e9sum\u00e9 must be submitted.\n\u2705 **To apply for the job**, you must submit a r\u00e9sum\u00e9.",
       "searchTerms": [
         "dangling",
         "dangling modifier",
@@ -246,8 +243,7 @@
       ],
       "relatedTopics": [
         "grammar/adjectives",
-        "grammar/adverbs",
-        "style/conciseness"
+        "grammar/adverbs"
       ],
       "structuralLevel": "structural"
     },
@@ -255,7 +251,7 @@
       "id": "grammar/gerunds-and-infinitives",
       "title": "Gerunds and Infinitives",
       "category": "grammar",
-      "body": "## Gerunds and Infinitives\n\nGerunds (*-ing* forms acting as nouns) and infinitives (*to* + base verb) can both function as subjects, objects, and complements. Some verbs take only gerunds, some only infinitives, and some can take either — sometimes with a change in meaning.\n\n## Gerund (-ing)\n\nA gerund is a verb form ending in *-ing* that functions as a **noun**.\n\n✅ **Running** is good exercise. *(subject)*\n✅ She enjoys **reading**. *(direct object)*\n✅ Her hobby is **painting**. *(subject complement)*\n✅ She is good **at dancing**. *(object of a preposition)*\n\n## Infinitive (to + verb)\n\nAn infinitive can function as a noun, adjective, or adverb.\n\n✅ **To travel** is her dream. *(subject — usually sounds more formal)*\n✅ She wants **to leave**. *(direct object)*\n✅ He has a report **to write**. *(adjective)*\n✅ She studied hard **to pass**. *(adverb — expresses purpose)*\n\n## Verbs Followed Only by Gerunds\n\nadmit, avoid, consider, deny, enjoy, finish, mind, miss, postpone, practice, recommend, risk, suggest\n\n✅ He admitted **stealing** the money.\n✅ She avoids **eating** sugar.\n✅ Do you mind **waiting**?\n❌ She avoids to eat sugar.\n\n## Verbs Followed Only by Infinitives\n\nagree, decide, expect, hope, learn, need, offer, plan, promise, refuse, seem, want, would like\n\n✅ She decided **to resign**.\n✅ I expect **to arrive** by noon.\n✅ He promised **to call**.\n❌ He wants going.\n\n## Verbs That Take Both — With Change in Meaning\n\n*remember* — ✅ I remember **locking** the door. *(past)* / ✅ Remember **to lock** the door. *(future)*\n*forget* — ✅ I forgot **meeting** her. *(met but forgot)* / ✅ I forgot **to meet** her. *(didn't meet)*\n*stop* — ✅ She stopped **smoking**. *(quit)* / ✅ She stopped **to smoke**. *(paused)*\n*try* — ✅ Try **restarting** the computer. *(experiment)* / ✅ I tried **to lift** the box. *(attempt)*\n*regret* — ✅ I regret **saying** that. *(past)* / ✅ I regret **to inform** you... *(formal)*\n\n## Gerund After Prepositions\n\n✅ She is interested **in learning**.\n✅ He left **without saying** goodbye.\n❌ She is interested in to learn.\n\n## Infinitive of Purpose\n\n✅ I went to the store **to buy** milk.\n❌ I went to the store for buying milk.",
+      "body": "## Gerunds and Infinitives\n\nGerunds (*-ing* forms acting as nouns) and infinitives (*to* + base verb) can both function as subjects, objects, and complements. Some verbs take only gerunds, some only infinitives, and some can take either \u2014 sometimes with a change in meaning.\n\n## Gerund (-ing)\n\nA gerund is a verb form ending in *-ing* that functions as a **noun**.\n\n\u2705 **Running** is good exercise. *(subject)*\n\u2705 She enjoys **reading**. *(direct object)*\n\u2705 Her hobby is **painting**. *(subject complement)*\n\u2705 She is good **at dancing**. *(object of a preposition)*\n\n## Infinitive (to + verb)\n\nAn infinitive can function as a noun, adjective, or adverb.\n\n\u2705 **To travel** is her dream. *(subject \u2014 usually sounds more formal)*\n\u2705 She wants **to leave**. *(direct object)*\n\u2705 He has a report **to write**. *(adjective)*\n\u2705 She studied hard **to pass**. *(adverb \u2014 expresses purpose)*\n\n## Verbs Followed Only by Gerunds\n\nadmit, avoid, consider, deny, enjoy, finish, mind, miss, postpone, practice, recommend, risk, suggest\n\n\u2705 He admitted **stealing** the money.\n\u2705 She avoids **eating** sugar.\n\u2705 Do you mind **waiting**?\n\u274c She avoids to eat sugar.\n\n## Verbs Followed Only by Infinitives\n\nagree, decide, expect, hope, learn, need, offer, plan, promise, refuse, seem, want, would like\n\n\u2705 She decided **to resign**.\n\u2705 I expect **to arrive** by noon.\n\u2705 He promised **to call**.\n\u274c He wants going.\n\n## Verbs That Take Both \u2014 With Change in Meaning\n\n*remember* \u2014 \u2705 I remember **locking** the door. *(past)* / \u2705 Remember **to lock** the door. *(future)*\n*forget* \u2014 \u2705 I forgot **meeting** her. *(met but forgot)* / \u2705 I forgot **to meet** her. *(didn't meet)*\n*stop* \u2014 \u2705 She stopped **smoking**. *(quit)* / \u2705 She stopped **to smoke**. *(paused)*\n*try* \u2014 \u2705 Try **restarting** the computer. *(experiment)* / \u2705 I tried **to lift** the box. *(attempt)*\n*regret* \u2014 \u2705 I regret **saying** that. *(past)* / \u2705 I regret **to inform** you... *(formal)*\n\n## Gerund After Prepositions\n\n\u2705 She is interested **in learning**.\n\u2705 He left **without saying** goodbye.\n\u274c She is interested in to learn.\n\n## Infinitive of Purpose\n\n\u2705 I went to the store **to buy** milk.\n\u274c I went to the store for buying milk.",
       "searchTerms": [
         "gerund",
         "gerunds",
@@ -279,7 +275,7 @@
       "id": "grammar/conjunctions",
       "title": "Conjunctions",
       "category": "grammar",
-      "body": "## Conjunctions\n\nConjunctions connect words, phrases, clauses, or sentences. There are three main types: coordinating, subordinating, and correlative conjunctions.\n\n## Coordinating Conjunctions\n\nThe seven coordinating conjunctions can be remembered with **FANBOYS**: **F**or, **A**nd, **N**or, **B**ut, **O**r, **Y**et, **S**o. They join equal grammatical elements.\n\n✅ I wanted to go, **but** I was too tired.\n✅ She likes coffee **and** tea.\n✅ You can have cake **or** ice cream.\n\nUse a comma before a coordinating conjunction when joining two independent clauses:\n\n✅ The sun set, **and** the stars appeared.\n❌ The sun set **and** the stars appeared.\n\n## Subordinating Conjunctions\n\nSubordinating conjunctions (*because, although, while, since, if, when, unless*) connect a dependent clause to an independent clause. When the dependent clause comes first, use a comma.\n\n✅ **Because** it was raining, we stayed inside.\n✅ We stayed inside **because** it was raining.\n\n## Correlative Conjunctions\n\nThese work in pairs: *both…and, either…or, neither…nor, not only…but also*. Keep the structure parallel after each part. With *either…or* and *neither…nor*, the verb agrees with the nearest subject.\n\n✅ She is **both** intelligent **and** hardworking.\n✅ **Neither** the manager **nor** the employees **were** satisfied.\n\n## Common Mistakes\n\n❌ I could **of** gone. → ✅ I could **have** gone.\n❌ She is taller **then** I am. → ✅ She is taller **than** I am.",
+      "body": "## Conjunctions\n\nConjunctions connect words, phrases, clauses, or sentences. There are three main types: coordinating, subordinating, and correlative conjunctions.\n\n## Coordinating Conjunctions\n\nThe seven coordinating conjunctions can be remembered with **FANBOYS**: **F**or, **A**nd, **N**or, **B**ut, **O**r, **Y**et, **S**o. They join equal grammatical elements.\n\n\u2705 I wanted to go, **but** I was too tired.\n\u2705 She likes coffee **and** tea.\n\u2705 You can have cake **or** ice cream.\n\nUse a comma before a coordinating conjunction when joining two independent clauses:\n\n\u2705 The sun set, **and** the stars appeared.\n\u274c The sun set **and** the stars appeared.\n\n## Subordinating Conjunctions\n\nSubordinating conjunctions (*because, although, while, since, if, when, unless*) connect a dependent clause to an independent clause. When the dependent clause comes first, use a comma.\n\n\u2705 **Because** it was raining, we stayed inside.\n\u2705 We stayed inside **because** it was raining.\n\n## Correlative Conjunctions\n\nThese work in pairs: *both\u2026and, either\u2026or, neither\u2026nor, not only\u2026but also*. Keep the structure parallel after each part. With *either\u2026or* and *neither\u2026nor*, the verb agrees with the nearest subject.\n\n\u2705 She is **both** intelligent **and** hardworking.\n\u2705 **Neither** the manager **nor** the employees **were** satisfied.\n\n## Common Mistakes\n\n\u274c I could **of** gone. \u2192 \u2705 I could **have** gone.\n\u274c She is taller **then** I am. \u2192 \u2705 She is taller **than** I am.",
       "searchTerms": [
         "conjunction",
         "conjunctions",
@@ -299,8 +295,7 @@
         "connecting words"
       ],
       "relatedTopics": [
-        "grammar/gerunds-and-infinitives",
-        "style/parallelism"
+        "grammar/gerunds-and-infinitives"
       ],
       "structuralLevel": "structural"
     },
@@ -308,7 +303,7 @@
       "id": "grammar/prepositions",
       "title": "Prepositions",
       "category": "grammar",
-      "body": "## Prepositions\n\nPrepositions show relationships between nouns (or pronouns) and other elements in a sentence. They indicate location, time, direction, cause, manner, and other abstract relationships.\n\n## Common Prepositions by Use\n\n### Location\n\n| Preposition | Use | Example |\n|---|---|---|\n| **at** | specific point | ✅ She is **at** the door. |\n| **on** | surface | ✅ The book is **on** the table. |\n| **in** | enclosed space | ✅ The keys are **in** my bag. |\n| **between** | two items | ✅ Share it **between** the two of you. |\n| **among** | three or more | ✅ Share it **among** the group. |\n\n### Time\n\n✅ The train leaves **at** 3 PM.\n✅ See you **on** Monday.\n✅ He's worked here **since** 2020.\n\n## Prepositional Phrases\n\nA prepositional phrase = preposition + object. It can function as an adjective or an adverb.\n\n✅ The book **on the shelf** is mine. *(adjective)*\n✅ She arrived **after dinner**. *(adverb)*\n\n## Common Mistakes\n\n### Ending a Sentence with a Preposition\nAcceptable in modern usage, but avoid in formal writing:\n\n✅ Who are you talking **to**? *(natural)*\n✅ **To** whom are you talking? *(formal)*\n\n### In vs Into\n\n✅ The fish is **in** the tank. *(location)*\n✅ She jumped **into** the pool. *(movement)*\n\n### Different From vs Different Than\n\n✅ This is **different from** that. *(preferred)*\n\n### Verbs with Dependent Prepositions\n\n| Verb + Prep | Example |\n|---|---|\n| depend **on** | ✅ It depends **on** the weather. |\n| insist **on** | ✅ She insisted **on** paying. |\n| wait **for** | ✅ I waited **for** the bus. |\n| apologize **for** | ✅ I apologize **for** the delay. |",
+      "body": "## Prepositions\n\nPrepositions show relationships between nouns (or pronouns) and other elements in a sentence. They indicate location, time, direction, cause, manner, and other abstract relationships.\n\n## Common Prepositions by Use\n\n### Location\n\n| Preposition | Use | Example |\n|---|---|---|\n| **at** | specific point | \u2705 She is **at** the door. |\n| **on** | surface | \u2705 The book is **on** the table. |\n| **in** | enclosed space | \u2705 The keys are **in** my bag. |\n| **between** | two items | \u2705 Share it **between** the two of you. |\n| **among** | three or more | \u2705 Share it **among** the group. |\n\n### Time\n\n\u2705 The train leaves **at** 3 PM.\n\u2705 See you **on** Monday.\n\u2705 He's worked here **since** 2020.\n\n## Prepositional Phrases\n\nA prepositional phrase = preposition + object. It can function as an adjective or an adverb.\n\n\u2705 The book **on the shelf** is mine. *(adjective)*\n\u2705 She arrived **after dinner**. *(adverb)*\n\n## Common Mistakes\n\n### Ending a Sentence with a Preposition\nAcceptable in modern usage, but avoid in formal writing:\n\n\u2705 Who are you talking **to**? *(natural)*\n\u2705 **To** whom are you talking? *(formal)*\n\n### In vs Into\n\n\u2705 The fish is **in** the tank. *(location)*\n\u2705 She jumped **into** the pool. *(movement)*\n\n### Different From vs Different Than\n\n\u2705 This is **different from** that. *(preferred)*\n\n### Verbs with Dependent Prepositions\n\n| Verb + Prep | Example |\n|---|---|\n| depend **on** | \u2705 It depends **on** the weather. |\n| insist **on** | \u2705 She insisted **on** paying. |\n| wait **for** | \u2705 I waited **for** the bus. |\n| apologize **for** | \u2705 I apologize **for** the delay. |",
       "searchTerms": [
         "preposition",
         "prepositions",
@@ -331,7 +326,7 @@
       "id": "grammar/interjections",
       "title": "Interjections",
       "category": "grammar",
-      "body": "## Interjections\n\nInterjections are short exclamatory words or phrases that express emotion, reaction, or emphasis. They are grammatically independent — they stand apart from the sentence structure.\n\n## Strong vs Mild Interjections\n\n| Strength | Examples | Punctuation |\n|---|---|---|\n| **Strong** | *Wow! Ouch! Oh no! Yikes!* | Exclamation mark |\n| **Mild** | *Oh, Hmm, Well, Ah* | Comma after |\n\n✅ **Wow!** That's amazing.\n✅ **Oh,** I didn't see you there.\n\n## Common Interjections by Emotion\n\n| Emotion | Examples |\n|---|---|\n| Joy | Wow! Yay! Woo-hoo! |\n| Surprise | Oh! Gosh! Really? What! |\n| Pain | Ouch! Ow! Ugh! |\n| Understanding | Ah! Aha! Oh! |\n| Hesitation | Well, Hmm, Um, Er |\n| Disgust | Eww! Yuck! Blech! |\n\n## Punctuation\n\n✅ **Yikes!** That was close. *(strong — exclamation)*\n✅ **Well,** it's worth a try. *(mild — comma)*\n✅ The speech — **phew** — lasted three hours. *(mid-sentence dashes)*\n\n## Usage Notes\n\nInterjections are natural in dialogue but should be avoided in academic, professional, and technical writing. Use them sparingly for effect in creative writing.\n\n❌ Wow! The quarterly report exceeded expectations. *(too informal)*\n✅ The quarterly report far exceeded expectations.",
+      "body": "## Interjections\n\nInterjections are short exclamatory words or phrases that express emotion, reaction, or emphasis. They are grammatically independent \u2014 they stand apart from the sentence structure.\n\n## Strong vs Mild Interjections\n\n| Strength | Examples | Punctuation |\n|---|---|---|\n| **Strong** | *Wow! Ouch! Oh no! Yikes!* | Exclamation mark |\n| **Mild** | *Oh, Hmm, Well, Ah* | Comma after |\n\n\u2705 **Wow!** That's amazing.\n\u2705 **Oh,** I didn't see you there.\n\n## Common Interjections by Emotion\n\n| Emotion | Examples |\n|---|---|\n| Joy | Wow! Yay! Woo-hoo! |\n| Surprise | Oh! Gosh! Really? What! |\n| Pain | Ouch! Ow! Ugh! |\n| Understanding | Ah! Aha! Oh! |\n| Hesitation | Well, Hmm, Um, Er |\n| Disgust | Eww! Yuck! Blech! |\n\n## Punctuation\n\n\u2705 **Yikes!** That was close. *(strong \u2014 exclamation)*\n\u2705 **Well,** it's worth a try. *(mild \u2014 comma)*\n\u2705 The speech \u2014 **phew** \u2014 lasted three hours. *(mid-sentence dashes)*\n\n## Usage Notes\n\nInterjections are natural in dialogue but should be avoided in academic, professional, and technical writing. Use them sparingly for effect in creative writing.\n\n\u274c Wow! The quarterly report exceeded expectations. *(too informal)*\n\u2705 The quarterly report far exceeded expectations.",
       "searchTerms": [
         "interjection",
         "interjections",
@@ -349,218 +344,7 @@
         "dialogue"
       ],
       "relatedTopics": [
-        "punctuation/commas",
-        "style/tone-and-register"
-      ],
-      "structuralLevel": "lexical"
-    },
-    {
-      "id": "style/active-vs-passive",
-      "title": "Active vs Passive Voice",
-      "category": "style",
-      "body": "## Active vs Passive Voice\n\nIn active voice, the subject performs the action. In passive voice, the subject receives the action. Active voice is generally clearer and more direct.\n\n### Active Voice (Preferred)\n✅ The researcher conducted the experiment.\n✅ The committee made the decision.\n\n### Passive Voice (Use Sparingly)\n❌ The experiment was conducted by the researcher.\n❌ The decision was made by the committee.\n\n### When Passive Is Acceptable\n✅ My bike was stolen. (doer unknown — passive works)\n✅ The building was constructed in 1920. (focus is on the building)",
-      "searchTerms": [
-        "active",
-        "passive",
-        "active voice",
-        "passive voice",
-        "voice",
-        "active vs passive",
-        "active passive",
-        "passiv",
-        "activ",
-        "passive sentance"
-      ],
-      "relatedTopics": [
-        "style/conciseness",
-        "grammar/verb-tense"
-      ],
-      "structuralLevel": "lexical"
-    },
-    {
-      "id": "style/conciseness",
-      "title": "Conciseness",
-      "category": "style",
-      "body": "## Conciseness\n\nConcise writing eliminates unnecessary words without sacrificing meaning. Every word should earn its place.\n\n### Cut Filler Words\n✅ We must finish the report today.\n❌ It is important that we make sure we finish the report at some point today.\n\n### Avoid Redundancy\n✅ The meeting was a success.\n❌ The meeting was an absolutely essential and completely necessary success.\n\n### Replace Phrases with Single Words\n✅ Because it rained, the game was cancelled.\n❌ Due to the fact that it was raining, the game was cancelled.\n\n### Use Strong Verbs\n✅ She decided to leave early.\n❌ She made the decision to leave early.",
-      "searchTerms": [
-        "concise",
-        "conciseness",
-        "wordy",
-        "wordiness",
-        "redundant",
-        "redundancy",
-        "cut words",
-        "brevity",
-        "concis",
-        "wordyness",
-        "fluff",
-        "filler",
-        "filler words",
-        "trim"
-      ],
-      "relatedTopics": [
-        "style/active-vs-passive",
-        "punctuation/semicolons"
-      ],
-      "structuralLevel": "lexical"
-    },
-    {
-      "id": "style/avoiding-cliches",
-      "title": "Avoiding Clichés",
-      "category": "style",
-      "body": "## Avoiding Clichés\n\nA cliché is an overused phrase or expression that has lost its original impact. Relying on clichés makes writing feel lazy and unoriginal.\n\n## Why Avoid Clichés?\n\n- They weaken your voice — readers skim past them.\n- They signal shallow thinking — you are borrowing someone else's phrasing.\n- They date your writing — today's buzzword is tomorrow's cliché.\n\n## Common Clichés and Alternatives\n\n| Cliché | Alternative |\n|---|---|\n| think outside the box | approach creatively |\n| low-hanging fruit | easy wins, quick gains |\n| at the end of the day | ultimately, in the end |\n| bite the bullet | accept the difficulty |\n| a perfect storm | a convergence of problems |\n| game changer | significant development, breakthrough |\n\n## How to Spot and Fix Clichés\n\n1. **Read aloud** — if it rolls off the tongue too easily, it is probably a cliché.\n2. **Ask what you actually mean** — replace the lazy shortcut with concrete detail.\n3. **Use fresh metaphors** — specific, original imagery beats borrowed phrasing.\n\n❌ We need to think outside the box.\n✅ We should explore direct-to-consumer sales rather than relying on retail partners.\n\n## When Clichés Are Acceptable\n\n- In dialogue (real people use clichés)\n- In headlines (a twist on a cliché can be effective)\n- In first drafts (replace them during revision)",
-      "searchTerms": [
-        "cliche",
-        "cliches",
-        "cliché",
-        "clichés",
-        "overused phrases",
-        "overused",
-        "buzzword",
-        "buzzwords",
-        "jargon",
-        "trite",
-        "trite phrases",
-        "think outside the box",
-        "low hanging fruit",
-        "avoiding cliches"
-      ],
-      "relatedTopics": [
-        "style/conciseness",
-        "style/word-choice-and-colour"
-      ],
-      "structuralLevel": "lexical"
-    },
-    {
-      "id": "style/parallelism",
-      "title": "Parallelism",
-      "category": "style",
-      "body": "## Parallelism\n\nParallelism (parallel structure) means using the same grammatical form for items in a series, pairs, or comparisons. It makes writing clearer, more rhythmic, and easier to follow.\n\n## The Core Rule\n\nElements joined by coordinating conjunctions (*and, or, but*) or correlative conjunctions (*both...and, either...or, neither...nor, not only...but also*) must be in the same grammatical form.\n\n## Lists and Series\n\n✅ She likes **running**, **swimming**, and **cycling**. *(all gerunds)*\n❌ She likes **running**, **swimming**, and **to cycle**. *(mismatched)*\n\n## Correlative Conjunctions\n\n| Conjunction | Correct | Incorrect |\n|---|---|---|\n| both...and | ✅ She is **both** intelligent **and** hardworking. | ❌ She **both** is intelligent **and** hardworking. |\n| either...or | ✅ **Either** you leave **or** I will. | ❌ You **either** leave **or** I will. |\n| neither...nor | ✅ He **neither** called **nor** texted. | ❌ He **neither** called **nor** did he text. |\n| not only...but also | ✅ She **not only** sings **but also** dances. | ❌ She **not only** sings **but also** she dances. |\n\n## Headings and Bullet Points\n\nAll items in a bulleted list should start with the same part of speech:\n\n✅ Project Goals:\n- Increase revenue by 10%\n- Reduce costs by 5%\n- Launch the new product line\n\n❌ Project Goals:\n- Increase revenue by 10%\n- We need to reduce costs by 5%\n- Launching the new product line",
-      "searchTerms": [
-        "parallelism",
-        "parallel",
-        "parallel structure",
-        "parallel construction",
-        "faulty parallelism",
-        "lists",
-        "series",
-        "bullet points",
-        "correlative conjunctions",
-        "parallel form",
-        "grammatical form"
-      ],
-      "relatedTopics": [
-        "grammar/conjunctions",
-        "style/rhythm-and-flow"
-      ],
-      "structuralLevel": "lexical"
-    },
-    {
-      "id": "style/rhythm-and-flow",
-      "title": "Rhythm and Flow",
-      "category": "style",
-      "body": "## Rhythm and Flow\n\nProse rhythm is the pattern of stressed and unstressed syllables, sentence lengths, and pauses. It affects pace, mood, and memorability — even in non-fiction.\n\n## The Three Rhythms\n\n### 1. Staccato — Short, Clipped\nShort sentences, hard stops, minimal connectives. Creates tension, urgency, or bluntness.\n\n> He looked at the door. It was closed. He listened. Nothing. He took a step. The floor creaked.\n\n### 2. Legato — Flowing, Connected\nLonger sentences with subordinate clauses and connectives. Creates momentum, reflection, or lyricism.\n\n### 3. Mixed — Natural\nMost good prose alternates. A long passage builds atmosphere; a short sentence breaks it for impact.\n\n## The Sound of Sentences\n\n**Alliteration** (repeated consonant sounds) and **assonance** (repeated vowel sounds) create subliminal music.\n\n> Do not go gentle into that good night.\n— Dylan Thomas\n\nThe repeated G and N sounds create a sense of inevitability.\n\n## Polysyndeton and Asyndeton\n\n**Polysyndeton:** Deliberately repeating conjunctions creates accumulation.\n**Asyndeton:** Omitting conjunctions creates speed and decisiveness.\n\n> I came, I saw, I conquered. — Julius Caesar\n\n## Practical Checks\n\n1. Read aloud. If you stumble, your reader will too.\n2. End sentences on strong words, not trailing prepositions.\n3. Check the ratio — a paragraph of all long sentences needs one short one.",
-      "searchTerms": [
-        "rhythm",
-        "flow",
-        "prose rhythm",
-        "staccato",
-        "legato",
-        "sentence rhythm",
-        "sentence flow",
-        "alliteration",
-        "assonance",
-        "polysyndeton",
-        "asyndeton",
-        "sentence length",
-        "cadence",
-        "musicality"
-      ],
-      "relatedTopics": [
-        "style/sentence-variety",
-        "style/parallelism"
-      ],
-      "structuralLevel": "lexical"
-    },
-    {
-      "id": "style/sentence-variety",
-      "title": "Sentence Variety",
-      "category": "style",
-      "body": "## Sentence Variety\n\nWriting where every sentence is the same length and structure becomes monotonous. Varying sentence length and rhythm keeps the reader engaged and allows you to control pace.\n\n## Why Variety Matters\n\n- **Short sentences** create impact, urgency, tension.\n- **Medium sentences** carry exposition and explanation.\n- **Long sentences** build momentum, layer detail, and create flow.\n\n## Patterns to Vary\n\n### 1. Sentence Openings\nDon't start every sentence with the subject:\n\n❌ She walked to the door. She opened it. She stepped outside.\n✅ Walking to the door, she opened it. Outside, the world waited.\n\n### 2. Clause Structure\nMix simple, compound, and complex sentences within a paragraph.\n\n### 3. Periodic vs Loose Sentences\n\n| Type | Structure | Effect |\n|---|---|---|\n| **Loose (Cumulative)** | Main clause first, then details | Direct, conversational |\n| **Periodic** | Details first, main clause at end | Suspense, formality |\n\n**Loose:** ✅ The house stood empty, its windows boarded, its garden overgrown.\n**Periodic:** ✅ With its boarded windows and overgrown garden, the house stood empty.\n\n### 4. Fragment for Effect\nA deliberate fragment can land like a punch — use sparingly.\n\n✅ The committee deliberated for six hours. They debated every clause. Every comma. And still they could not agree.",
-      "searchTerms": [
-        "sentence variety",
-        "sentence length",
-        "sentence structure",
-        "sentence openings",
-        "loose sentence",
-        "periodic sentence",
-        "cumulative sentence",
-        "fragment",
-        "sentence fragment",
-        "variety",
-        "monotonous",
-        "clause structure"
-      ],
-      "relatedTopics": [
-        "style/rhythm-and-flow",
-        "style/conciseness"
-      ],
-      "structuralLevel": "lexical"
-    },
-    {
-      "id": "style/tone-and-register",
-      "title": "Tone and Register",
-      "category": "style",
-      "body": "## Tone and Register\n\nTone is the writer's attitude toward the subject and audience. Register is the level of formality. Matching both to context is essential for effective communication.\n\n## Register Levels\n\n| Level | Use | Example |\n|---|---|---|\n| **Formal** | Academic papers, legal documents | It is recommended that the committee convene... |\n| **Standard** | Business communication, essays | The committee should meet as soon as possible. |\n| **Informal** | Personal emails, blogs | The committee should get together soon. |\n| **Colloquial** | Close friends, dialogue | The committee needs to get its act together. |\n\n## Shifting Register Inappropriately\n\nMixing registers within a passage creates tonal whiplash:\n\n❌ The defendant's culpability is incontrovertible, and yeah, that's pretty bad.\n\n## Matching Tone to Purpose\n\n| Purpose | Appropriate Tone |\n|---|---|\n| Persuade | Confident, reasonable, empathetic |\n| Inform | Neutral, clear, objective |\n| Entertain | Playful, vivid, engaging |\n| Instruct | Clear, patient, encouraging |\n\n## Hedging Language\n\nHedging weakens writing. Use it sparingly — only when genuine uncertainty exists.\n\n| Weak (Over-Hedged) | Strong |\n|---|---|\n| It seems that perhaps we might want to consider... | I recommend... |\n| I think it is kind of important to note... | Note that... |\n\n## Inclusive Tone\n\n✅ Use gender-neutral language (*they*, not *he*).\n✅ Avoid idioms that assume shared cultural background.\n✅ Use plain language where possible.",
-      "searchTerms": [
-        "tone",
-        "register",
-        "formality",
-        "formal",
-        "informal",
-        "colloquial",
-        "hedging",
-        "hedge",
-        "hedge words",
-        "active tone",
-        "passive tone",
-        "inclusive",
-        "inclusive tone",
-        "voice",
-        "register shift"
-      ],
-      "relatedTopics": [
-        "style/active-vs-passive",
-        "grammar/interjections"
-      ],
-      "structuralLevel": "lexical"
-    },
-    {
-      "id": "style/word-choice-and-colour",
-      "title": "Word Choice and Colour",
-      "category": "style",
-      "body": "## Word Choice and Colour\n\nPrecision in word choice is the difference between a sketch and a painting. Every word carries denotation (literal meaning) and connotation (emotional weight, cultural association, tone).\n\n## Denotation vs Connotation\n\n| Word | Denotation | Connotation |\n|---|---|---|\n| slender | thin | positive — graceful, elegant |\n| skinny | thin | negative — undernourished, scrawny |\n| determined | strong-willed | positive — resolute |\n| stubborn | strong-willed | negative — inflexible, unreasonable |\n\nChoosing the wrong word changes the meaning — not just the mood.\n\n✅ She was **slender** and moved with ease.\n❌ She was **gaunt** and moved with ease.\n\n## The Ladder of Abstraction\n\nGood writing moves fluidly between abstract and concrete levels:\n\n| Level | Example |\n|---|---|\n| **Abstract** | wealth → asset → property → house → bungalow → the peeling yellow bungalow on Ash Street |\n| **Concrete** | |\n\n## Weak Words to Interrogate\n\n| Weak | Stronger Alternative |\n|---|---|\n| nice | pleasant, charming, gracious |\n| good | excellent, effective, skilled |\n| bad | harmful, incompetent, unpleasant |\n| thing | item, object, concept, issue |\n| very | *(delete; use a stronger adjective)* |\n\n## The Sound of Words\n\nHard consonants (K, T, P, G) create friction. Soft consonants (L, M, N, S, W) create smoothness. Choose sounds that match your meaning.\n\n❌ The contract requires strict compliance with complex corporate protocols. *(hard — bureaucratic)*\n✅ The agreement asks that we follow a few shared principles. *(soft — collaborative)",
-      "searchTerms": [
-        "word choice",
-        "colour",
-        "color",
-        "denotation",
-        "connotation",
-        "concrete",
-        "abstract",
-        "sensory language",
-        "weak words",
-        "precise",
-        "precision",
-        "vocabulary",
-        "strong verbs",
-        "ladder of abstraction",
-        "sensory",
-        "showing vs telling"
-      ],
-      "relatedTopics": [
-        "style/avoiding-cliches",
-        "style/conciseness"
+        "punctuation/commas"
       ],
       "structuralLevel": "lexical"
     },
@@ -568,7 +352,7 @@
       "id": "spelling/their-there-theyre",
       "title": "Their / There / They're",
       "category": "spelling",
-      "body": "## Their / There / They're\n\nThese three words sound identical but have completely different meanings.\n\n### Their (Possessive)\n✅ Their house is on the corner.\n❌ There house is on the corner.\n\n### There (Location or Existence)\n✅ There are three cookies left.\n✅ Put it over there.\n❌ Their are three cookies left.\n\n### They're (They Are)\n✅ They're going to the movies.\n❌ Their going to the movies.\n\n### Quick Test\nCan you replace it with \"they are\"? → Use **they're**\nIs it about ownership? → Use **their**\nIs it a place or existence? → Use **there**",
+      "body": "## Their / There / They're\n\nThese three words sound identical but have completely different meanings.\n\n### Their (Possessive)\n\u2705 Their house is on the corner.\n\u274c There house is on the corner.\n\n### There (Location or Existence)\n\u2705 There are three cookies left.\n\u2705 Put it over there.\n\u274c Their are three cookies left.\n\n### They're (They Are)\n\u2705 They're going to the movies.\n\u274c Their going to the movies.\n\n### Quick Test\nCan you replace it with \"they are\"? \u2192 Use **they're**\nIs it about ownership? \u2192 Use **their**\nIs it a place or existence? \u2192 Use **there**",
       "searchTerms": [
         "their",
         "there",
@@ -597,7 +381,7 @@
       "id": "spelling/affect-vs-effect",
       "title": "Affect vs Effect",
       "category": "spelling",
-      "body": "## Affect vs Effect\n\nThese two words are frequently confused. *Affect* is usually a verb; *effect* is usually a noun.\n\n### Affect (Verb = Influence)\n✅ The weather affects my mood.\n✅ The news affected her deeply.\n❌ The weather effects my mood.\n\n### Effect (Noun = Result)\n✅ The effect was immediate.\n✅ The policy had a positive effect.\n❌ The affect was immediate.\n\n### Effect (Verb = Bring About — Rare)\n✅ The new CEO will effect meaningful change.\n\n### Quick Test\nCan you replace it with \"influence\"? → Use **affect**\nCan you replace it with \"result\" or \"outcome\"? → Use **effect**",
+      "body": "## Affect vs Effect\n\nThese two words are frequently confused. *Affect* is usually a verb; *effect* is usually a noun.\n\n### Affect (Verb = Influence)\n\u2705 The weather affects my mood.\n\u2705 The news affected her deeply.\n\u274c The weather effects my mood.\n\n### Effect (Noun = Result)\n\u2705 The effect was immediate.\n\u2705 The policy had a positive effect.\n\u274c The affect was immediate.\n\n### Effect (Verb = Bring About \u2014 Rare)\n\u2705 The new CEO will effect meaningful change.\n\n### Quick Test\nCan you replace it with \"influence\"? \u2192 Use **affect**\nCan you replace it with \"result\" or \"outcome\"? \u2192 Use **effect**",
       "searchTerms": [
         "affect",
         "effect",
@@ -622,7 +406,7 @@
       "id": "spelling/your-vs-youre",
       "title": "Your vs You're",
       "category": "spelling",
-      "body": "## Your vs You're\n\nThese two words sound identical but serve different grammatical functions.\n\n### Your (Possessive)\n✅ Your book is on the table.\n✅ Is this your car?\n❌ You're book is on the table.\n\n### You're (You Are)\n✅ You're going to love this.\n✅ I think you're right.\n❌ Your going to love this.\n\n### Quick Test\nCan you replace it with \"you are\"? → Use **you're**\nIs it about ownership? → Use **your**",
+      "body": "## Your vs You're\n\nThese two words sound identical but serve different grammatical functions.\n\n### Your (Possessive)\n\u2705 Your book is on the table.\n\u2705 Is this your car?\n\u274c You're book is on the table.\n\n### You're (You Are)\n\u2705 You're going to love this.\n\u2705 I think you're right.\n\u274c Your going to love this.\n\n### Quick Test\nCan you replace it with \"you are\"? \u2192 Use **you're**\nIs it about ownership? \u2192 Use **your**",
       "searchTerms": [
         "your",
         "youre",
@@ -646,7 +430,7 @@
       "id": "usage/who-vs-whom",
       "title": "Who vs Whom",
       "category": "usage",
-      "body": "## Who vs Whom\n\n*Who* is a subject pronoun (like *he, she*); *whom* is an object pronoun (like *him, her*).\n\n### Who (Subject — Does the Action)\n✅ Who wrote the letter?\n✅ The person who called earlier left a message.\n❌ Whom wrote the letter?\n\n### Whom (Object — Receives the Action)\n✅ To whom should I address this?\n✅ The person whom you called is not available.\n❌ To who should I address this?\n\n### The Him Test\nRephrase: if *him* sounds right → **whom**; if *he* sounds right → **who**.\n\n✅ *He* wrote the letter → **Who** wrote the letter?\n✅ Give it to *him* → To **whom** should I give it?",
+      "body": "## Who vs Whom\n\n*Who* is a subject pronoun (like *he, she*); *whom* is an object pronoun (like *him, her*).\n\n### Who (Subject \u2014 Does the Action)\n\u2705 Who wrote the letter?\n\u2705 The person who called earlier left a message.\n\u274c Whom wrote the letter?\n\n### Whom (Object \u2014 Receives the Action)\n\u2705 To whom should I address this?\n\u2705 The person whom you called is not available.\n\u274c To who should I address this?\n\n### The Him Test\nRephrase: if *him* sounds right \u2192 **whom**; if *he* sounds right \u2192 **who**.\n\n\u2705 *He* wrote the letter \u2192 **Who** wrote the letter?\n\u2705 Give it to *him* \u2192 To **whom** should I give it?",
       "searchTerms": [
         "who",
         "whom",
@@ -670,7 +454,7 @@
       "id": "usage/farther-vs-further",
       "title": "Farther vs Further",
       "category": "usage",
-      "body": "## Farther vs Further\n\n*farther* is for physical distance; *further* is for figurative degree or extent. *Further* can also be a verb meaning \"to advance.\"\n\n### Physical Distance — Farther\n✅ We walked **farther** than we planned.\n✅ How much **farther** do we have to walk?\n\n### Figurative Degree — Further\n✅ Let's discuss this **further** tomorrow.\n✅ Do you have any **further** questions?\n\n### Further as a Verb\n✅ She worked hard to **further** her career.\n❌ She worked hard to **farther** her career.\n\n### Quick Test\nCan you measure it in miles? → **farther** (literal distance). Otherwise → **further** (figurative, additional).\n\n### Memory Trick\n*Farther* has \"far\" — if you can measure how *far*, use *farther*. *Further* is for everything else.",
+      "body": "## Farther vs Further\n\n*farther* is for physical distance; *further* is for figurative degree or extent. *Further* can also be a verb meaning \"to advance.\"\n\n### Physical Distance \u2014 Farther\n\u2705 We walked **farther** than we planned.\n\u2705 How much **farther** do we have to walk?\n\n### Figurative Degree \u2014 Further\n\u2705 Let's discuss this **further** tomorrow.\n\u2705 Do you have any **further** questions?\n\n### Further as a Verb\n\u2705 She worked hard to **further** her career.\n\u274c She worked hard to **farther** her career.\n\n### Quick Test\nCan you measure it in miles? \u2192 **farther** (literal distance). Otherwise \u2192 **further** (figurative, additional).\n\n### Memory Trick\n*Farther* has \"far\" \u2014 if you can measure how *far*, use *farther*. *Further* is for everything else.",
       "searchTerms": [
         "farther",
         "further",
@@ -692,7 +476,7 @@
       "id": "usage/fewer-vs-less",
       "title": "Fewer vs Less",
       "category": "usage",
-      "body": "## Fewer vs Less\n\nThe traditional rule: *fewer* for countable nouns; *less* for uncountable (mass) nouns.\n\n### Traditional Rule\n✅ **fewer** apples, fewer people, fewer mistakes *(countable)*\n✅ **less** water, less time, less patience *(uncountable)*\n\n### The Quick Test\nCan you put a number directly in front of it?\n- ✅ \"3 apples\" → countable → **fewer apples**\n- ❌ \"3 traffic\" → not countable → **less traffic**\n\n### Modern Nuances\nDistance, time, money, and weight are treated as singular quantities:\n✅ It's **less** than five miles.\n✅ It took **less** than three hours.\n\n### Common Errors\n❌ I have less books than you. → ✅ I have **fewer** books.\n❌ Drink fewer water. → ✅ Drink **less** water.",
+      "body": "## Fewer vs Less\n\nThe traditional rule: *fewer* for countable nouns; *less* for uncountable (mass) nouns.\n\n### Traditional Rule\n\u2705 **fewer** apples, fewer people, fewer mistakes *(countable)*\n\u2705 **less** water, less time, less patience *(uncountable)*\n\n### The Quick Test\nCan you put a number directly in front of it?\n- \u2705 \"3 apples\" \u2192 countable \u2192 **fewer apples**\n- \u274c \"3 traffic\" \u2192 not countable \u2192 **less traffic**\n\n### Modern Nuances\nDistance, time, money, and weight are treated as singular quantities:\n\u2705 It's **less** than five miles.\n\u2705 It took **less** than three hours.\n\n### Common Errors\n\u274c I have less books than you. \u2192 \u2705 I have **fewer** books.\n\u274c Drink fewer water. \u2192 \u2705 Drink **less** water.",
       "searchTerms": [
         "fewer",
         "less",
@@ -716,7 +500,7 @@
       "id": "usage/i-e-vs-e-g",
       "title": "i.e. vs e.g.",
       "category": "usage",
-      "body": "## i.e. vs e.g.\n\nThese Latin abbreviations have different meanings: **e.g.** means \"for example\"; **i.e.** means \"that is\" / \"in other words.\"\n\n### e.g. — For Example\n✅ I love citrus fruits (e.g., oranges, lemons, and grapefruits).\n\n### i.e. — That Is\n✅ My favorite citrus fruit (i.e., the one I eat every day) is the orange.\n\n### Quick Test\n- Replace with \"for example\"? → **e.g.**\n- Replace with \"in other words\"? → **i.e.**\n\n### Punctuation\n**US:** e.g., / i.e., (with comma after). **UK:** eg, / ie, (no periods, comma).\n\n### Style Advice\nIn running text, prefer the English equivalents: *for example* / *such as* instead of *e.g.*, and *that is* / *in other words* instead of *i.e.*",
+      "body": "## i.e. vs e.g.\n\nThese Latin abbreviations have different meanings: **e.g.** means \"for example\"; **i.e.** means \"that is\" / \"in other words.\"\n\n### e.g. \u2014 For Example\n\u2705 I love citrus fruits (e.g., oranges, lemons, and grapefruits).\n\n### i.e. \u2014 That Is\n\u2705 My favorite citrus fruit (i.e., the one I eat every day) is the orange.\n\n### Quick Test\n- Replace with \"for example\"? \u2192 **e.g.**\n- Replace with \"in other words\"? \u2192 **i.e.**\n\n### Punctuation\n**US:** e.g., / i.e., (with comma after). **UK:** eg, / ie, (no periods, comma).\n\n### Style Advice\nIn running text, prefer the English equivalents: *for example* / *such as* instead of *e.g.*, and *that is* / *in other words* instead of *i.e.*",
       "searchTerms": [
         "ie",
         "eg",
@@ -742,7 +526,7 @@
       "id": "usage/lay-vs-lie",
       "title": "Lay vs Lie",
       "category": "usage",
-      "body": "## Lay vs Lie\n\n*Lay* means \"to put or place something down\" (transitive — needs an object). *Lie* means \"to recline\" (intransitive — no object). The past tense of *lie* is *lay*, which causes confusion.\n\n### Core Forms\n| Verb | Present | Past | Past Participle |\n|---|---|---|---|\n| **lay** (put) | lay | laid | laid |\n| **lie** (recline) | lie | lay | lain |\n| **lie** (falsehood) | lie | lied | lied |\n\n### Quick Test\nReplace with \"put/place\" → **lay** (laid, laid). Replace with \"recline\" → **lie** (lay, lain).\n\n### Examples\n✅ Please **lay** the book on the table.\n✅ I need to **lie** down.\n✅ She **lay** on the sofa all afternoon. *(past of lie)*\n\n### Memory Aid\n*Lay* takes a direct object — you lay *something* down. *Lie* is something you do yourself.",
+      "body": "## Lay vs Lie\n\n*Lay* means \"to put or place something down\" (transitive \u2014 needs an object). *Lie* means \"to recline\" (intransitive \u2014 no object). The past tense of *lie* is *lay*, which causes confusion.\n\n### Core Forms\n| Verb | Present | Past | Past Participle |\n|---|---|---|---|\n| **lay** (put) | lay | laid | laid |\n| **lie** (recline) | lie | lay | lain |\n| **lie** (falsehood) | lie | lied | lied |\n\n### Quick Test\nReplace with \"put/place\" \u2192 **lay** (laid, laid). Replace with \"recline\" \u2192 **lie** (lay, lain).\n\n### Examples\n\u2705 Please **lay** the book on the table.\n\u2705 I need to **lie** down.\n\u2705 She **lay** on the sofa all afternoon. *(past of lie)*\n\n### Memory Aid\n*Lay* takes a direct object \u2014 you lay *something* down. *Lie* is something you do yourself.",
       "searchTerms": [
         "lay",
         "lie",
@@ -768,7 +552,7 @@
       "id": "usage/that-vs-which",
       "title": "That vs Which",
       "category": "usage",
-      "body": "## That vs Which\n\n*That* introduces a restrictive (essential) clause — no commas. *Which* introduces a non-restrictive (extra info) clause — set off with commas.\n\n### The Core Rule\n✅ The book **that** won the prize is on sale. *(identifies which book — no commas)*\n✅ The book, **which** won the prize, is on sale. *(extra info — commas needed)*\n\n### Quick Test\nRemove the clause. Does the sentence still identify the same thing?\n- Yes → non-restrictive → **which** with commas.\n- No → restrictive → **that** without commas.\n\n### UK vs US\n**US:** Strictly distinguishes *that* (restrictive) and *which* (non-restrictive).\n**UK:** Often uses *which* for both, relying on commas for distinction.\n\n### Common Errors\n❌ The policy which was introduced last year is flawed. → ✅ The policy **that** was introduced... *(restrictive — identifies which policy)*",
+      "body": "## That vs Which\n\n*That* introduces a restrictive (essential) clause \u2014 no commas. *Which* introduces a non-restrictive (extra info) clause \u2014 set off with commas.\n\n### The Core Rule\n\u2705 The book **that** won the prize is on sale. *(identifies which book \u2014 no commas)*\n\u2705 The book, **which** won the prize, is on sale. *(extra info \u2014 commas needed)*\n\n### Quick Test\nRemove the clause. Does the sentence still identify the same thing?\n- Yes \u2192 non-restrictive \u2192 **which** with commas.\n- No \u2192 restrictive \u2192 **that** without commas.\n\n### UK vs US\n**US:** Strictly distinguishes *that* (restrictive) and *which* (non-restrictive).\n**UK:** Often uses *which* for both, relying on commas for distinction.\n\n### Common Errors\n\u274c The policy which was introduced last year is flawed. \u2192 \u2705 The policy **that** was introduced... *(restrictive \u2014 identifies which policy)*",
       "searchTerms": [
         "that",
         "which",
@@ -791,7 +575,7 @@
       "id": "usage/then-vs-than",
       "title": "Then vs Than",
       "category": "usage",
-      "body": "## Then vs Than\n\n*Then* relates to time or sequence. *Than* is used for comparisons.\n\n### Quick Test\n- Is there a comparison? *(bigger, better, more, less)* → **than**\n- Is it about time or sequence? *(next, afterward, at that time)* → **then**\n\n### Then — Time / Sequence\n✅ We went to dinner, **then** we saw a movie.\n✅ Finish your homework, **then** you can play.\n\n### Than — Comparison\n✅ She is taller **than** her brother.\n✅ I'd rather walk **than** drive.\n\n### Common Errors\n❌ He is bigger then me. → ✅ He is bigger **than** me.\n❌ First we eat, than we'll talk. → ✅ First we eat, **then** we'll talk.\n\n### Memory Trick\n**ThE**n relates to tim**E**. **ThA**n is used for comp**A**risons.",
+      "body": "## Then vs Than\n\n*Then* relates to time or sequence. *Than* is used for comparisons.\n\n### Quick Test\n- Is there a comparison? *(bigger, better, more, less)* \u2192 **than**\n- Is it about time or sequence? *(next, afterward, at that time)* \u2192 **then**\n\n### Then \u2014 Time / Sequence\n\u2705 We went to dinner, **then** we saw a movie.\n\u2705 Finish your homework, **then** you can play.\n\n### Than \u2014 Comparison\n\u2705 She is taller **than** her brother.\n\u2705 I'd rather walk **than** drive.\n\n### Common Errors\n\u274c He is bigger then me. \u2192 \u2705 He is bigger **than** me.\n\u274c First we eat, than we'll talk. \u2192 \u2705 First we eat, **then** we'll talk.\n\n### Memory Trick\n**ThE**n relates to tim**E**. **ThA**n is used for comp**A**risons.",
       "searchTerms": [
         "then",
         "than",
@@ -813,7 +597,7 @@
       "id": "punctuation/colons",
       "title": "Colons",
       "category": "punctuation",
-      "body": "## Colons\n\nA colon introduces what follows: a list, an explanation, a quotation, or an elaboration. Use it only after a **complete sentence**.\n\n### Introducing a List\n✅ Bring three items: a tent, a flashlight, and water.\n❌ Bring: a tent, a flashlight, and water. *(colon after verb — wrong)*\n\n### Introducing an Explanation\n✅ She had one goal: to win.\n✅ The reason is simple: we ran out of time.\n\n### Between Independent Clauses\n✅ The decision was final: there would be no appeal.\n\n### Capitalization After a Colon\n**US:** Capitalize if a complete sentence follows. **UK:** Lowercase regardless.\n\n### Common Errors\n❌ She wanted: success, fame, and wealth. *(colon interrupts verb and object)*\n✅ The ingredients are flour, sugar, and eggs. *(no colon after \"are\")",
+      "body": "## Colons\n\nA colon introduces what follows: a list, an explanation, a quotation, or an elaboration. Use it only after a **complete sentence**.\n\n### Introducing a List\n\u2705 Bring three items: a tent, a flashlight, and water.\n\u274c Bring: a tent, a flashlight, and water. *(colon after verb \u2014 wrong)*\n\n### Introducing an Explanation\n\u2705 She had one goal: to win.\n\u2705 The reason is simple: we ran out of time.\n\n### Between Independent Clauses\n\u2705 The decision was final: there would be no appeal.\n\n### Capitalization After a Colon\n**US:** Capitalize if a complete sentence follows. **UK:** Lowercase regardless.\n\n### Common Errors\n\u274c She wanted: success, fame, and wealth. *(colon interrupts verb and object)*\n\u2705 The ingredients are flour, sugar, and eggs. *(no colon after \"are\")",
       "searchTerms": [
         "colon",
         "colons",
@@ -835,7 +619,7 @@
       "id": "punctuation/dashes-and-hyphens",
       "title": "Dashes and Hyphens",
       "category": "punctuation",
-      "body": "## Dashes and Hyphens\n\nHyphens (-) join words. En dashes (–) show ranges. Em dashes (—) create interruptions or parenthetical emphasis.\n\n### Hyphen (-)\n**Compound modifiers before a noun:** ✅ a well-known author\n**Numbers:** ✅ twenty-one through ninety-nine\n**Avoid ambiguity:** ✅ a little-used car *(rarely used)* vs. a little used car\n\n### En Dash (–)\n**Ranges:** ✅ pages 10–25, 1990–2000, Monday–Friday\n**Scores:** ✅ The Lakers won 108–95\n**Connections:** ✅ the London–Paris train\n\n### Em Dash (—)\n**Interruption:** ✅ She was about to speak — but then she stopped.\n**Parenthetical:** ✅ Three students — Alice, Bob, and Carol — won awards.\n**Spacing:** ✅ Word—word *(Chicago)* or Word — word *(AP)*\n\n### Common Errors\n❌ She arrived - late as usual - and sat down. *(hyphen used as em dash)*",
+      "body": "## Dashes and Hyphens\n\nHyphens (-) join words. En dashes (\u2013) show ranges. Em dashes (\u2014) create interruptions or parenthetical emphasis.\n\n### Hyphen (-)\n**Compound modifiers before a noun:** \u2705 a well-known author\n**Numbers:** \u2705 twenty-one through ninety-nine\n**Avoid ambiguity:** \u2705 a little-used car *(rarely used)* vs. a little used car\n\n### En Dash (\u2013)\n**Ranges:** \u2705 pages 10\u201325, 1990\u20132000, Monday\u2013Friday\n**Scores:** \u2705 The Lakers won 108\u201395\n**Connections:** \u2705 the London\u2013Paris train\n\n### Em Dash (\u2014)\n**Interruption:** \u2705 She was about to speak \u2014 but then she stopped.\n**Parenthetical:** \u2705 Three students \u2014 Alice, Bob, and Carol \u2014 won awards.\n**Spacing:** \u2705 Word\u2014word *(Chicago)* or Word \u2014 word *(AP)*\n\n### Common Errors\n\u274c She arrived - late as usual - and sat down. *(hyphen used as em dash)*",
       "searchTerms": [
         "dash",
         "dashes",
@@ -861,7 +645,7 @@
       "id": "punctuation/parentheses-and-brackets",
       "title": "Parentheses and Brackets",
       "category": "punctuation",
-      "body": "## Parentheses and Brackets\n\nParentheses ( ) enclose supplementary material. Brackets [ ] are used for editorial insertions and clarifying quotations.\n\n### Parentheses — Supplementary Info\n✅ The conference (which was held in Paris) was a great success.\n✅ The CMS (Content Management System) was updated.\n\n### Punctuation with Parentheses\n- Period inside if whole sentence is parenthetical: ✅ We arrived late. (The traffic was terrible.)\n- Period outside if parenthetical is part of a larger sentence: ✅ We arrived late (the traffic was terrible).\n\n### Brackets — Editorial Insertions\n✅ \"He [the CEO] announced the merger.\"\n✅ \"The experament [sic] was successful.\" *(indicates error is in the original)*\n\n### Common Errors\n❌ The CEO, (who joined last year) announced record profits. *(comma before paren — wrong)*\n❌ \"The goverment (sic) issued a statement.\" *(sic goes in brackets, not parentheses)*",
+      "body": "## Parentheses and Brackets\n\nParentheses ( ) enclose supplementary material. Brackets [ ] are used for editorial insertions and clarifying quotations.\n\n### Parentheses \u2014 Supplementary Info\n\u2705 The conference (which was held in Paris) was a great success.\n\u2705 The CMS (Content Management System) was updated.\n\n### Punctuation with Parentheses\n- Period inside if whole sentence is parenthetical: \u2705 We arrived late. (The traffic was terrible.)\n- Period outside if parenthetical is part of a larger sentence: \u2705 We arrived late (the traffic was terrible).\n\n### Brackets \u2014 Editorial Insertions\n\u2705 \"He [the CEO] announced the merger.\"\n\u2705 \"The experament [sic] was successful.\" *(indicates error is in the original)*\n\n### Common Errors\n\u274c The CEO, (who joined last year) announced record profits. *(comma before paren \u2014 wrong)*\n\u274c \"The goverment (sic) issued a statement.\" *(sic goes in brackets, not parentheses)*",
       "searchTerms": [
         "parentheses",
         "parenthesis",
@@ -885,7 +669,7 @@
       "id": "punctuation/quotation-marks",
       "title": "Quotation Marks",
       "category": "punctuation",
-      "body": "## Quotation Marks\n\nQuotation marks enclose direct speech, titles of short works, and words used in a special sense.\n\n### Direct Quotations\n✅ She said, \"The meeting is at noon.\"\n❌ She said \"The meeting is at noon.\" *(missing comma before quote)*\n\n### Punctuation Inside vs Outside (US)\n- **Comma / Period:** Always inside quotes. ✅ She said, \"Hello.\"\n- **Semicolon / Colon:** Always outside. ✅ She read \"The Raven\"; then she left.\n- **Question mark:** Depends. ✅ She asked, \"Are you coming?\" / Did she say, \"I'm coming\"?\n\n### Single vs Double Quotes\n**US:** Double for primary, single for quotes within: ✅ \"She told me, 'Wait here,' and left.\"\n**UK:** Often reversed: ✅ 'She told me, \"Wait here,\" and left.'\n\n### Titles of Short Works\nArticles, poems, short stories, songs, TV episodes go in quotes: ✅ \"The Road Not Taken\"\nBooks, albums, films go in italics.",
+      "body": "## Quotation Marks\n\nQuotation marks enclose direct speech, titles of short works, and words used in a special sense.\n\n### Direct Quotations\n\u2705 She said, \"The meeting is at noon.\"\n\u274c She said \"The meeting is at noon.\" *(missing comma before quote)*\n\n### Punctuation Inside vs Outside (US)\n- **Comma / Period:** Always inside quotes. \u2705 She said, \"Hello.\"\n- **Semicolon / Colon:** Always outside. \u2705 She read \"The Raven\"; then she left.\n- **Question mark:** Depends. \u2705 She asked, \"Are you coming?\" / Did she say, \"I'm coming\"?\n\n### Single vs Double Quotes\n**US:** Double for primary, single for quotes within: \u2705 \"She told me, 'Wait here,' and left.\"\n**UK:** Often reversed: \u2705 'She told me, \"Wait here,\" and left.'\n\n### Titles of Short Works\nArticles, poems, short stories, songs, TV episodes go in quotes: \u2705 \"The Road Not Taken\"\nBooks, albums, films go in italics.",
       "searchTerms": [
         "quotation marks",
         "quotes",
@@ -909,7 +693,7 @@
       "id": "sentence-structure/clause-types",
       "title": "Clause Types",
       "category": "sentence-structure",
-      "body": "## Clause Types\n\nA clause contains both a subject and a verb. Clauses are the building blocks of sentences.\n\n### Independent Clauses\nA complete thought that can stand alone as a sentence.\n✅ She finished her work.\n\n### Dependent (Subordinate) Clauses\nContains a subject and verb but does not express a complete thought.\n\n| Type | Begins with | Example |\n|---|---|---|\n| **Adverbial Clause** | *because, although, when, if* | *Because it rained*, we stayed inside. |\n| **Adjective (Relative) Clause** | *who, whom, which, that* | The book *that you recommended* was excellent. |\n| **Noun Clause** | *that, what, whether, who* | *What she said* surprised everyone. |\n\n### Restrictive vs Non-restrictive\n- **Restrictive:** Essential — no commas. ✅ The students **who studied** passed.\n- **Non-restrictive:** Extra info — commas. ✅ The students, **who all studied**, passed.",
+      "body": "## Clause Types\n\nA clause contains both a subject and a verb. Clauses are the building blocks of sentences.\n\n### Independent Clauses\nA complete thought that can stand alone as a sentence.\n\u2705 She finished her work.\n\n### Dependent (Subordinate) Clauses\nContains a subject and verb but does not express a complete thought.\n\n| Type | Begins with | Example |\n|---|---|---|\n| **Adverbial Clause** | *because, although, when, if* | *Because it rained*, we stayed inside. |\n| **Adjective (Relative) Clause** | *who, whom, which, that* | The book *that you recommended* was excellent. |\n| **Noun Clause** | *that, what, whether, who* | *What she said* surprised everyone. |\n\n### Restrictive vs Non-restrictive\n- **Restrictive:** Essential \u2014 no commas. \u2705 The students **who studied** passed.\n- **Non-restrictive:** Extra info \u2014 commas. \u2705 The students, **who all studied**, passed.",
       "searchTerms": [
         "clause",
         "clauses",
@@ -956,7 +740,7 @@
       "id": "sentence-structure/direct-and-indirect-objects",
       "title": "Direct and Indirect Objects",
       "category": "sentence-structure",
-      "body": "## Direct and Indirect Objects\n\nObjects receive the action of a verb. Understanding them is key to parsing sentence structure.\n\n### Direct Object (DO)\nAnswers \"what?\" or \"whom?\" after the verb.\n✅ She read **the book**. *(read what? → the book)*\n✅ They invited **us**.\n\n### Indirect Object (IO)\nAnswers \"to whom?\" or \"for whom?\" the action is done. Comes before the direct object.\n✅ She gave **me** the book. *(gave to whom? → me; DO: the book)*\n✅ He bought **his daughter** a car.\n\n### Transitive vs Intransitive Verbs\n- **Transitive:** Takes a direct object. ✅ She threw **the ball**.\n- **Intransitive:** No object. ✅ She slept peacefully.\n- **Ditransitive:** Takes both IO and DO. ✅ He told **me** a **story**.\n\n### Common Mistake\n❌ She gave to me the book. *(awkward — \"to me\" goes at the end)*",
+      "body": "## Direct and Indirect Objects\n\nObjects receive the action of a verb. Understanding them is key to parsing sentence structure.\n\n### Direct Object (DO)\nAnswers \"what?\" or \"whom?\" after the verb.\n\u2705 She read **the book**. *(read what? \u2192 the book)*\n\u2705 They invited **us**.\n\n### Indirect Object (IO)\nAnswers \"to whom?\" or \"for whom?\" the action is done. Comes before the direct object.\n\u2705 She gave **me** the book. *(gave to whom? \u2192 me; DO: the book)*\n\u2705 He bought **his daughter** a car.\n\n### Transitive vs Intransitive Verbs\n- **Transitive:** Takes a direct object. \u2705 She threw **the ball**.\n- **Intransitive:** No object. \u2705 She slept peacefully.\n- **Ditransitive:** Takes both IO and DO. \u2705 He told **me** a **story**.\n\n### Common Mistake\n\u274c She gave to me the book. *(awkward \u2014 \"to me\" goes at the end)*",
       "searchTerms": [
         "direct object",
         "indirect object",
@@ -978,7 +762,7 @@
       "id": "sentence-structure/phrase-types",
       "title": "Phrase Types",
       "category": "sentence-structure",
-      "body": "## Phrase Types\n\nA phrase is a group of words that functions as a single unit within a sentence. Unlike a clause, a phrase does **not** contain both a subject and a verb.\n\n### Key Phrase Types\n1. **Noun Phrase** — A noun and its modifiers. ✅ *The tall building on the corner*\n2. **Verb Phrase** — Main verb plus auxiliaries, objects, complements. ✅ *has been running*\n3. **Prepositional Phrase** — Preposition + object. ✅ *under the bridge*\n4. **Adjective Phrase** — Adjective + modifiers. ✅ *extremely happy*\n5. **Adverb Phrase** — Adverb + modifiers. ✅ *very quickly*\n6. **Gerund Phrase** — Gerund acting as noun. ✅ *Running marathons requires dedication.*\n7. **Infinitive Phrase** — Infinitive + objects. ✅ *To finish on time is our goal.*\n8. **Participial Phrase** — Participle + objects. ✅ *Walking down the street, she noticed the café.*",
+      "body": "## Phrase Types\n\nA phrase is a group of words that functions as a single unit within a sentence. Unlike a clause, a phrase does **not** contain both a subject and a verb.\n\n### Key Phrase Types\n1. **Noun Phrase** \u2014 A noun and its modifiers. \u2705 *The tall building on the corner*\n2. **Verb Phrase** \u2014 Main verb plus auxiliaries, objects, complements. \u2705 *has been running*\n3. **Prepositional Phrase** \u2014 Preposition + object. \u2705 *under the bridge*\n4. **Adjective Phrase** \u2014 Adjective + modifiers. \u2705 *extremely happy*\n5. **Adverb Phrase** \u2014 Adverb + modifiers. \u2705 *very quickly*\n6. **Gerund Phrase** \u2014 Gerund acting as noun. \u2705 *Running marathons requires dedication.*\n7. **Infinitive Phrase** \u2014 Infinitive + objects. \u2705 *To finish on time is our goal.*\n8. **Participial Phrase** \u2014 Participle + objects. \u2705 *Walking down the street, she noticed the caf\u00e9.*",
       "searchTerms": [
         "phrase",
         "phrases",
@@ -1003,7 +787,7 @@
       "id": "sentence-structure/sentence-types",
       "title": "Sentence Types",
       "category": "sentence-structure",
-      "body": "## Sentence Types\n\nSentences are classified by the number and type of clauses they contain.\n\n### Four Sentence Structures\n| Type | Clauses | Example |\n|---|---|---|\n| **Simple** | 1 independent | *The cat slept.* |\n| **Compound** | 2+ independent | *The cat slept, and the dog watched.* |\n| **Complex** | 1 independent + 1+ dependent | *While the cat slept, the dog watched.* |\n| **Compound-Complex** | 2+ independent + 1+ dependent | *While the cat slept, the dog watched, and the bird sang.* |\n\n### Joining Independent Clauses\n- **Coordinating conjunction (FANBOYS):** ✅ I wanted to go, **but** I was tired.\n- **Semicolon:** ✅ The storm was fierce; the power went out.\n- **Conjunctive adverb:** ✅ The project was difficult; **however**, we finished.\n\n### Common Errors\n- **Run-on:** ❌ It was late I went home.\n- **Comma splice:** ❌ It was late, I went home.\n- **Fragment:** ❌ Because I was tired.",
+      "body": "## Sentence Types\n\nSentences are classified by the number and type of clauses they contain.\n\n### Four Sentence Structures\n| Type | Clauses | Example |\n|---|---|---|\n| **Simple** | 1 independent | *The cat slept.* |\n| **Compound** | 2+ independent | *The cat slept, and the dog watched.* |\n| **Complex** | 1 independent + 1+ dependent | *While the cat slept, the dog watched.* |\n| **Compound-Complex** | 2+ independent + 1+ dependent | *While the cat slept, the dog watched, and the bird sang.* |\n\n### Joining Independent Clauses\n- **Coordinating conjunction (FANBOYS):** \u2705 I wanted to go, **but** I was tired.\n- **Semicolon:** \u2705 The storm was fierce; the power went out.\n- **Conjunctive adverb:** \u2705 The project was difficult; **however**, we finished.\n\n### Common Errors\n- **Run-on:** \u274c It was late I went home.\n- **Comma splice:** \u274c It was late, I went home.\n- **Fragment:** \u274c Because I was tired.",
       "searchTerms": [
         "sentence types",
         "simple sentence",
@@ -1027,7 +811,7 @@
       "id": "sentence-structure/subject-and-predicate",
       "title": "Subject and Predicate",
       "category": "sentence-structure",
-      "body": "## Subject and Predicate\n\nEvery complete sentence has a **subject** (who or what the sentence is about) and a **predicate** (what is said about the subject).\n\n### Simple vs Complete\n- **Simple Subject:** The main noun/pronoun without modifiers.\n- **Complete Subject:** Simple subject plus all modifiers.\n- **Simple Predicate:** The main verb or verb phrase.\n- **Complete Predicate:** Verb plus all objects, complements, and modifiers.\n\n| Sentence | Simple Subject | Simple Predicate |\n|---|---|---|\n| The old brown dog barked loudly. | dog | barked |\n| Several of my friends have arrived. | Several | have arrived |\n\n### Compound Subjects and Predicates\n- **Compound Subject:** Two+ subjects sharing the same verb. ✅ Tom and Jerry went to the store.\n- **Compound Predicate:** Two+ verbs sharing the same subject. ✅ She wrote the essay and submitted it.\n\n### Finding the Subject\nThe subject is never in a prepositional phrase. \n✅ The box **of chocolates** is on the table. *(subject: box — singular verb)*",
+      "body": "## Subject and Predicate\n\nEvery complete sentence has a **subject** (who or what the sentence is about) and a **predicate** (what is said about the subject).\n\n### Simple vs Complete\n- **Simple Subject:** The main noun/pronoun without modifiers.\n- **Complete Subject:** Simple subject plus all modifiers.\n- **Simple Predicate:** The main verb or verb phrase.\n- **Complete Predicate:** Verb plus all objects, complements, and modifiers.\n\n| Sentence | Simple Subject | Simple Predicate |\n|---|---|---|\n| The old brown dog barked loudly. | dog | barked |\n| Several of my friends have arrived. | Several | have arrived |\n\n### Compound Subjects and Predicates\n- **Compound Subject:** Two+ subjects sharing the same verb. \u2705 Tom and Jerry went to the store.\n- **Compound Predicate:** Two+ verbs sharing the same subject. \u2705 She wrote the essay and submitted it.\n\n### Finding the Subject\nThe subject is never in a prepositional phrase. \n\u2705 The box **of chocolates** is on the table. *(subject: box \u2014 singular verb)*",
       "searchTerms": [
         "subject",
         "predicate",
@@ -1051,7 +835,7 @@
       "id": "edge-cases/collective-nouns",
       "title": "Collective Nouns",
       "category": "edge-cases",
-      "body": "## Collective Nouns\n\nCollective nouns refer to a group as a single entity (*team, family, committee, audience*). Verb agreement depends on whether the group acts as a unit or as individuals.\n\n### Core Rule\n| Use | Verb | Example |\n|---|---|---|\n| Group as **one unit** | Singular | The team **is** winning. |\n| Members **individually** | Plural | The team **are** arguing among themselves. |\n\n### US vs UK\n**US:** Strongly prefers singular. ✅ The committee **has** decided.\n**UK:** Often uses plural. ✅ The committee **have** decided.\n\n### Consistency\n✅ The committee **has** made **its** decision. *(singular throughout)*\n❌ The committee **has** made **their** decision. *(mixed — avoid)*\n\n### Tricky Cases\n- *Police* is always plural: ✅ The police **are** investigating.\n- *Number*: \"A number of\" → plural; \"The number of\" → singular.",
+      "body": "## Collective Nouns\n\nCollective nouns refer to a group as a single entity (*team, family, committee, audience*). Verb agreement depends on whether the group acts as a unit or as individuals.\n\n### Core Rule\n| Use | Verb | Example |\n|---|---|---|\n| Group as **one unit** | Singular | The team **is** winning. |\n| Members **individually** | Plural | The team **are** arguing among themselves. |\n\n### US vs UK\n**US:** Strongly prefers singular. \u2705 The committee **has** decided.\n**UK:** Often uses plural. \u2705 The committee **have** decided.\n\n### Consistency\n\u2705 The committee **has** made **its** decision. *(singular throughout)*\n\u274c The committee **has** made **their** decision. *(mixed \u2014 avoid)*\n\n### Tricky Cases\n- *Police* is always plural: \u2705 The police **are** investigating.\n- *Number*: \"A number of\" \u2192 plural; \"The number of\" \u2192 singular.",
       "searchTerms": [
         "collective noun",
         "collective nouns",
@@ -1074,7 +858,7 @@
       "id": "edge-cases/conditional-sentences",
       "title": "Conditional Sentences",
       "category": "edge-cases",
-      "body": "## Conditional Sentences\n\nConditional sentences describe situations that depend on a condition — from general truths to unreal past events.\n\n### The Four Conditionals\n| Type | If-clause | Main clause | Use |\n|---|---|---|---|\n| **Zero** | Present simple | Present simple | General truths: ✅ If you heat water to 100°C, it boils. |\n| **First** | Present simple | will + verb | Real future: ✅ If it rains, we will stay inside. |\n| **Second** | Past simple | would + verb | Unreal present: ✅ If I had a million dollars, I would travel. |\n| **Third** | Past perfect | would have + past participle | Unreal past: ✅ If I had studied, I would have passed. |\n\n### Mixed Conditionals\nCombine types: ✅ If I had studied medicine *(past)*, I **would be** a doctor now *(present)*.\n\n### Common Errors\n❌ If I **would have** known... → ✅ If I **had** known...\n❌ If I **was** rich... → ✅ If I **were** rich... *(subjunctive)*",
+      "body": "## Conditional Sentences\n\nConditional sentences describe situations that depend on a condition \u2014 from general truths to unreal past events.\n\n### The Four Conditionals\n| Type | If-clause | Main clause | Use |\n|---|---|---|---|\n| **Zero** | Present simple | Present simple | General truths: \u2705 If you heat water to 100\u00b0C, it boils. |\n| **First** | Present simple | will + verb | Real future: \u2705 If it rains, we will stay inside. |\n| **Second** | Past simple | would + verb | Unreal present: \u2705 If I had a million dollars, I would travel. |\n| **Third** | Past perfect | would have + past participle | Unreal past: \u2705 If I had studied, I would have passed. |\n\n### Mixed Conditionals\nCombine types: \u2705 If I had studied medicine *(past)*, I **would be** a doctor now *(present)*.\n\n### Common Errors\n\u274c If I **would have** known... \u2192 \u2705 If I **had** known...\n\u274c If I **was** rich... \u2192 \u2705 If I **were** rich... *(subjunctive)*",
       "searchTerms": [
         "conditional",
         "conditionals",
@@ -1100,7 +884,7 @@
       "id": "edge-cases/ending-with-prepositions",
       "title": "Ending Sentences with Prepositions",
       "category": "edge-cases",
-      "body": "## Ending Sentences with Prepositions\n\nThe rule against ending sentences with prepositions is a myth. English naturally allows preposition stranding.\n\n### When It's Natural\n1. **Phrasal verbs:** ✅ Please turn the lights **off**.\n2. **Questions:** ✅ Who are you talking **to**?\n3. **Passive constructions:** ✅ She was laughed **at**.\n4. **Relative clauses:** ✅ This is the book I was looking **for**.\n\n### When to Avoid (Formal Writing)\nIn extremely formal writing (legal, academic), you may rephrase — not because it's wrong, but because some readers expect it:\n\n| Natural | Formal Alternative |\n|---|---|\n| the team I work with | the team with which I work |\n\n### Verdict\nEnding a sentence with a preposition is **grammatically correct**. Forcing the preposition before its object often creates stilted prose worse than the \"problem.\"",
+      "body": "## Ending Sentences with Prepositions\n\nThe rule against ending sentences with prepositions is a myth. English naturally allows preposition stranding.\n\n### When It's Natural\n1. **Phrasal verbs:** \u2705 Please turn the lights **off**.\n2. **Questions:** \u2705 Who are you talking **to**?\n3. **Passive constructions:** \u2705 She was laughed **at**.\n4. **Relative clauses:** \u2705 This is the book I was looking **for**.\n\n### When to Avoid (Formal Writing)\nIn extremely formal writing (legal, academic), you may rephrase \u2014 not because it's wrong, but because some readers expect it:\n\n| Natural | Formal Alternative |\n|---|---|\n| the team I work with | the team with which I work |\n\n### Verdict\nEnding a sentence with a preposition is **grammatically correct**. Forcing the preposition before its object often creates stilted prose worse than the \"problem.\"",
       "searchTerms": [
         "preposition",
         "ending with preposition",
@@ -1113,8 +897,7 @@
         "rule"
       ],
       "relatedTopics": [
-        "grammar/prepositions",
-        "style/tone-and-register"
+        "grammar/prepositions"
       ],
       "structuralLevel": "lexical"
     },
@@ -1122,7 +905,7 @@
       "id": "edge-cases/irregular-plurals",
       "title": "Irregular Plurals",
       "category": "edge-cases",
-      "body": "## Irregular Plurals\n\nMost English nouns add *-s* or *-es* to form plurals. Irregular plurals follow different patterns inherited from Old English, Latin, and Greek.\n\n### Vowel Change (Germanic)\nman → men, foot → feet, tooth → teeth, mouse → mice\n\n### Latin and Greek Endings\n- *-us* → *-i*: alumnus → alumni, cactus → cacti\n- *-um* → *-a*: datum → data, medium → media\n- *-is* → *-es*: crisis → crises, thesis → theses\n- *-on* → *-a*: phenomenon → phenomena, criterion → criteria\n\n### No Change\nsheep, deer, fish, species, series, aircraft\n\n### *-en* Plurals\nchild → children, ox → oxen\n\n### Compound Nouns\nPluralize the main noun: mothers-in-law, passers-by, attorneys general\n\n### Common Mistakes\n❌ informations, furnitures, advices *(mass nouns — no plural)*\n❌ 1990's, CD's *(apostrophe never used for regular plurals)*",
+      "body": "## Irregular Plurals\n\nMost English nouns add *-s* or *-es* to form plurals. Irregular plurals follow different patterns inherited from Old English, Latin, and Greek.\n\n### Vowel Change (Germanic)\nman \u2192 men, foot \u2192 feet, tooth \u2192 teeth, mouse \u2192 mice\n\n### Latin and Greek Endings\n- *-us* \u2192 *-i*: alumnus \u2192 alumni, cactus \u2192 cacti\n- *-um* \u2192 *-a*: datum \u2192 data, medium \u2192 media\n- *-is* \u2192 *-es*: crisis \u2192 crises, thesis \u2192 theses\n- *-on* \u2192 *-a*: phenomenon \u2192 phenomena, criterion \u2192 criteria\n\n### No Change\nsheep, deer, fish, species, series, aircraft\n\n### *-en* Plurals\nchild \u2192 children, ox \u2192 oxen\n\n### Compound Nouns\nPluralize the main noun: mothers-in-law, passers-by, attorneys general\n\n### Common Mistakes\n\u274c informations, furnitures, advices *(mass nouns \u2014 no plural)*\n\u274c 1990's, CD's *(apostrophe never used for regular plurals)*",
       "searchTerms": [
         "irregular plural",
         "irregular plurals",
@@ -1148,7 +931,7 @@
       "id": "edge-cases/irregular-verbs",
       "title": "Irregular Verbs",
       "category": "edge-cases",
-      "body": "## Irregular Verbs\n\nMost English verbs are regular (add *-ed* for past). Irregular verbs do not follow this pattern.\n\n### Common Patterns\n\n**No change:** cut→cut, put→put, set→set, read→read\n\n**One vowel change:** sing→sang→sung, drink→drank→drunk, begin→began→begun\n\n***-ought* / *-aught*:** buy→bought, bring→brought, catch→caught, teach→taught\n\n***-en* past participle:** break→broke→broken, write→wrote→written, drive→drove→driven\n\n**Two different forms:** go→went→gone, be→was/were→been, see→saw→seen\n\n### Most Commonly Confused\n✅ I **lay** down an hour ago. *(past of lie — recline)*\n❌ I **laid** down... *(laid = past of lay — to place something)*\n\n✅ The ship **sank** in the storm. *(simple past)*\n✅ The ship has **sunk**. *(past participle)*\n❌ The ship **sunk** yesterday. *(wrong — need \"sank\")",
+      "body": "## Irregular Verbs\n\nMost English verbs are regular (add *-ed* for past). Irregular verbs do not follow this pattern.\n\n### Common Patterns\n\n**No change:** cut\u2192cut, put\u2192put, set\u2192set, read\u2192read\n\n**One vowel change:** sing\u2192sang\u2192sung, drink\u2192drank\u2192drunk, begin\u2192began\u2192begun\n\n***-ought* / *-aught*:** buy\u2192bought, bring\u2192brought, catch\u2192caught, teach\u2192taught\n\n***-en* past participle:** break\u2192broke\u2192broken, write\u2192wrote\u2192written, drive\u2192drove\u2192driven\n\n**Two different forms:** go\u2192went\u2192gone, be\u2192was/were\u2192been, see\u2192saw\u2192seen\n\n### Most Commonly Confused\n\u2705 I **lay** down an hour ago. *(past of lie \u2014 recline)*\n\u274c I **laid** down... *(laid = past of lay \u2014 to place something)*\n\n\u2705 The ship **sank** in the storm. *(simple past)*\n\u2705 The ship has **sunk**. *(past participle)*\n\u274c The ship **sunk** yesterday. *(wrong \u2014 need \"sank\")",
       "searchTerms": [
         "irregular verb",
         "irregular verbs",
@@ -1173,7 +956,7 @@
       "id": "edge-cases/singular-they",
       "title": "Singular They",
       "category": "edge-cases",
-      "body": "## Singular They\n\n*They/them/their* as a singular pronoun has been used in English since the 14th century and is now widely accepted as both a gender-neutral option and as the pronoun for non-binary individuals.\n\n### Three Uses\n\n**1. Generic/Unknown Gender (Historical)**\n✅ Someone left **their** umbrella.\n✅ Every student should bring **their** own laptop.\n\n**2. Personal Pronoun (Modern)**\n✅ Alex said **they** would arrive at noon.\n✅ I spoke to Jordan, and **their** decision is final.\n\n**3. Formal Alternatives (Less Preferred)**\nUsing \"he or she\" repeatedly is clumsy. Rewriting as plural often works best.\n\n### Verb Agreement\nEven with a singular antecedent, *they* takes plural verb forms:\n✅ Someone is at the door — **they are** waiting.\n❌ Someone is at the door — they is waiting.\n\n### Style Guide Acceptance\nAPA, AP, MLA, and Merriam-Webster all endorse singular they.",
+      "body": "## Singular They\n\n*They/them/their* as a singular pronoun has been used in English since the 14th century and is now widely accepted as both a gender-neutral option and as the pronoun for non-binary individuals.\n\n### Three Uses\n\n**1. Generic/Unknown Gender (Historical)**\n\u2705 Someone left **their** umbrella.\n\u2705 Every student should bring **their** own laptop.\n\n**2. Personal Pronoun (Modern)**\n\u2705 Alex said **they** would arrive at noon.\n\u2705 I spoke to Jordan, and **their** decision is final.\n\n**3. Formal Alternatives (Less Preferred)**\nUsing \"he or she\" repeatedly is clumsy. Rewriting as plural often works best.\n\n### Verb Agreement\nEven with a singular antecedent, *they* takes plural verb forms:\n\u2705 Someone is at the door \u2014 **they are** waiting.\n\u274c Someone is at the door \u2014 they is waiting.\n\n### Style Guide Acceptance\nAPA, AP, MLA, and Merriam-Webster all endorse singular they.",
       "searchTerms": [
         "singular they",
         "they",
@@ -1189,8 +972,7 @@
         "inclusive language"
       ],
       "relatedTopics": [
-        "grammar/pronouns",
-        "style/tone-and-register"
+        "grammar/pronouns"
       ],
       "structuralLevel": "lexical"
     },
@@ -1198,7 +980,7 @@
       "id": "edge-cases/split-infinitives",
       "title": "Split Infinitives",
       "category": "edge-cases",
-      "body": "## Split Infinitives\n\nA split infinitive places an adverb between *to* and the verb — like *to boldly go*. The prohibition against it is a \"zombie rule\" with no basis in English grammar.\n\n### When Splitting Is Correct\n**1. Avoids ambiguity:**\n✅ She decided **to gradually reduce** her workload. *(clear)*\n❌ She decided gradually to reduce her workload. *(ambiguous — gradually decided?)*\n\n**2. Sounds natural:**\n✅ I want **to really understand** this concept.\n\n**3. Preserves emphasis:**\n✅ We need **to more than double** our output.\n\n### When to Avoid\n- Long adverbial phrases: ❌ She wanted **to, despite the warnings, proceed**.\n- Very formal or traditional writing where readers may object.\n\n### Verdict\nWrite what sounds natural and clear. If splitting makes the sentence better — split. The famous example: Star Trek's \"**To boldly go** where no man has gone before.\"",
+      "body": "## Split Infinitives\n\nA split infinitive places an adverb between *to* and the verb \u2014 like *to boldly go*. The prohibition against it is a \"zombie rule\" with no basis in English grammar.\n\n### When Splitting Is Correct\n**1. Avoids ambiguity:**\n\u2705 She decided **to gradually reduce** her workload. *(clear)*\n\u274c She decided gradually to reduce her workload. *(ambiguous \u2014 gradually decided?)*\n\n**2. Sounds natural:**\n\u2705 I want **to really understand** this concept.\n\n**3. Preserves emphasis:**\n\u2705 We need **to more than double** our output.\n\n### When to Avoid\n- Long adverbial phrases: \u274c She wanted **to, despite the warnings, proceed**.\n- Very formal or traditional writing where readers may object.\n\n### Verdict\nWrite what sounds natural and clear. If splitting makes the sentence better \u2014 split. The famous example: Star Trek's \"**To boldly go** where no man has gone before.\"",
       "searchTerms": [
         "split infinitive",
         "split infinitives",
@@ -1215,9 +997,6 @@
         "grammar/adverbs",
         "edge-cases/ending-with-prepositions"
       ],
-      "structuralLevel": "lexical"
-    },
-    {
       "structuralLevel": "lexical"
     }
   ]

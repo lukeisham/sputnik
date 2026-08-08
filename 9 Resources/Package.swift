@@ -24,6 +24,7 @@ let package = Package(
                 .process("9.5 Grammar Help"),
                 .process("9.7 JSON Help"),
                 .process("9.8 Interaction"),
+                .process("9.9 Style Help"),
             ]
         ),
         .testTarget(

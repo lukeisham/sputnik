@@ -60,6 +60,11 @@ private let _all: [ShortcutEntry] = [
     // ── File ──
     ShortcutEntry(title: "New Tab", keys: "⌘T", group: "File"),
     ShortcutEntry(title: "New Window", keys: "⇧⌘N", group: "File"),
+    ShortcutEntry(title: "New Plain Text", keys: "⇧⌘T", group: "File"),
+    ShortcutEntry(title: "New Markdown", keys: "⇧⌘M", group: "File"),
+    ShortcutEntry(title: "New HTML", keys: "⇧⌘H", group: "File"),
+    ShortcutEntry(title: "New JSON", keys: "⇧⌘J", group: "File"),
+    ShortcutEntry(title: "New Folder", keys: "⇧⌘F", group: "File"),
     ShortcutEntry(title: "Open…", keys: "⌘O", group: "File"),
     ShortcutEntry(title: "Save As Template…", keys: "⌃⌘S", group: "File"),
     ShortcutEntry(title: "Close Tab", keys: "⌘W", group: "File"),
@@ -111,4 +116,5 @@ private let _all: [ShortcutEntry] = [
 
     // ── Help ──
     ShortcutEntry(title: "Sputnik Help", keys: "⌘?", group: "Help"),
+    ShortcutEntry(title: "Style Guide", keys: "", group: "Help"),
 ]

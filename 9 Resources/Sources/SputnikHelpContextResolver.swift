@@ -71,6 +71,13 @@ public final class SputnikHelpContextResolver: HelpContextResolving {
 
         case .sputnik:
             topicID = nil
+
+        case .style:
+            let result = await StyleHelpCoordinator.shared.lookup(
+                word: query.selectedText,
+                source: .editor
+            )
+            topicID = result?.primaryTopic.id
         }
 
         guard let topicID else { return nil }

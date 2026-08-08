@@ -93,9 +93,9 @@ public final class SpecialElementDetector: SpecialElementDetecting {
         case .json:
             // JSON detection is not yet implemented.
             return nil
-        case .grammar:
-            // Grammar detection uses the parent document's mode (Markdown/HTML).
-            // Default to Markdown detection for grammar.
+        case .grammar, .style:
+            // Grammar/Style detection uses the parent document's mode (Markdown/HTML).
+            // Default to Markdown detection.
             return detectMarkdownSyntax(
                 in: selectedLine, fullText: fullText, selectedRange: selectedRange)
         }
@@ -260,7 +260,7 @@ public final class SpecialElementDetector: SpecialElementDetecting {
         let lines = textBefore.components(separatedBy: .newlines)
 
         switch language {
-        case .markdown, .grammar, .spelling:
+        case .markdown, .grammar, .style, .spelling:
             return findMarkdownHeading(lines: lines)
         case .html:
             return findHTMLHeading(lines: lines)

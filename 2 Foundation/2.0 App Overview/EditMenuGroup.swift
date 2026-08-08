@@ -140,6 +140,10 @@ struct EditMenuGroup: Commands {
                 toggleCell(.moreContext, .grammar, label: "More Context")
             }
 
+            Menu("Style") {
+                toggleCell(.moreContext, .style, label: "More Context")
+            }
+
             Menu("Markdown") {
                 toggleCell(.autoComplete, .markdown, label: "Auto-Complete")
                 toggleCell(.moreContext, .markdown, label: "More Context")

@@ -18,6 +18,34 @@ struct FileMenuGroup: Commands {
                     appState.newUntitledDocument()
                 }
                 .keyboardShortcut("t", modifiers: .command)
+
+                Menu("New File") {
+                    Button("New Plain Text") {
+                        appState.newTypedDocument(fileType: .text)
+                    }
+                    .keyboardShortcut("t", modifiers: [.command, .shift])
+
+                    Button("New Markdown") {
+                        appState.newTypedDocument(fileType: .markdown)
+                    }
+                    .keyboardShortcut("m", modifiers: [.command, .shift])
+
+                    Button("New HTML") {
+                        appState.newTypedDocument(fileType: .html)
+                    }
+                    .keyboardShortcut("h", modifiers: [.command, .shift])
+
+                    Button("New JSON") {
+                        appState.newTypedDocument(fileType: .json)
+                    }
+                    .keyboardShortcut("j", modifiers: [.command, .shift])
+                }
+
+                Button("New Folder") {
+                    appState.newFolder()
+                }
+                .keyboardShortcut("f", modifiers: [.command, .shift])
+                .disabled(appState.activeWorkspaceDirectory == nil)
             }
 
             CommandGroup(replacing: .saveItem) {}

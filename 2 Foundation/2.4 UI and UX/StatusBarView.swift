@@ -44,6 +44,15 @@ public struct StatusBarView<Content: View>: View {
                     .foregroundStyle(SputnikColor.secondaryText)
                     .lineLimit(1)
                     .accessibilityLabel("Supporting AI model: \(model)")
+
+                if let usage = appState.supportingAIUsage, usage.totalTokensSinceLaunch > 0 {
+                    Text("· \(usage.totalTokensSinceLaunch.formatted()) tk")
+                        .font(.system(size: SputnikFont.caption, design: .monospaced))
+                        .foregroundStyle(SputnikColor.secondaryText)
+                        .lineLimit(1)
+                        .accessibilityLabel(
+                            "Supporting AI tokens used: \(usage.totalTokensSinceLaunch)")
+                }
             }
 
             // Main AI segment — shown only when a Main AI is active

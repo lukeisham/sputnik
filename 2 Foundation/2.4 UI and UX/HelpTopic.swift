@@ -13,18 +13,20 @@ public enum HelpTopic: String, Codable, Sendable, CaseIterable, Identifiable {
     case json
     case asciiArt
     case grammar
+    case style
 
     public var id: String { rawValue }
 
     /// Human-readable title shown in the Help menu and the presented help surface.
     public var title: String {
         switch self {
-        case .sputnik:  return "Sputnik Help"
+        case .sputnik: return "Sputnik Help"
         case .markdown: return "Markdown Help"
-        case .html:     return "HTML Help"
-        case .json:     return "JSON Help"
+        case .html: return "HTML Help"
+        case .json: return "JSON Help"
         case .asciiArt: return "ASCII Art Help"
-        case .grammar:  return "Grammar Help"
+        case .grammar: return "Grammar Help"
+        case .style: return "Style Guide"
         }
     }
 }

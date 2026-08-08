@@ -9,7 +9,7 @@ import Foundation
 /// prioritized when the user selects a multi-word phrase.
 ///
 /// **Lexical** topics cover word-level concerns: spelling, homophones (their/there/they're),
-/// word choice (usage), and style. Single-word selections default to lexical matching.
+/// and usage. Single-word selections default to lexical matching.
 public enum GrammarStructuralLevel: String, Codable, Sendable {
     case structural
     case lexical
@@ -76,10 +76,11 @@ extension GrammarHelpContent: Codable {
         body = try container.decode(String.self, forKey: .body)
         searchTerms = try container.decode([String].self, forKey: .searchTerms)
         relatedTopics = try container.decode([String].self, forKey: .relatedTopics)
-        structuralLevel = try container.decodeIfPresent(
-            GrammarStructuralLevel.self,
-            forKey: .structuralLevel
-        ) ?? .lexical
+        structuralLevel =
+            try container.decodeIfPresent(
+                GrammarStructuralLevel.self,
+                forKey: .structuralLevel
+            ) ?? .lexical
     }
 
     public func encode(to encoder: Encoder) throws {

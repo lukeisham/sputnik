@@ -321,6 +321,15 @@ public final class SettingsStore {
         persistence.saveSetting(writingAssist, forKey: DefaultsKey.writingAssist)
     }
 
+    /// Sets or clears the `.moreContext` flag for all applicable languages and persists.
+    public func setWritingAssistAllMoreContext(to value: Bool) {
+        for lang in WritingAssistLanguage.allCases
+        where WritingAssistMatrix.applies(.moreContext, to: lang) {
+            writingAssist = writingAssist.setting(.moreContext, for: lang, to: value)
+        }
+        persistence.saveSetting(writingAssist, forKey: DefaultsKey.writingAssist)
+    }
+
     // MARK: - Editor appearance mutators
 
     /// Enables or disables the current-line highlight and persists the setting.

@@ -72,6 +72,10 @@ public actor ResourceSectionIndex {
         case .spelling:
             // Spelling has no index; no sections.
             cache[language] = []
+
+        case .style:
+            let topics = await StyleHelpIndex.shared.allTopics()
+            cache[language] = topics.flatMap { flattenStyleTopic($0) }
         }
     }
 
@@ -196,6 +200,52 @@ public actor ResourceSectionIndex {
             )
         ]
     }
+
+    private func flattenStyleTopic(_ topic: StyleHelpContent) -> [ResourceSection] {
+        var sections: [ResourceSection] = []
+        sections.append(
+            ResourceSection(
+                topicID: topic.id,
+                heading: topic.title,
+                sectionBody: topic.body,
+                resourceLanguage: .style
+            ))
+        // Parse sub-headings.
+        let lines = topic.body.components(separatedBy: .newlines)
+        var currentHeading: String?
+        var currentBody: [String] = []
+        for line in lines {
+            let trimmed = line.trimmingCharacters(in: .whitespaces)
+            if trimmed.hasPrefix("##") {
+                if let h = currentHeading {
+                    sections.append(
+                        ResourceSection(
+                            topicID: topic.id,
+                            heading: h,
+                            sectionBody: currentBody.joined(separator: "\n").trimmingCharacters(
+                                in: .whitespacesAndNewlines),
+                            resourceLanguage: .style
+                        ))
+                }
+                currentHeading = trimmed.trimmingCharacters(
+                    in: CharacterSet(charactersIn: "#").union(.whitespaces))
+                currentBody = []
+            } else {
+                currentBody.append(line)
+            }
+        }
+        if let h = currentHeading {
+            sections.append(
+                ResourceSection(
+                    topicID: topic.id,
+                    heading: h,
+                    sectionBody: currentBody.joined(separator: "\n").trimmingCharacters(
+                        in: .whitespacesAndNewlines),
+                    resourceLanguage: .style
+                ))
+        }
+        return sections
+    }
 }
 
 // MARK: - HelpTopicCommon (shared protocol for topic content)
@@ -212,3 +262,4 @@ extension MarkdownHelpContent: HelpTopicCommon {}
 extension HTMLHelpContent: HelpTopicCommon {}
 extension ASCIIArtHelpContent: HelpTopicCommon {}
 extension JSONHelpContent: HelpTopicCommon {}
+extension StyleHelpContent: HelpTopicCommon {}

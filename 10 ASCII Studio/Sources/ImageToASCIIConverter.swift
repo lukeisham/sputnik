@@ -166,7 +166,8 @@ public enum ImageToASCIIConverter {
             let alpha = Double(pixelData[offset + 3]) / 255.0
 
             var lum = alpha < 0.01 ? 1.0 : (0.299 * r + 0.587 * g + 0.114 * b)
-            lum = applyBrightnessContrast(lum, brightness: settings.brightness, contrast: settings.contrast)
+            lum = applyBrightnessContrast(
+                lum, brightness: settings.brightness, contrast: settings.contrast)
             lum = max(0.0, min(1.0, lum))
             if settings.invert { lum = 1.0 - lum }
             luminances[i] = lum
@@ -275,7 +276,8 @@ public enum ImageToASCIIConverter {
             let alpha = Double(pixelData[offset + 3]) / 255.0
 
             var lum = alpha < 0.01 ? 1.0 : (0.299 * r + 0.587 * g + 0.114 * b)
-            lum = applyBrightnessContrast(lum, brightness: settings.brightness, contrast: settings.contrast)
+            lum = applyBrightnessContrast(
+                lum, brightness: settings.brightness, contrast: settings.contrast)
             lum = max(0.0, min(1.0, lum))
             if settings.invert { lum = 1.0 - lum }
             luminances[i] = lum
@@ -283,14 +285,16 @@ public enum ImageToASCIIConverter {
 
         // Pass 2: edge overlay
         guard let cgImage = image.cgImage(forProposedRect: nil, context: nil, hints: nil),
-              let edgeIntensities = ASCIIEdgeDetector.detectEdges(in: cgImage, width: width, height: height)
+            let edgeIntensities = ASCIIEdgeDetector.detectEdges(
+                in: cgImage, width: width, height: height)
         else {
             // Fall back to luminance-only if edge detection fails
             let lumSettings = Settings(
                 width: settings.width, invert: settings.invert, style: settings.style,
                 mode: .luminance, brightness: settings.brightness, contrast: settings.contrast,
                 ditherMode: settings.ditherMode, edgeStyle: settings.edgeStyle,
-                customRampString: settings.customRampString, lightThreshold: settings.lightThreshold)
+                customRampString: settings.customRampString, lightThreshold: settings.lightThreshold
+            )
             return convertLuminance(image, settings: lumSettings)
         }
 
@@ -298,7 +302,7 @@ public enum ImageToASCIIConverter {
         let borderChars: [Character] = {
             let count = ramp.count
             if count >= 3 { return Array(ramp[(count - 3)...]) }
-            return ramp.isEmpty ? ["|"] : [ramp.last!]
+            return ramp.isEmpty ? ["|"] : [ramp.last ?? "|"]
         }()
 
         var rows = [String]()
@@ -430,10 +434,10 @@ public enum ImageToASCIIConverter {
     static func applyBayerDither(to pixels: inout [Double], width: Int, height: Int) {
         // Standard 4×4 Bayer matrix (threshold values 0…15).
         let bayer: [[Double]] = [
-            [ 0, 8, 2, 10],
-            [12, 4, 14,  6],
-            [ 3, 11, 1,  9],
-            [15,  7, 13,  5]
+            [0, 8, 2, 10],
+            [12, 4, 14, 6],
+            [3, 11, 1, 9],
+            [15, 7, 13, 5],
         ]
         let scale = 1.0 / 16.0
 

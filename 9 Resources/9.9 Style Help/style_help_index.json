@@ -1,0 +1,1127 @@
+{
+  "topics": [
+    {
+      "id": "argument-structure",
+      "title": "Argument Structure",
+      "category": "structure",
+      "body": "# Argument Structure\n\nAn argument is not the same as an assertion. An assertion states an opinion. An argument supports a claim with evidence and reasoning. The Toulmin model \u2014 developed by philosopher Stephen Toulmin \u2014 provides a clear framework for building and testing arguments in everyday writing.\n\n## Key Rules\n\n1. **Claim** \u2014 The statement you want your reader to accept.\n2. **Evidence** \u2014 Facts, data, examples, or testimony that support the claim.\n3. **Warrant** \u2014 The reasoning that connects the evidence to the claim. This is the step most weak arguments skip.\n\n\u2705 **Claim:** Remote work improves productivity.\n**Evidence:** A Stanford study of 16,000 workers found a 13% performance increase over nine months.\n**Warrant:** Fewer interruptions and a quieter environment allow deeper focus, and the measured performance increase confirms the effect is real.\n\n\u274c **Claim:** Remote work is better. *(assertion only \u2014 no evidence, no warrant)*\n\n## Spotting Weak Arguments\n\nAsk three questions: *What is the claim? What is the evidence? Does the evidence actually support the claim, or is the writer just hoping I will not notice the gap?* If the warrant is missing, the argument is incomplete.",
+      "searchTerms": [
+        "structure",
+        "argument"
+      ],
+      "relatedTopics": []
+    },
+    {
+      "id": "audience-awareness",
+      "title": "Audience Awareness",
+      "category": "voice",
+      "body": "# Audience Awareness\n\nEvery piece of writing is a conversation with a specific reader. The writer who does not know their audience writes into a void \u2014 and the void rarely writes back. Audience shapes everything: diction, structure, what you explain, and what you assume.\n\n## Key Rules\n\n1. **Assess What They Know** \u2014 A specialist needs technical precision and data. A general reader needs context and translation. Never assume, but don't patronise either.\n2. **Assess What They Need** \u2014 Is the reader looking for a decision, a recommendation, an explanation, or a story? Match your structure to their goal.\n3. **Shift Diction and Tone** \u2014 The same idea expressed to a CEO, a peer reviewer, and a high school class uses different vocabulary, sentence length, and formality.\n4. **Bridge the Context Gap** \u2014 Define terms the audience may not know, but skip definitions they already own. Guessing wrong in either direction loses the reader.\n\n\u2705 *For a technical audience:* The API returns a 429 status when the rate limit is exceeded.\n\u2705 *For a non-technical audience:* When too many requests arrive at once, the system temporarily blocks new ones and asks you to wait.",
+      "searchTerms": [
+        "awareness",
+        "audience"
+      ],
+      "relatedTopics": []
+    },
+    {
+      "id": "avoiding-cliches",
+      "title": "Avoiding Clich\u00e9s",
+      "category": "word-usage",
+      "body": "# Avoiding Clich\u00e9s\n\nA clich\u00e9 is an overused phrase or expression that has lost its original impact. Relying on clich\u00e9s makes writing feel lazy and unoriginal.\n\n## Why Avoid Clich\u00e9s?\n\n- They weaken your voice \u2014 readers skim past them.\n- They signal shallow thinking \u2014 you're borrowing someone else's phrasing.\n- They date your writing \u2014 today's buzzword is tomorrow's clich\u00e9.\n\n## Common Clich\u00e9s by Category\n\n### Business\n| Clich\u00e9 | Alternative |\n|---|---|\n| think outside the box | approach creatively, consider new angles |\n| low-hanging fruit | easy wins, quick gains |\n| move the needle | make measurable progress |\n| circle back | follow up, revisit |\n| at the end of the day | ultimately, in the end |\n| synergy | collaboration, combined effort |\n| core competency | key strength, primary expertise |\n| disrupt the industry | fundamentally change, reshape |\n| best-in-class | excellent, leading |\n| deep dive | examine in detail, thoroughly analyze |\n\n### Academic / Formal\n| Clich\u00e9 | Alternative |\n|---|---|\n| in today's society | now, currently |\n| since the dawn of time | throughout history |\n| in this day and age | today, currently |\n| a double-edged sword | both beneficial and harmful |\n| last but not least | finally |\n| every coin has two sides | there are advantages and disadvantages |\n\n### General\n| Clich\u00e9 | Alternative |\n|---|---|\n| the calm before the storm | a brief pause |\n| better late than never | at least it's done |\n| actions speak louder than words | deeds matter more than promises |\n| it's not rocket science | it's straightforward, it's simple |\n| bite the bullet | accept the difficulty |\n| the elephant in the room | the obvious problem, the unspoken issue |\n| a perfect storm | a convergence of problems |\n| pushing the envelope | testing limits, innovating |\n| game changer | significant development, breakthrough |\n\n## How to Spot and Fix Clich\u00e9s\n\n### 1. Read Aloud\nIf a phrase rolls off the tongue too easily, it's probably a clich\u00e9. Fresh writing has a slight friction \u2014 it makes you pause.\n\n### 2. Ask: \"What Do I Actually Mean?\"\n\u274c We need to think outside the box.\n\u2192 What does \"outside the box\" look like? Unconventional pricing? A new distribution channel?\n\u2705 We should explore direct-to-consumer sales rather than relying on retail partners.\n\n### 3. Replace with Concrete Detail\n\u274c She was as busy as a bee.\n\u2705 She was juggling three client projects, a board presentation, and a product launch.\n\n### 4. Use Fresh Metaphors\n\u274c The startup was burning the candle at both ends.\n\u2705 The startup was running on caffeine and conviction.\n\n## When Is a Clich\u00e9 Acceptable?\n\n- **Dialogue:** Real people use clich\u00e9s. A character who speaks in clich\u00e9s can be intentional characterization.\n- **Headlines / Titles:** A twist on a clich\u00e9 can be effective: *\"Think Inside the Box\"* or *\"A Bite the Bullet Moment\"*\n- **First drafts:** It's fine to write clich\u00e9s and replace them during revision. Don't let clich\u00e9-hunting block your flow.\n\n## Verdict\n\nOne clich\u00e9 in 5,000 words won't ruin your writing. But a density of one per paragraph makes readers check out. The goal is not to eliminate every clich\u00e9 \u2014 it's to make your default setting \"fresh\" rather than \"familiar.\"\n\n\u2705 We need an unconventional approach to this problem.\n\u274c We need to think outside the box.\n\u2705 Ultimately, trust depends on honest communication.\n\u274c At the end of the day, it is what it is.",
+      "searchTerms": [
+        "avoiding",
+        "clich\u00e9s"
+      ],
+      "relatedTopics": []
+    },
+    {
+      "id": "avoiding-jargon",
+      "title": "Avoiding Jargon",
+      "category": "word-usage",
+      "body": "# Avoiding Jargon\n\nJargon \u2014 specialised vocabulary shared by a professional group \u2014 is a double-edged tool. Used well, it communicates precisely and signals competence. Used poorly, it excludes readers and masks weak thinking behind impressive-sounding words.\n\n## Key Rules\n\n1. **Keep It When It's Precise** \u2014 If the technical term is the only accurate word for the concept (e.g., *photosynthesis*, *due diligence*, *API endpoint*), keep it. Precision matters.\n2. **Replace It When It Excludes** \u2014 If a plain-English equivalent exists and your audience is non-specialist, use the plain version. *Utilise \u2192 use; leverage \u2192 make use of; paradigm shift \u2192 major change*.\n3. **Define on First Use** \u2014 If a technical term is essential but may be unfamiliar, define it concisely the first time it appears.\n4. **Beware the Jargon Echo Chamber** \u2014 If you cannot define a jargon term in simple words, you may not understand it yourself.\n\n\u2705 The drug inhibits serotonin reuptake, increasing the neurotransmitter's availability in the synapse.\n\u274c The medication leverages molecular cascade synergies to optimise patient wellness outcomes.\n\n## The Reader Test\n\nRead the sentence and imagine a colleague outside your field. Would they understand it? Would they trust it, or would they suspect you are hiding something? If the answer is \"maybe not,\" revise.",
+      "searchTerms": [
+        "avoiding",
+        "jargon"
+      ],
+      "relatedTopics": []
+    },
+    {
+      "id": "colon-usage",
+      "title": "Colon Usage",
+      "category": "usage",
+      "body": "# Colon Usage\n\nThe colon is a mark of announcement. It tells the reader: *what comes next explains, illustrates, or completes what came before.* A colon is stronger than a semicolon but less final than a period.\n\n## Key Rules\n\n1. **Introducing a List** \u2014 Use a colon after a complete sentence that introduces a list: *The kit includes three items: a compass, a flashlight, and a map.*\n2. **Introducing a Quotation** \u2014 When the lead-in is a complete sentence: *Churchill's instruction was simple: \"Never give in.\"*\n3. **Explanatory Clause** \u2014 The second clause explains or amplifies the first: *The decision was unanimous: every board member voted yes.*\n4. **Colon vs Semicolon** \u2014 A semicolon joins two independent clauses of equal weight. A colon joins them when the second explains, illustrates, or completes the first.\n\n\u2705 She had one goal: to finish the marathon before sunset.\n\u274c She had one goal: and trained every day for six months.\n\n\u2705 There are three options: accept the offer, negotiate, or walk away.\n\u274c There are three options, accept the offer, negotiate, or walk away.\n\n## Capitalisation After a Colon\n\nIn American English, capitalise the first word after a colon if it begins a complete sentence. In British English, lowercase is standard. Both conventions agree: be consistent.",
+      "searchTerms": [
+        "colon",
+        "usage"
+      ],
+      "relatedTopics": []
+    },
+    {
+      "id": "conclusions",
+      "title": "Conclusions",
+      "category": "structure",
+      "body": "# Conclusions\n\nA conclusion that merely restates the introduction is a wasted opportunity. A strong conclusion answers the question the reader silently asks at the end: *So what?*\n\n## Key Rules\n\n1. **Answer \"So What?\"** \u2014 Connect your argument to a larger consequence, a real-world implication, or a next step.\n2. **Include a Call to Action (When Appropriate)** \u2014 Persuasive writing ends with a clear ask: *\"The board should vote to revise the policy by Q3.\"*\n3. **Resonate, Don't Fade** \u2014 End on a strong, memorable sentence. The last words carry disproportionate weight.\n4. **Avoid New Arguments** \u2014 The conclusion is not the place for fresh evidence. If it's important, it belongs in the body.\n\n\u2705 This problem will not solve itself. The data is clear, the timeline is tight, and the cost of inaction is measured in lost patients. We must act now.\n\u274c In conclusion, this paper has discussed three major problems. Many factors contribute to this. More research is needed.\n\n## The Echo Technique\n\nOne effective pattern: echo a key word or image from the introduction in a transformed way, showing how the journey of the argument has changed its meaning. The reader feels the circle close.",
+      "searchTerms": [
+        "conclusions"
+      ],
+      "relatedTopics": []
+    },
+    {
+      "id": "consistent-voice",
+      "title": "Consistent Voice",
+      "category": "voice",
+      "body": "# Consistent Voice\n\nVoice is the personality that comes through in writing \u2014 the sense that a specific human being, not a committee or an algorithm, is doing the talking. Finding your voice takes practice. Maintaining it across a document takes discipline.\n\n## Key Rules\n\n1. **Know Your Default Register** \u2014 Are you naturally formal, conversational, witty, or plainspoken? Start there and adjust for audience, but don't fake a voice you cannot sustain.\n2. **Avoid Voice-Switching** \u2014 A paragraph that lurches from *\"It is hereby recommended that the committee\u2026\"* to *\"Honestly, just give it a shot\"* breaks the reader's trust. Pick a lane.\n3. **Consistency in Pronouns** \u2014 If you use *you* or *we* in one section, don't switch to *one* or passive constructions without purpose.\n4. **Read Aloud** \u2014 Voice problems are easier to hear than to see. If a sentence sounds like someone else wrote it, it probably did.\n\n\u2705 The data suggests three interventions. We recommend starting with the cheapest one.\n\u274c The data suggests three interventions. One must commence with the intervention of least cost. Let me tell you, this stuff works.\n\n## Finding Your Voice\n\nVoice emerges from the intersection of vocabulary range, sentence rhythm, and attitude toward the subject. It cannot be forced \u2014 but it can be refined through revision, reading widely, and writing regularly.",
+      "searchTerms": [
+        "consistent",
+        "voice"
+      ],
+      "relatedTopics": []
+    },
+    {
+      "id": "ellipsis",
+      "title": "Ellipsis",
+      "category": "usage",
+      "body": "# Ellipsis\n\nThe ellipsis (three dots: \u2026) serves two main purposes: indicating omitted material in a quotation, and conveying a trailing off or hesitation in dialogue or narrative. Misusing it muddies both your citations and your tone.\n\n## Key Rules\n\n1. **Omission in Quotations** \u2014 Use an ellipsis to show you have removed words from a quoted passage. The resulting text must remain grammatically sound and faithful to the original meaning.\n2. **Trailing Off** \u2014 In dialogue or informal narrative, an ellipsis indicates a thought left unfinished or a pause: *\"I was going to tell you, but\u2026\"*\n3. **Four Dots at Sentence Boundary** \u2014 When an omission crosses a sentence boundary, use a period plus an ellipsis: *. \u2026* (four dots total).\n4. **Do Not Use for Simple Pauses** \u2014 A comma or a period controls pacing better than an ellipsis in formal prose. Overusing ellipses makes writing feel tentative and unfinished.\n\n\u2705 Full text: \"The committee met on Tuesday and, after lengthy debate, voted to approve the budget.\"\nQuoted with omission: \"The committee met on Tuesday \u2026 and voted to approve the budget.\"\n\n\u274c The budget was approved\u2026 and then everything changed\u2026 and nobody knew what to do\u2026",
+      "searchTerms": [
+        "ellipsis"
+      ],
+      "relatedTopics": []
+    },
+    {
+      "id": "em-dash",
+      "title": "Em Dash, En Dash, and Hyphen",
+      "category": "usage",
+      "body": "# Em Dash, En Dash, and Hyphen\n\nThese three horizontal marks look similar but serve distinct functions. Using the wrong one is like using a comma where a period belongs \u2014 it will not always cause confusion, but it will signal a lack of care.\n\n## Key Rules\n\n1. **Hyphen (-)** \u2014 Joins compound words and modifiers: *well-known author, high-speed rail, mother-in-law*. Also used for line breaks in justified text.\n2. **En Dash (\u2013)** \u2014 Marks ranges (numbers, dates, times): *pages 10\u201325, 1990\u20132000, Monday\u2013Friday*. Also used in compounds with proper nouns: *Paris\u2013London train*.\n3. **Em Dash (\u2014)** \u2014 Creates a strong break in thought \u2014 a parenthetical pause more emphatic than commas but less formal than parentheses. Used for interruptions, emphasis, or explanatory asides.\n\n\u2705 The three candidates \u2014 two from marketing, one from engineering \u2014 presented their proposals.\n\u274c The three candidates - two from marketing- one from engineering- presented their proposals.\n\n\u2705 The conference runs March 5\u20138 in the Tokyo\u2013Osaka corridor.\n\u274c The conference runs March 5-8 in the Tokyo-Osaka corridor.\n\n## Spacing Convention\n\nIn American English, no spaces around em dashes: *The answer\u2014if there is one\u2014remains unclear.* In British English, thin spaces or full spaces are common: *The answer \u2014 if there is one \u2014 remains unclear.* Pick one convention and stick to it.",
+      "searchTerms": [
+        "and",
+        "en",
+        "em",
+        "dash",
+        "hyphen"
+      ],
+      "relatedTopics": []
+    },
+    {
+      "id": "form-headings",
+      "title": "Headings and Manuscript Formatting",
+      "category": "form",
+      "body": "# Headings and Manuscript Formatting\n\n## Leave Space After Headings\n\nLeave a blank line \u2014 or equivalent spacing \u2014 after the title or heading of a manuscript. On succeeding pages, if using ruled paper, begin on the first line.\n\nThis rule ensures visual separation between the heading and the body text, making the structure clear at a glance.\n\n## Modern Application\n\nIn word processors and plain-text editors, insert a blank line between your heading and the first paragraph:\n\n```\n# Chapter Title\n\nThe text begins here, separated by one blank line.\n```\n\n\u2705 Clear separation between heading and body\n\u274c No blank line \u2014 the heading runs into the text",
+      "searchTerms": [
+        "manuscript",
+        "headings",
+        "and",
+        "formatting"
+      ],
+      "relatedTopics": []
+    },
+    {
+      "id": "form-numerals",
+      "title": "Numerals",
+      "category": "form",
+      "body": "# Numerals\n\n## Write Dates and Serial Numbers in Figures\n\nDo not spell out dates or other serial numbers. Write them in figures or Roman notation, as appropriate.\n\n\u2705 August 9, 1918 (or 9 August 1918)\n\u274c August ninth, nineteen eighteen\n\n\u2705 Rule 3\n\u274c Rule three\n\n\u2705 Chapter XII\n\u274c Chapter twelve\n\n\u2705 352nd Infantry\n\u274c Three hundred and fifty-second Infantry\n\n## When to Spell Out\n\nSpell out numbers that begin a sentence, small numbers in general prose, and round numbers used casually. The key distinction: serial numbers, dates, and designations stay in figures.\n\n\u2705 Twelve people attended the meeting.\n\u2705 She turned to page 342.",
+      "searchTerms": [
+        "numerals"
+      ],
+      "relatedTopics": []
+    },
+    {
+      "id": "form-parentheses",
+      "title": "Punctuating Parenthetic Expressions",
+      "category": "form",
+      "body": "# Punctuating Parenthetic Expressions\n\n## Punctuate Outside as if Parentheses Were Absent\n\nA sentence containing a parenthetic expression is punctuated outside the parentheses exactly as if the parenthetic part were not there. The expression inside is punctuated independently \u2014 except that the final stop is omitted unless it is a question mark or exclamation point.\n\n\u2705 I went to his house yesterday (my third attempt to see him), but he had left town.\n\u274c I went to his house yesterday, (my third attempt to see him), but he had left town.\n\n\u2705 He declares (and why should we doubt his good faith?) that he is now certain of success.\n\n## Detached Expressions\n\nWhen a wholly detached expression or sentence is parenthesised, the final stop comes before the closing parenthesis.\n\n\u2705 The committee reached a unanimous decision. (The chair abstained from voting.)\n\n## Key Points\n\n- Never place a comma, period, or semicolon before an opening parenthesis.\n- If a complete sentence stands alone in parentheses, capitalise and punctuate it normally.",
+      "searchTerms": [
+        "punctuating",
+        "expressions",
+        "parenthetic"
+      ],
+      "relatedTopics": []
+    },
+    {
+      "id": "form-quotations",
+      "title": "Formal Quotations",
+      "category": "form",
+      "body": "# Formal Quotations\n\n## Formal Quotations: Colon + Quotation Marks\n\nFormal quotations, cited as documentary evidence, are introduced by a colon and enclosed in quotation marks.\n\n\u2705 The provision of the Constitution is: \"No tax or duty shall be laid on articles exported from any state.\"\n\n## Quotations as Appositives or Objects\n\nQuotations grammatically in apposition or the direct objects of verbs are preceded by a comma and enclosed in quotation marks.\n\n\u2705 I recall the maxim of La Rochefoucauld, \"Gratitude is a lively sense of benefits to come.\"\n\u2705 Aristotle says, \"Art is an imitation of nature.\"\n\n## Verse Quotations\n\nQuotations of an entire line or more of verse begin on a fresh line and are centred. They need not be enclosed in quotation marks.\n\n## Quotations Introduced by *That*\n\nQuotations introduced by *that* are indirect discourse and are not enclosed in quotation marks.\n\n\u2705 Keats declares that beauty is truth, truth beauty.\n\u274c Keats declares that \"beauty is truth, truth beauty.\"\n\n## Proverbial Expressions and Familiar Phrases\n\nProverbial expressions, familiar literary phrases, colloquialisms, and slang require no quotation marks.\n\n\u2705 These are the times that try men's souls.\n\u2705 He lives far from the madding crowd.",
+      "searchTerms": [
+        "quotations",
+        "formal"
+      ],
+      "relatedTopics": []
+    },
+    {
+      "id": "form-references",
+      "title": "Citations and References",
+      "category": "form",
+      "body": "# Citations and References\n\n## Abbreviate Frequent Titles\n\nIn scholarly work requiring exact references, abbreviate titles that occur frequently. Provide the full forms in an alphabetical list at the end of the work.\n\n## Placement\n\nGive references in parentheses or in footnotes \u2014 not in the body of the sentence.\n\n\u2705 Hamlet is placed under guard (IV.ii.14).\n\u274c In the fourth act, second scene, line fourteen, Hamlet is placed under guard.\n\n## Omit Redundant Labels\n\nOmit the words *act*, *scene*, *line*, *book*, *volume*, and *page* except when referring by only one of them.\n\n\u2705 In III.ii\n\u274c In the second scene of the third act\n\n## Punctuation Examples\n\n\u2705 *2 Samuel* i:17\u201327\n\u2705 *Othello* II.iii.264\u2013267, III.iii.155\u2013161\n\n## Modern Practice\n\nToday's style guides (MLA, APA, Chicago) offer specific citation formats. Strunk's core principle endures: keep references concise, place them in parentheses or footnotes, and avoid cluttering the sentence body with bibliographic details.",
+      "searchTerms": [
+        "references",
+        "citations",
+        "and"
+      ],
+      "relatedTopics": []
+    },
+    {
+      "id": "form-syllabication",
+      "title": "Word Division (Syllabication)",
+      "category": "form",
+      "body": "# Word Division (Syllabication)\n\n## When to Divide\n\nIf there is room at the end of a line for one or more syllables of a word \u2014 but not the whole word \u2014 divide the word. Do not divide if it cuts off only a single letter, or only two letters of a long word.\n\n## Principles of Division\n\n### (a) Divide by Formation\nSplit according to the word's structure:\n\u2705 know-ledge (not knowl-edge)\n\u2705 Shake-speare (not Shakes-peare)\n\u2705 de-scribe (not des-cribe)\n\u2705 atmo-sphere (not atmos-phere)\n\n### (b) Divide on the Vowel\n\u2705 edi-ble (not ed-ible)\n\u2705 propo-sition\n\u2705 ordi-nary\n\u2705 classi-fi-ca-tion\n\n### (c) Divide Between Double Letters\nUnless they come at the end of the simple form:\n\u2705 Apen-nines, Cincin-nati, refer-ring\n\u2705 tell-ing (not tel-ling)\n\n### (d) Silent *-ed*\nDo not divide before final *-ed* if the *e* is silent:\n\u2705 treat-ed\n\u274c roam-ed, nam-ed\n\n## Consonant Combinations\n\n\u2705 for-tune, pic-ture, sin-gle, presump-tuous, illus-tration, indus-try, instruc-tion, sug-ges-tion, incen-diary\n\n## Modern Note\n\nModern word processors handle hyphenation automatically. This guidance is most relevant for manual typesetting or when overriding automatic hyphenation.",
+      "searchTerms": [
+        "word",
+        "division",
+        "syllabication"
+      ],
+      "relatedTopics": []
+    },
+    {
+      "id": "form-titles",
+      "title": "Italics and Capitalisation for Titles",
+      "category": "form",
+      "body": "# Italics and Capitalisation for Titles\n\n## Standard Practice\n\nFor the titles of literary works, scholarly usage prefers italics with capitalised initials.\n\n\u2705 The *Iliad*; the *Odyssey*\n\u2705 *As You Like It*; *To a Skylark*\n\u2705 *The Newcomes*; *A Tale of Two Cities*\n\n## Possessives Before Titles\n\nOmit the initial *A* or *The* from a title when you place a possessive before it.\n\n\u2705 Dickens's *Tale of Two Cities*\n\u274c Dickens's *A Tale of Two Cities*\n\n## Publisher Variation\n\nThe usage of editors and publishers varies \u2014 some use italics with capitalised initials, others use Roman with capitalised initials and with or without quotation marks. Strunk recommends italics except when writing for a periodical that follows a different practice.\n\n## Modern Equivalents\n\nIn plain-text environments where italics are unavailable, use quotation marks or underscores:\n- `_The Great Gatsby_` or `\"The Great Gatsby\"`\n\nIn Markdown, use asterisks or underscores:\n- `*The Great Gatsby*` renders as *The Great Gatsby*\n\n\u2705 Always capitalise the principal words in titles.\n\u2705 Use consistent formatting throughout a document.",
+      "searchTerms": [
+        "and",
+        "italics",
+        "for",
+        "titles",
+        "capitalisation"
+      ],
+      "relatedTopics": []
+    },
+    {
+      "id": "formal-vs-informal",
+      "title": "Formal vs Informal",
+      "category": "voice",
+      "body": "# Formal vs Informal\n\nThe choice between formal and informal register is not about which is \"correct\" \u2014 it is about which serves the audience and the purpose. A formal tone signals authority and distance. An informal tone signals approachability and connection. Using the wrong one undermines your message.\n\n## Key Rules\n\n1. **Contractions** \u2014 Acceptable in informal writing (*can't, won't, it's*). Avoid in formal (*cannot, will not, it is*).\n2. **Second Person** \u2014 *You* is standard in instructions, blogs, and business emails. Avoid in academic papers and legal documents unless you are directly addressing the reader.\n3. **Colloquialisms** \u2014 *A lot, kind of, sort of, pretty good* belong in informal contexts. Replace with specific, precise language in formal writing.\n4. **Hedging Language** \u2014 *Maybe, perhaps, I think, kind of, sort of, seems like* \u2014 use sparingly. In formal writing, qualify claims with evidence, not verbal padding.\n\n\u2705 *Formal:* The committee recommends that the policy be revised no later than Q3.\n\u2705 *Informal:* We think the policy should be updated by September.\n\n## The Decision Test\n\nAsk: *Who is reading this, and what is at stake?* A job application, a grant proposal, and a legal brief require formality. A team update, a blog post, and a personal email do not. When in doubt, aim one step more formal than you think necessary \u2014 you can always warm it up in revision.",
+      "searchTerms": [
+        "informal",
+        "vs",
+        "formal"
+      ],
+      "relatedTopics": []
+    },
+    {
+      "id": "inclusive-language",
+      "title": "Inclusive Language",
+      "category": "word-usage",
+      "body": "# Inclusive Language\n\nInclusive language is not a political accessory \u2014 it is a precision tool. When your language excludes or distracts a portion of your audience, your argument loses reach. And when you use a gendered term where a neutral one belongs, you risk inaccuracy as well as discourtesy.\n\n## Key Rules\n\n1. **Singular *They*** \u2014 When gender is unknown or irrelevant, *they* is grammatically sound and stylistically cleaner than *he or she* or *s/he*. Modern style guides endorse it.\n2. **Bias-Free Occupations** \u2014 *Firefighter* not *fireman*, *chair* or *chairperson* not *chairman*, *flight attendant* not *stewardess*.\n3. **Avoid Unnecessary Gendered Markers** \u2014 *Female CEO* or *male nurse* implies the role is unusual for that gender. Drop the marker unless it is relevant to the point.\n4. **Check for Assumptions** \u2014 *Husband and wife, he took his wife, the nurse\u2026 she* \u2014 these assume demographics that may not match reality.\n\n\u2705 Every student should bring their own laptop to the exam.\n\u274c Each student should bring his or her own laptop to the exam.\n\n\u2705 The pilot addressed the passengers.\n\u274c The pilot addressed his passengers.\n\n## Why This Is a Clarity Issue\n\nIf a reader stops to question your language, they have stopped following your argument. Inclusive language removes friction \u2014 it lets the widest possible audience engage with your ideas without distraction.",
+      "searchTerms": [
+        "language",
+        "inclusive"
+      ],
+      "relatedTopics": []
+    },
+    {
+      "id": "introductions",
+      "title": "Introductions",
+      "category": "structure",
+      "body": "# Introductions\n\nAn introduction has three jobs: orient the reader in your topic, state your claim or purpose, and earn the right to keep their attention. A weak introduction loses the reader before your argument starts.\n\n## Key Rules\n\n1. **Orient the Reader** \u2014 Establish context without drowning in background. Answer: *What is this about, and why should I care?*\n2. **State the Claim** \u2014 End the introduction with a clear thesis statement or purpose sentence. The reader should know what you are arguing by the last sentence of paragraph one.\n3. **Earn Attention** \u2014 Vivid detail, a provocative question, or a surprising fact earns attention more than *\"Throughout history, people have\u2026\"*.\n\n\u2705 In 2023, three of the world's five largest banks lost more money to preventable human error than to market risk. This essay argues that current compliance training is structurally broken \u2014 and proposes a fix.\n\u274c The topic of bank compliance is very important in today's world. In this essay, I will discuss compliance training.\n\n## The Funnel vs the Hook\n\nThe traditional \"funnel\" (broad \u2192 narrow) works for academic writing. The \"hook\" model \u2014 start with the most arresting detail and work outward \u2014 is often better for non-academic audiences. Know which one you are using.",
+      "searchTerms": [
+        "introductions"
+      ],
+      "relatedTopics": []
+    },
+    {
+      "id": "misuse-affect-effect",
+      "title": "Affect vs. Effect",
+      "category": "word-usage",
+      "body": "# Affect vs. Effect\n\n## The Distinction\n\n*Affect* is a verb meaning *to influence*. *Effect* is a noun meaning *result* (and less commonly, a verb meaning *to bring about* or *accomplish*).\n\n\u2705 The new policy will **affect** all employees.\n\u274c The new policy will **effect** all employees.\n\n\u2705 The **effect** of the policy was immediate.\n\u274c The **affect** of the policy was immediate.\n\n## Effect as a Verb\n\nWhen used as a verb, *effect* means *to bring about* or *to cause to happen*:\n\n\u2705 The new CEO **effected** sweeping changes.\n(She brought them about \u2014 she didn't just influence them.)\n\n## Vague Noun Uses\n\nStrunk warns against using *effect* as a vague noun in arts criticism: \"an Oriental effect,\" \"effects in pale green,\" \"a charming effect.\" If you have a definite meaning, express it directly.\n\n\u274c The painting achieves subtle effects of light and shadow.\n\u2705 The painting captures the way morning light filters through the leaves.\n\n## Quick Check\n\nIf you can replace the word with *influence*, use **affect** (verb).\nIf you can replace it with *result*, use **effect** (noun).\nIf you can replace it with *bring about*, use **effect** (verb).",
+      "searchTerms": [
+        "affect",
+        "vs",
+        "effect"
+      ],
+      "relatedTopics": []
+    },
+    {
+      "id": "misuse-as-like",
+      "title": "As vs. Like",
+      "category": "word-usage",
+      "body": "# As vs. Like\n\n## The Rule\n\n*Like* governs nouns and pronouns. Before phrases and clauses, use *as* (or *as if*, *as though*).\n\n\u2705 We spent the evening **as** in the old days.\n\u274c We spent the evening **like** in the old days.\n\n\u2705 He thought **as** I did.\n\u274c He thought **like** I did.\n\n## Nouns and Pronouns\n\n*Like* is correct before a noun or pronoun alone:\n\n\u2705 He thinks **like me**.\n\u2705 She runs **like** the wind.\n\n## Clauses\n\nBefore a clause (a group of words with a subject and verb), use *as*, *as if*, or *as though*:\n\n\u2705 It looks **as if** it might rain.\n\u274c It looks **like** it might rain.\n\n\u2705 Do **as** I say, not as I do.\n\u274c Do **like** I say.\n\n## Modern Usage Note\n\nIn informal speech, *like* before clauses is widespread (\"It feels like I've been here before\"). In formal writing, the distinction still matters. When in doubt, test: if what follows contains a verb, use *as*.",
+      "searchTerms": [
+        "like",
+        "vs",
+        "as"
+      ],
+      "relatedTopics": []
+    },
+    {
+      "id": "misuse-between-among",
+      "title": "Between vs Among",
+      "category": "word-usage",
+      "body": "# Between vs Among\n\nThe traditional rule is simple: *between* for two items, *among* for three or more. The reality is slightly more nuanced, but the rule remains a reliable starting point.\n\n## Key Rules\n\n1. **Between Two** \u2014 Use *between* when referring to a relationship involving two distinct people or things: *The secret was between Alice and Bob.*\n2. **Among Three or More** \u2014 Use *among* for relationships involving three or more, especially when the group is treated as a mass: *The rumour spread among the employees.*\n3. **Between for Multiple Distinct Items** \u2014 When three or more items are named individually and the relationship is one-to-one, *between* is correct: *The treaty was signed between France, Germany, and Italy.*\n4. **Among for an Undifferentiated Group** \u2014 When the items are not named individually: *She could not choose among the many options.*\n\n\u2705 The negotiations between the union and management lasted all night.\n\u2705 The negotiations among the three departments lasted all night.\n\n\u2705 The prize money was divided among the five winners.\n\u274c The prize money was divided between the five winners. *(prefer among)*\n\n## The Exceptions\n\n*Between* is correct for exact locations: *The village lies between the mountains, the river, and the forest.* *Between* is also correct with *and* in a fixed construction: *Choose between soup, salad, or the chef's special.* When in doubt, default to the two-vs-three-or-more rule.",
+      "searchTerms": [
+        "between",
+        "among",
+        "vs"
+      ],
+      "relatedTopics": []
+    },
+    {
+      "id": "misuse-case",
+      "title": "Case",
+      "category": "word-usage",
+      "body": "# Case\n\n## Avoid Unnecessary Use\n\n*Case* means \"instance of a thing's occurring\" or \"usual state of affairs.\" In these senses, the word is usually unnecessary and can be cut.\n\n\u2705 Many of the rooms were poorly ventilated.\n\u274c In many **cases**, the rooms were poorly ventilated.\n\n\u2705 Few mistakes have been made.\n\u274c It has rarely been the **case** that any mistake has been made.\n\n## Legitimate Uses\n\n*Case* has proper uses in specific contexts:\n\n\u2705 In **case** of fire, use the stairs.\n\u2705 That presents a difficult **case** for the court.\n\u2705 The grammatical **case** of the pronoun is nominative.\n\n## The Test\n\nIf you can delete \"in many cases,\" \"in the case of,\" or \"it is the case that\" without changing your meaning, delete them.\n\n\u274c In the **case** of the Henderson account, we need more time.\n\u2705 The Henderson account needs more time.",
+      "searchTerms": [
+        "case"
+      ],
+      "relatedTopics": []
+    },
+    {
+      "id": "misuse-comprise-compose",
+      "title": "Comprise vs Compose",
+      "category": "word-usage",
+      "body": "# Comprise vs Compose\n\nThese two words describe the same relationship \u2014 part to whole \u2014 but from opposite directions. Misusing them is one of the most common errors in formal writing.\n\n## Key Rules\n\n1. **Comprise** \u2014 The whole *comprises* its parts. *Comprise* means *consists of, is made up of*. The whole comes first.\n2. **Compose** \u2014 The parts *compose* the whole. *Compose* means *make up, constitute*. The parts come first.\n3. **Never \"Is Comprised Of\"** \u2014 The phrase *is comprised of* is universally rejected by style guides. Use *comprises* or *is composed of*.\n\n\u2705 The team comprises five members. *(whole = team; parts = five members)*\n\u274c Five members comprise the team.\n\n\u2705 Five members compose the team. *(parts = five members; whole = team)*\n\u274c The team is comprised of five members.\n\n## Memory Aid\n\nThink of *comprise* as \"comprehensive\" \u2014 the whole *includes* the parts. Think of *compose* as \"composer\" \u2014 the parts *build up* the whole, like notes building a symphony.",
+      "searchTerms": [
+        "comprise",
+        "vs",
+        "compose"
+      ],
+      "relatedTopics": []
+    },
+    {
+      "id": "misuse-continual-continuous",
+      "title": "Continual vs Continuous",
+      "category": "word-usage",
+      "body": "# Continual vs Continuous\n\nThese two words describe repetition, but with a crucial difference: *continual* means happening repeatedly with interruptions; *continuous* means happening without interruption. Using one for the other changes whether the action ever stops.\n\n## Key Rules\n\n1. **Continual** \u2014 Repeated over time with breaks in between: *continual interruptions, continual complaints, continual efforts*.\n2. **Continuous** \u2014 Unbroken, unceasing: *continuous rain, continuous noise, a continuous line*.\n3. **The Test** \u2014 If something could still happen \"on and off,\" it is *continual*. If it must be unbroken, it is *continuous*.\n\n\u2705 The continual power outages frustrated residents. *(power goes on and off)*\n\u274c The continuous power outages frustrated residents. *(implies the power was always out \u2014 impossible)*\n\n\u2705 The continuous hum of the air conditioner made it hard to sleep.\n\u274c The continual hum of the air conditioner made it hard to sleep. *(a hum that stops and starts is not really a hum)*\n\n## Memory Aid\n\n*Continuous* contains *continuum* \u2014 think of a single, unbroken line. *Continual* is close to *continually repeated* \u2014 think of a cycle that restarts again and again.",
+      "searchTerms": [
+        "continual",
+        "vs",
+        "continuous"
+      ],
+      "relatedTopics": []
+    },
+    {
+      "id": "misuse-data",
+      "title": "Data",
+      "category": "word-usage",
+      "body": "# Data\n\n## Data Is Plural\n\n*Data* is a plural noun, like *phenomena* and *strata*. The singular is *datum*.\n\n\u2705 These **data** were tabulated.\n\u274c This **data** was tabulated.\n\n\u2705 The **data** show a clear trend.\n\u274c The **data** shows a clear trend.\n\n## Modern Usage\n\nIn everyday and business writing, *data* is widely treated as a singular mass noun (\"the data is conclusive\"). This is now accepted in many style guides for general contexts.\n\nIn formal academic and scientific writing, however, the plural treatment remains preferred.\n\n## Recommendation\n\n- **Scientific and academic writing:** Treat as plural.\n- **General and business writing:** Either is acceptable; be consistent.\n- **When in doubt:** Use the plural \u2014 it is never wrong.\n\n\u2705 The data **are** inconclusive. (formal)\n\u2705 The data **is** inconclusive. (informal, but widespread)",
+      "searchTerms": [
+        "data"
+      ],
+      "relatedTopics": []
+    },
+    {
+      "id": "misuse-disinterested-uninterested",
+      "title": "Disinterested vs Uninterested",
+      "category": "word-usage",
+      "body": "# Disinterested vs Uninterested\n\nThese two words sound similar but mean different things. The distinction is under pressure from common usage, but careful writers preserve it \u2014 especially in legal, journalistic, and academic contexts where the difference matters.\n\n## Key Rules\n\n1. **Disinterested** \u2014 Impartial, unbiased, having no stake in the outcome. A judge should be disinterested.\n2. **Uninterested** \u2014 Bored, indifferent, not caring. A student who stares at the clock is uninterested.\n3. **Preserve the Distinction** \u2014 If you mean *impartial*, say *disinterested*. If you mean *bored*, say *uninterested*. No other pair captures this difference as cleanly.\n\n\u2705 A disinterested third party mediated the dispute.\n\u274c A disinterested third party mediated the dispute. *(if you meant bored/uninvolved \u2014 incorrect)*\n\n\u2705 She was uninterested in the lecture and spent the hour on her phone.\n\u274c She was disinterested in the lecture and spent the hour on her phone.\n\n## Why It Matters\n\nIn journalism and law, calling a judge *uninterested* instead of *disinterested* changes the meaning entirely \u2014 from a compliment (fair) to an insult (checked out). When precision counts, use the right word.",
+      "searchTerms": [
+        "uninterested",
+        "vs",
+        "disinterested"
+      ],
+      "relatedTopics": []
+    },
+    {
+      "id": "misuse-due-to-because-of",
+      "title": "Due To vs Because Of",
+      "category": "word-usage",
+      "body": "# Due To vs Because Of\n\nThe traditional distinction between *due to* and *because of* is adjectival vs adverbial \u2014 a nuance most writers ignore, but one that still matters in formal and academic prose.\n\n## Key Rules\n\n1. **Due To (Adjectival)** \u2014 *Due to* modifies a noun. It follows a form of *to be* and answers *caused by what?*: *The cancellation was due to rain.* (cancellation = noun)\n2. **Because Of (Adverbial)** \u2014 *Because of* modifies a verb. It answers *why?*: *The game was cancelled because of rain.* (cancelled = verb)\n3. **The Test** \u2014 If you can replace *due to* with *caused by* and the sentence still works, you are using it correctly. If not, use *because of*.\n\n\u2705 The delay was due to a software error. *(delay = noun; *caused by* works)*\n\u274c The flight was delayed due to a software error. *(delayed = verb; try *caused by* \u2014 it fails)*\n\n\u2705 The flight was delayed because of a software error.\n\u2705 The outage was due to a power failure at the data centre.\n\n## Modern Usage Note\n\nMost readers will not notice the distinction, and many style guides have relaxed the rule. In formal writing, however, preserving it signals grammatical sophistication. In casual or business writing, either form is generally accepted \u2014 though *because of* is almost never wrong.",
+      "searchTerms": [
+        "of",
+        "to",
+        "vs",
+        "due",
+        "because"
+      ],
+      "relatedTopics": []
+    },
+    {
+      "id": "misuse-due-to",
+      "title": "Due To",
+      "category": "word-usage",
+      "body": "# Due To\n\n## Incorrect Adverbial Use\n\n*Due to* is incorrectly used for *through*, *because of*, or *owing to* in adverbial phrases.\n\n\u2705 He lost the first game **because of** carelessness.\n\u274c He lost the first game **due to** carelessness.\n\n## Correct Adjectival Use\n\n*Due to* is correct when related as predicate or modifier to a particular noun.\n\n\u2705 This invention is **due to** Edison.\n\u2705 Losses **due to** preventable fires are unacceptable.\n\u2705 The cancellation was **due to** weather.\n\n## The Test\n\nIf you can replace *due to* with *caused by* or *attributable to*, it is correct. If you need *because of*, use *because of*.\n\n\u2705 The delay was **due to** a technical fault. (*caused by* works)\n\u274c The flight was cancelled **due to** fog. (*because of* is needed)\n\n## Modern Note\n\nThe adverbial *due to* is now so common that many readers do not notice it. In formal writing, preserve the distinction.",
+      "searchTerms": [
+        "to",
+        "due"
+      ],
+      "relatedTopics": []
+    },
+    {
+      "id": "misuse-each-and-every-one",
+      "title": "Each, Every, and Singular Agreement",
+      "category": "word-usage",
+      "body": "# Each, Every, and Singular Agreement\n\n## The Rule\n\nWords like *each*, *each one*, *everybody*, *every one*, and *many a man* are singular \u2014 even though they imply more than one person. They require singular pronouns and verbs.\n\n\u2705 **Each** of the candidates **has** submitted a proposal.\n\u274c **Each** of the candidates **have** submitted a proposal.\n\n\u2705 **Everybody** brought **his** own lunch.\n\u274c **Everybody** brought **their** own lunch. (See note below.)\n\n## Common Distributive Expressions\n\n| Singular Expression | Correct Verb | Correct Pronoun |\n|---|---|---|\n| each | has, is | his, her |\n| each one | has, is | his, her |\n| everybody | has, is | his, her |\n| every one | has, is | his, her |\n| many a man | has, is | his |\n\n## Modern Singular *They*\n\nStrunk, writing in 1919, prescribed *he* for all antecedents unless the antecedent was necessarily feminine. Today, singular *they* is widely accepted and preferred for gender-neutral writing. The grammatical agreement of the verb, however, should remain singular:\n\n\u2705 Every student should bring **their** own materials. (modern, accepted)",
+      "searchTerms": [
+        "each",
+        "agreement",
+        "singular",
+        "and",
+        "every"
+      ],
+      "relatedTopics": []
+    },
+    {
+      "id": "misuse-etc",
+      "title": "Etc. (Et Cetera)",
+      "category": "word-usage",
+      "body": "# Etc. (Et Cetera)\n\n## Meaning and Limitations\n\n*Etc.* means *and the rest* or *and so forth*. It should not be used if these phrases would be insufficient \u2014 that is, if the reader would be left in doubt about any important particulars.\n\n## Correct Use\n\n*Etc.* is least objectionable when it represents:\n- The last terms of a list already given in full\n- Immaterial words at the end of a quotation\n\n\u2705 The primary colours are red, yellow, blue, etc.\n\u2705 Bring pens, paper, notebooks, etc.\n\n## Incorrect Use\n\n\u274c Her speech touched on democracy, justice, etc.\n(The reader cannot guess the missing items.)\n\n\u274c Some of the greatest writers \u2014 Homer, Shakespeare, etc.\n(*Etc.* cheapens the list of great names.)\n\n## Never After *Such As* or *For Example*\n\n*Etc.* is incorrect at the end of a list introduced by *such as*, *for example*, or any similar expression \u2014 those phrases already signal an incomplete list.\n\n\u274c Many European capitals, such as Paris, London, Rome, etc.\n\u2705 Many European capitals, such as Paris, London, and Rome.",
+      "searchTerms": [
+        "et",
+        "etc",
+        "cetera"
+      ],
+      "relatedTopics": []
+    },
+    {
+      "id": "misuse-fact-that",
+      "title": "The Fact That",
+      "category": "word-usage",
+      "body": "# The Fact That\n\n## A Wordy Formula\n\nThe phrase *the fact that* is usually unnecessary. It adds words without adding meaning. Whenever possible, recast the sentence to eliminate it.\n\n\u2705 I was unaware that she had arrived.\n\u274c I was unaware of **the fact that** she had arrived.\n\n\u2705 Because he was late, we started without him.\n\u274c Owing to **the fact that** he was late, we started without him.\n\n\u2705 Despite his injury, he finished the race.\n\u274c In spite of **the fact that** he was injured, he finished the race.\n\n## When *Fact* Is Correct\n\nUse *fact* only for matters capable of direct verification \u2014 not matters of judgment.\n\n\u2705 It is a **fact** that lead melts at 327.5 \u00b0C.\n\u2705 The **fact** that the meeting was recorded is not disputed.\n\n\u274c It is a **fact** that Napoleon was the greatest of modern generals.\n(That is a judgment, not a verifiable fact.)\n\n## Quick Repairs\n\n| Wordy | Concise |\n|---|---|\n| due to the fact that | because |\n| in spite of the fact that | although, despite |\n| the fact that she had | her having |\n| call attention to the fact that | note that, point out that |",
+      "searchTerms": [
+        "the",
+        "fact",
+        "that"
+      ],
+      "relatedTopics": []
+    },
+    {
+      "id": "misuse-factor",
+      "title": "Factor",
+      "category": "word-usage",
+      "body": "# Factor\n\n## A Hackneyed Word\n\n*Factor* is overused. The expressions in which it appears can almost always be replaced by something more direct and idiomatic.\n\n\u2705 He won the match by being better trained.\n\u274c His superior training was the great **factor** in his winning the match.\n\n\u2705 Heavy artillery has played a constantly larger part in deciding battles.\n\u274c Heavy artillery has become an increasingly important **factor** in deciding battles.\n\n## Legitimate Uses\n\n*Factor* has proper uses in mathematics, science, and precise contexts:\n\n\u2705 The prime **factors** of 12 are 2 and 3.\n\u2705 Sunscreen is a key **factor** in preventing skin cancer.\n\n## The Test\n\nIf *factor* is preceded by a vague adjective (*important*, *key*, *major*, *significant*), try cutting the phrase entirely or replacing it with a concrete subject.\n\n\u274c Cost was a key **factor** in the decision.\n\u2705 Cost drove the decision.",
+      "searchTerms": [
+        "factor"
+      ],
+      "relatedTopics": []
+    },
+    {
+      "id": "misuse-feature",
+      "title": "Feature",
+      "category": "word-usage",
+      "body": "# Feature\n\n## Another Hackneyed Word\n\nLike *factor*, *feature* is overused and typically adds nothing to the sentence.\n\n\u2705 Miss A.'s singing of Schubert lieder was especially fine.\n\u274c A **feature** of the entertainment especially worthy of mention was the singing of Miss A.\n\n## Write the Specifics\n\nInstead of labelling something \"a feature,\" describe what actually happened. If the programme has already been given, tell *how* she sang, not merely *that* she sang.\n\n## As a Verb\n\nAvoid *feature* as a verb in the advertising sense of \"offer as a special attraction.\"\n\n\u274c The restaurant **features** locally sourced ingredients.\n\u2705 The restaurant uses locally sourced ingredients.\n\n## Legitimate Uses\n\n*Feature* is correct when referring to a distinctive attribute in a precise context:\n\n\u2705 The new phone's standout **feature** is its battery life.\n\u2705 Facial **features**; geographical **features**",
+      "searchTerms": [
+        "feature"
+      ],
+      "relatedTopics": []
+    },
+    {
+      "id": "misuse-fewer-less",
+      "title": "Fewer vs Less",
+      "category": "word-usage",
+      "body": "# Fewer vs Less\n\nThe distinction between *fewer* and *less* is one of the most well-known usage rules in English \u2014 and one of the most frequently broken, even by careful writers. The rule is clear; the supermarket checkout sign (*\"10 items or less\"*) is wrong.\n\n## Key Rules\n\n1. **Fewer** \u2014 Use with countable nouns, things you can count individually: *fewer apples, fewer people, fewer complaints, fewer than ten minutes*.\n2. **Less** \u2014 Use with uncountable nouns, things measured in bulk or degree: *less water, less time, less money, less traffic, less than an hour*.\n3. **The Test** \u2014 Can you put a number directly in front of the noun? *Three apples* \u2014 yes \u2192 *fewer*. *Three water* \u2014 no \u2192 *less*.\n\n\u2705 There were fewer applicants this year than last year.\n\u274c There were less applicants this year than last year.\n\n\u2705 We spent less money than expected.\n\u274c We spent fewer money than expected. *(money is uncountable)*\n\n## Edge Cases\n\nTime, distance, and money can be tricky. *Less than three miles* is accepted because the distance is treated as a single quantity, not three individual miles. *Fewer than ten dollars* emphasises the count of individual dollar units; *less than ten dollars* treats the amount as a single sum. Both are defensible.",
+      "searchTerms": [
+        "less",
+        "vs",
+        "fewer"
+      ],
+      "relatedTopics": []
+    },
+    {
+      "id": "misuse-fix",
+      "title": "Fix",
+      "category": "word-usage",
+      "body": "# Fix\n\n## Colloquial vs. Literary Uses\n\n*Fix* is colloquial in America for *arrange*, *prepare*, or *mend*. In writing, restrict it to its literary senses: *fasten*, *make firm or immovable*, and the like.\n\n\u2705 The bracket must be **fixed** to the wall with screws. (fastened)\n\u2705 They **fixed** the date for the hearing. (set firmly)\n\n\u274c I need to **fix** dinner. (Use *prepare*)\n\u274c She **fixed** the broken lamp. (Use *repaired* or *mended*)\n\u274c Can you **fix** this for me? (Use *arrange* or *solve*)\n\n## Exceptions\n\nSome figurative uses are standard:\n\n\u2705 She **fixed** her gaze on the horizon.\n\u2705 He **fixed** the blame on his predecessor.\n\n## The Test\n\nIf you could substitute *fasten* or *make firm* and the meaning holds, *fix* is correct. If you mean *repair*, *prepare*, or *arrange*, choose the more precise word.",
+      "searchTerms": [
+        "fix"
+      ],
+      "relatedTopics": []
+    },
+    {
+      "id": "misuse-further-farther",
+      "title": "Further vs Farther",
+      "category": "word-usage",
+      "body": "# Further vs Farther\n\nIn British English, the two words have largely merged in casual use, but American English and careful writing everywhere preserve a distinction. It is a distinction worth keeping, because it maps neatly onto two different kinds of distance.\n\n## Key Rules\n\n1. **Farther** \u2014 Physical, measurable distance. If you can measure it in miles, metres, or inches, use *farther*.\n2. **Further** \u2014 Figurative degree, extent, or advancement. Use *further* for anything non-physical: *further discussion, further study, without further delay, further to your letter*.\n3. **When in Doubt** \u2014 If you cannot decide, *further* is the safer default because it is acceptable in more contexts, particularly in British English.\n\n\u2705 The next gas station is three miles farther down the road.\n\u2705 We need further discussion before making a decision.\n\n\u274c The next gas station is three miles further down the road. *(prefer farther for physical distance)*\n\u274c We need farther discussion before making a decision.\n\n## Memory Aid\n\n*Farther* contains *far* \u2014 think of *how far?* If the answer involves distance, use *farther*. For everything else, use *further*.",
+      "searchTerms": [
+        "farther",
+        "further",
+        "vs"
+      ],
+      "relatedTopics": []
+    },
+    {
+      "id": "misuse-hopefully",
+      "title": "Misuse of *Hopefully*",
+      "category": "word-usage",
+      "body": "# Misuse of *Hopefully*\n\n*Hopefully* as a sentence adverb \u2014 *\"Hopefully, the rain will stop\"* \u2014 is grammatically common but stylistically controversial. Traditionalists object that it changes the meaning from \"I hope the rain will stop\" to \"the rain will stop in a hopeful manner.\"\n\n## Key Rules\n\n1. **Traditional Use** \u2014 *Hopefully* means *in a hopeful manner* and modifies the verb: *\"She waited hopefully by the phone.\"* This use is always correct.\n2. **Sentence Adverb Use** \u2014 *Hopefully* meaning *I hope that* or *it is to be hoped that* is widely understood but still draws objections in formal writing. Many style guides advise avoiding it.\n3. **Alternatives** \u2014 Use *I hope that, with luck, if all goes well,* or restructure the sentence.\n\n\u2705 She looked hopefully at the horizon, searching for the ship.\n\u274c The ship will arrive, she thought hopefully. *(ambiguous \u2014 manner or sentence adverb?)*\n\n\u2705 I hope the committee reaches a decision by Friday.\n\u274c Hopefully, the committee will reach a decision by Friday. *(if you want to avoid the style objection)*\n\n## When to Use It\n\nIn casual writing and speech, *hopefully* as a sentence adverb is fine \u2014 the battle is largely lost. In formal writing, academic papers, and legal documents, avoid it. The safest path: use *I hope* or restructure.",
+      "searchTerms": [
+        "of",
+        "misuse",
+        "hopefully"
+      ],
+      "relatedTopics": []
+    },
+    {
+      "id": "misuse-however",
+      "title": "However",
+      "category": "word-usage",
+      "body": "# However\n\n## Position in the Sentence\n\nWhen *however* means *nevertheless*, it should not come first in its sentence or clause.\n\n\u2705 The roads were almost impassable. At last, **however**, we succeeded in reaching camp.\n\u274c The roads were almost impassable. **However**, we at last succeeded in reaching camp.\n\n## When *However* Comes First\n\nWhen *however* comes first, it means *in whatever way* or *to whatever extent* \u2014 not *nevertheless*.\n\n\u2705 **However** you advise him, he will probably do as he thinks best.\n\u2705 **However** discouraging the prospect, he never lost heart.\n\n## Placement Options\n\nWhen meaning *nevertheless*, embed *however* after the first element or near the start:\n\n\u2705 The work is difficult. It is, **however**, essential.\n\u2705 She disagreed. Her colleague, **however**, supported the plan.\n\nThe best position is after the word or phrase that contrasts most strongly with what came before.",
+      "searchTerms": [
+        "however"
+      ],
+      "relatedTopics": []
+    },
+    {
+      "id": "misuse-imply-infer",
+      "title": "Imply vs Infer",
+      "category": "word-usage",
+      "body": "# Imply vs Infer\n\nThese two words describe the two ends of the same communication act, but they travel in opposite directions. Confusing them suggests a weak grasp of logic, not just vocabulary.\n\n## Key Rules\n\n1. **Imply** \u2014 The speaker or writer *implies*. To imply is to suggest something without stating it directly.\n2. **Infer** \u2014 The listener or reader *infers*. To infer is to draw a conclusion from evidence or suggestion.\n3. **Direction** \u2014 Implication goes out (speaker \u2192 listener). Inference comes in (listener \u2190 evidence).\n\n\u2705 The spokesperson implied that layoffs were coming but refused to say it directly.\n\u2705 From the tone of the memo, employees inferred that layoffs were coming.\n\n\u274c The spokesperson inferred that layoffs were coming.\n\u274c From the tone of the memo, employees implied that layoffs were coming.\n\n## Memory Aid\n\nThe speaker *implies* (sends out a suggestion). The listener *infers* (draws a conclusion in). Think: *I* for incoming (infer), *E* for emitting (imply). If you are the one doing the suggesting, you are implying. If you are the one doing the detective work, you are inferring.",
+      "searchTerms": [
+        "infer",
+        "imply",
+        "vs"
+      ],
+      "relatedTopics": []
+    },
+    {
+      "id": "misuse-interesting",
+      "title": "Interesting",
+      "category": "word-usage",
+      "body": "# Interesting\n\n## A Perfunctory Introduction\n\nAvoid *interesting* as a lazy way to introduce a topic. Instead of announcing that what you are about to tell is interesting, make it so.\n\n\u2705 Tell the story without preamble.\n\u274c An **interesting** story is told of...\n\n\u2705 Mr. B., who is expected to visit America soon, once...\n\u274c In connection with Mr. B.'s anticipated visit, it is **interesting** to recall that he...\n\n## Why It Weakens Writing\n\nPrefacing a fact with \"it is interesting that\" is the writer's way of saying, \"I hope you find this interesting.\" If the fact is interesting, it will speak for itself. If it is not, no amount of labelling will help.\n\n## Legitimate Uses\n\n*Interesting* is fine when genuinely describing a reaction rather than advertising one:\n\n\u2705 I found the documentary **interesting**.\n\u2705 She raised an **interesting** question about the budget.\n\n## The Test\n\nIf you are using *interesting* to signal to the reader that they should pay attention, delete it and let the content do the work.",
+      "searchTerms": [
+        "interesting"
+      ],
+      "relatedTopics": []
+    },
+    {
+      "id": "misuse-lay-lie",
+      "title": "Lay vs. Lie",
+      "category": "word-usage",
+      "body": "# Lay vs. Lie\n\n## The Distinction\n\n*Lay* is a transitive verb \u2014 it takes a direct object (you lay *something* down). *Lie* is intransitive \u2014 it does not take an object (you lie *yourself* down).\n\n| | Present | Past | Past Participle | Present Participle |\n|---|---|---|---|---|\n| **Lay** (to place) | lay | laid | laid | laying |\n| **Lie** (to recline) | lie | lay | lain | lying |\n\n## Examples\n\n\u2705 I **lay** the book on the table. (present \u2014 placing something)\n\u2705 I **laid** the book on the table yesterday. (past)\n\u2705 I have **laid** the book there every day. (past participle)\n\n\u2705 I **lie** down for a nap. (present \u2014 reclining)\n\u2705 I **lay** down for a nap yesterday. (past \u2014 note: *lay*, not *laid*!)\n\u2705 I have **lain** here for an hour. (past participle)\n\n## Common Errors\n\n\u274c I'm going to **lay** down for a while.\n\u2705 I'm going to **lie** down for a while.\n\n\u274c He **laid** on the sofa all day.\n\u2705 He **lay** on the sofa all day.\n\n\u274c She has **laid** there since noon.\n\u2705 She has **lain** there since noon.\n\n## Quick Check\n\nIf you can replace the verb with *place* or *put*, use a form of **lay**.\nIf you can replace it with *recline*, use a form of **lie**.",
+      "searchTerms": [
+        "lay",
+        "vs",
+        "lie"
+      ],
+      "relatedTopics": []
+    },
+    {
+      "id": "misuse-less-fewer",
+      "title": "Less vs. Fewer",
+      "category": "word-usage",
+      "body": "# Less vs. Fewer\n\n## The Rule\n\n*Less* refers to quantity. *Fewer* refers to number.\n\n\u2705 He had **fewer** men than in the previous campaign.\n\u274c He had **less** men than in the previous campaign.\n\n## The Meaning Test\n\n\u2705 His troubles are **less** than mine.\n(*His troubles are not so great as mine.* \u2014 quantity/degree)\n\n\u2705 His troubles are **fewer** than mine.\n(*His troubles are not so numerous as mine.* \u2014 number)\n\n## Common Applications\n\n| Use *Less* For | Use *Fewer* For |\n|---|---|\n| Less water | Fewer bottles |\n| Less time | Fewer hours |\n| Less money | Fewer dollars |\n| Less traffic | Fewer cars |\n\n## The Round-Number Exception\n\n*Less* is correct before a round number treated as a collective unit:\n\n\u2705 The signers of the petition were **less** than a hundred.\n\u2705 The project will take **less** than three weeks.\n\n## The Supermarket Test\n\nThe sign reading \"10 items or less\" is technically wrong \u2014 it should be \"10 items or fewer.\" In informal contexts this distinction is widely ignored, but formal writing should preserve it.",
+      "searchTerms": [
+        "less",
+        "vs",
+        "fewer"
+      ],
+      "relatedTopics": []
+    },
+    {
+      "id": "misuse-literally",
+      "title": "Misuse of *Literally*",
+      "category": "word-usage",
+      "body": "# Misuse of *Literally*\n\n*Literally* means *in a literal sense; not figurative; actually*. Its use as an intensifier for figurative statements \u2014 *\"I literally died laughing\"* \u2014 is widespread in casual speech but undermines clear writing. The word exists to distinguish fact from metaphor; squandering it leaves no word to do that job.\n\n## Key Rules\n\n1. **Reserve for Literal Truth** \u2014 Use *literally* only when you mean something happened exactly as described, without metaphor or exaggeration.\n2. **Avoid as an Intensifier** \u2014 *Literally amazing, literally the worst, literally exploded* \u2014 in all these, *literally* adds no information. It is verbal italics, not meaning.\n3. **Test by Removing It** \u2014 If the sentence means the same thing without *literally*, delete it.\n\n\u2705 The building literally collapsed at 3:14 p.m. \u2014 engineers confirmed the structure failed.\n\u274c The news literally collapsed my whole world. *(figurative \u2014 use figuratively or recast)*\n\n\u2705 He ran the marathon in literally two hours and four minutes. *(factually accurate)*\n\u274c He literally flew through that marathon. *(unless he had wings)*\n\n## A Note on Usage Drift\n\nSome dictionaries now record the intensifier use as acceptable. In formal, academic, or professional writing, ignore this drift. The distinction is too useful to abandon.",
+      "searchTerms": [
+        "of",
+        "misuse",
+        "literally"
+      ],
+      "relatedTopics": []
+    },
+    {
+      "id": "misuse-loan-lend",
+      "title": "Loan vs. Lend",
+      "category": "word-usage",
+      "body": "# Loan vs. Lend\n\n## The Distinction\n\n*Lend* is a verb. *Loan* is a noun. In formal writing, avoid using *loan* as a verb.\n\n\u2705 Would you **lend** me your pen?\n\u274c Would you **loan** me your pen?\n\n\u2705 I applied for a bank **loan**.\n\u2705 The **loan** was approved.\n\n## Past Tense\n\nThe past tense of *lend* is *lent*:\n\n\u2705 She **lent** me her car.\n\u274c She **loaned** me her car.\n\n## Modern Usage Note\n\nIn American English, *loan* as a verb is now common in both speech and informal writing. In British English and formal writing, the distinction remains stricter. For the most polished prose, keep *lend* and *loan* in their separate roles.\n\n\u2705 The gallery agreed to **lend** the painting for the exhibition. (preferred)\n\u26a0\ufe0f The gallery agreed to **loan** the painting... (informal, American)",
+      "searchTerms": [
+        "lend",
+        "vs",
+        "loan"
+      ],
+      "relatedTopics": []
+    },
+    {
+      "id": "misuse-masterful-masterly",
+      "title": "Masterful vs. Masterly",
+      "category": "word-usage",
+      "body": "# Masterful vs. Masterly\n\n## The Distinction\n\n*Masterful* means *domineering*, *imperious*, or *wilful*. *Masterly* means *exhibiting the skill of a master* \u2014 expert, accomplished.\n\n\u2705 She gave a **masterly** performance of the concerto.\n\u274c She gave a **masterful** performance of the concerto.\n\n\u2705 The **masterful** executive brooked no dissent.\n(The executive was domineering, not merely skilful.)\n\n## Why It Matters\n\nIf you describe a pianist, painter, or writer as *masterful*, you are saying they are domineering, not that they are skilled. The two words praise very different qualities.\n\n## Memory Aid\n\n- **Masterly** \u2014 think of a master craftsman: skilful, accomplished\n- **Masterful** \u2014 think of a master over servants: commanding, imperious\n\n## Modern Drift\n\nIn contemporary usage, *masterful* has absorbed the meaning of *masterly* to the point that the distinction is fading. For precise writing, especially in criticism and reviews, preserve the difference.\n\n\u2705 The chef prepared a **masterly** meal.\n\u2705 Her **masterful** personality dominated the boardroom.",
+      "searchTerms": [
+        "masterly",
+        "masterful",
+        "vs"
+      ],
+      "relatedTopics": []
+    },
+    {
+      "id": "misuse-nature",
+      "title": "Nature",
+      "category": "word-usage",
+      "body": "# Nature\n\n## Often Redundant\n\n*Nature* is frequently unnecessary \u2014 used from habit, like *character*. Cut it when it adds nothing.\n\n\u2705 Hostile acts\n\u274c Acts of a hostile **nature**\n\n\u2705 The documents were confidential.\n\u274c The documents were of a confidential **nature**.\n\n## Vague Uses\n\nStrunk also warns against vague uses of *nature* in expressions like \"a lover of nature\" or \"poems about nature.\" Unless specific statements follow, the reader cannot tell whether the poems concern natural scenery, rural life, the sunset, the untracked wilderness, or the habits of squirrels.\n\n\u2705 She writes poems about the forests of the Pacific Northwest.\n\u274c She writes poems about **nature**.\n\n## Legitimate Uses\n\n*Nature* is correct when it carries precise meaning:\n\n\u2705 Human **nature**; the **nature** of the problem\n\u2705 \"Nature red in tooth and claw\"\n\n## The Test\n\nIf you can delete \"of a [something] nature\" and the sentence still works, delete it.",
+      "searchTerms": [
+        "nature"
+      ],
+      "relatedTopics": []
+    },
+    {
+      "id": "misuse-nauseous-nauseated",
+      "title": "Nauseous vs Nauseated",
+      "category": "word-usage",
+      "body": "# Nauseous vs Nauseated\n\nThe traditional distinction between *nauseous* and *nauseated* is fading from common use, but careful speakers and writers still preserve it. The question is simple: are you making someone sick, or are you feeling sick?\n\n## Key Rules\n\n1. **Nauseous** \u2014 Causing nausea. Something *nauseous* makes a person feel sick: *a nauseous smell, a nauseous display*. It describes the cause, not the feeling.\n2. **Nauseated** \u2014 Feeling nausea. A person who is *nauseated* is experiencing the sensation of wanting to be sick.\n3. **Nauseating** \u2014 Also means causing nausea; interchangeable with *nauseous* in the traditional sense.\n\n\u2705 The nauseous fumes from the chemical spill forced an evacuation. *(the fumes cause sickness)*\n\u2705 She felt nauseated after the boat ride. *(she is experiencing the feeling)*\n\n\u274c She felt nauseous after the boat ride. *(traditionalists object \u2014 she is not causing nausea)*\n\u274c The nauseated smell made everyone leave. *(smells do not feel nausea)*\n\n## Usage Drift\n\nIn modern casual use, *I feel nauseous* is now so common that correcting it can seem pedantic. In formal writing, however \u2014 medical documentation, journalism, academic papers \u2014 the distinction remains valuable because it prevents ambiguity. When you need to be precise, use *nauseated* for the feeling and *nauseous* or *nauseating* for the cause.",
+      "searchTerms": [
+        "nauseous",
+        "vs",
+        "nauseated"
+      ],
+      "relatedTopics": []
+    },
+    {
+      "id": "misuse-one-of-the-most",
+      "title": "One of the Most",
+      "category": "word-usage",
+      "body": "# One of the Most\n\n## A Threadbare Opener\n\nAvoid beginning essays or paragraphs with \"One of the most interesting developments of modern science is...\" or \"Switzerland is one of the most interesting countries of Europe.\" There is nothing grammatically wrong with the construction \u2014 it is simply threadbare and forcible-feeble.\n\n## The Singular Verb Trap\n\nA common error is using a singular verb in a relative clause following \"one of the\" when the relative pronoun is the subject.\n\n\u2705 One of the ablest men **that have** attacked this problem.\n\u274c One of the ablest men **that has** attacked this problem.\n\nThe logic: *that* refers to *men* (plural), not to *one*. It is the men who have attacked the problem.\n\n## Fresh Alternatives\n\nInstead of the formulaic \"one of the most,\" state the claim directly:\n\n\u274c One of the most significant developments in modern science is CRISPR.\n\u2705 CRISPR has transformed genetic research.\n\n\u274c She is one of the most accomplished pianists of her generation.\n\u2705 Few pianists of her generation match her technique and range.",
+      "searchTerms": [
+        "most",
+        "one",
+        "of",
+        "the"
+      ],
+      "relatedTopics": []
+    },
+    {
+      "id": "misuse-people-persons",
+      "title": "People vs. Persons",
+      "category": "word-usage",
+      "body": "# People vs. Persons\n\n## The Distinction\n\n*The people* is a political term. *The public* refers to artistic appreciation or commercial patronage. These should not be confused.\n\n\u2705 From **the people** comes political support or opposition.\n\u2705 From **the public** comes artistic appreciation or commercial patronage.\n\n## People vs. Persons\n\nIn modern usage, *people* is the normal plural of *person* for most contexts. *Persons* is reserved for formal, legal, or technical contexts:\n\n\u2705 How many **people** attended the concert?\n\u2705 The elevator has a capacity of eight **persons**. (legal/technical)\n\u2705 The police are searching for a missing **person**.\n\n## Strunk's Specific Point\n\n*The people* carries a political, collective connotation that *the public* does not. A politician appeals to *the people*; an artist seeks recognition from *the public*.\n\n\u2705 The referendum gave **the people** a direct voice.\n\u2705 The exhibition was well received by **the public**.",
+      "searchTerms": [
+        "vs",
+        "people",
+        "persons"
+      ],
+      "relatedTopics": []
+    },
+    {
+      "id": "misuse-possess",
+      "title": "Possess",
+      "category": "word-usage",
+      "body": "# Possess\n\n## Not a Synonym for *Have* or *Own*\n\n*Possess* should not be used as a mere substitute for *have* or *own*. It carries a weight that simple possession does not always warrant.\n\n\u2705 He **had** great courage. (or: He was very brave.)\n\u274c He **possessed** great courage.\n\n\u2705 He **owned** a large estate.\n\u274c He was the fortunate **possessor** of a large estate.\n\n## When *Possess* Is Correct\n\nUse *possess* when the connotation of full ownership, control, or a defining quality is intended:\n\n\u2705 She **possesses** a rare combination of intellect and empathy.\n\u2705 The painting is **possessed** by the museum.\n\u2705 He was **possessed** by an idea.\n\n## The Test\n\nIf *have* or *own* works, prefer it. Reserve *possess* for emphasis \u2014 when the act of possession itself carries weight.\n\n\u274c The company **possesses** three offices in the city.\n\u2705 The company **has** three offices in the city.",
+      "searchTerms": [
+        "possess"
+      ],
+      "relatedTopics": []
+    },
+    {
+      "id": "misuse-respective-respectively",
+      "title": "Respective / Respectively",
+      "category": "word-usage",
+      "body": "# Respective / Respectively\n\n## Usually Unnecessary\n\nThese words can usually be omitted with advantage. They add syllables without adding clarity.\n\n\u2705 Works of fiction are listed under the names of their authors.\n\u274c Works of fiction are listed under the names of their **respective** authors.\n\n## When *Respectively* Helps\n\nIn a few contexts \u2014 particularly formal or technical writing \u2014 *respectively* is needed to pair items in parallel lists:\n\n\u2705 The one mile and two mile runs were won by Jones and by Cummings.\n(No *respectively* needed when the pairing is obvious.)\n\nIn a technical context where ambiguity must be avoided:\n\n\u2705 The values of *x*, *y*, and *z* were 3, 7, and 12, **respectively**.\n\n## Avoid in Ordinary Writing\n\nIn writing on ordinary subjects, *respectively* rarely adds anything. Strunk considered it appropriate mainly for formal proofs (e.g., geometry).\n\n## The Test\n\nIf the pairing is clear without *respectively*, cut it.\n\n\u274c Tom and Sarah drove a Ford and a Toyota **respectively**.\n\u2705 Tom drove a Ford and Sarah drove a Toyota.",
+      "searchTerms": [
+        "respective",
+        "respectively"
+      ],
+      "relatedTopics": []
+    },
+    {
+      "id": "misuse-shall-will",
+      "title": "Shall vs. Will",
+      "category": "word-usage",
+      "body": "# Shall vs. Will\n\n## The Traditional Rule\n\nThe future tense requires *shall* for the first person, *will* for the second and third.\n\n| Person | Simple Future | Determination / Consent |\n|---|---|---|\n| I, we | I **shall** go | I **will** go (determination) |\n| you | you **will** go | you **shall** go (command) |\n| he, she, it, they | they **will** go | they **shall** go (command/obligation) |\n\n## In Practice\n\n\u2705 I **shall** arrive at noon. (simple future)\n\u2705 I **will** not tolerate this. (determination)\n\n\u2705 They **will** arrive at noon. (simple future)\n\u2705 They **shall** comply with the regulations. (obligation)\n\n## Conditional: Should vs. Would\n\nThe same pattern applies: first person uses *should*, second and third use *would*.\n\n\u2705 I **should** not have succeeded without his help.\n\u2705 He predicted that before long we **should** have a great surprise. (indirect quotation)\n\n## Modern Reality\n\nOutside the most formal British English, the *shall/will* distinction has largely collapsed. *Will* is used for all persons in ordinary speech and writing. The traditional rule is worth knowing for formal documents, legal writing, and literary analysis \u2014 but for everyday writing, *will* for all persons is accepted everywhere.",
+      "searchTerms": [
+        "shall",
+        "will",
+        "vs"
+      ],
+      "relatedTopics": []
+    },
+    {
+      "id": "misuse-so",
+      "title": "So as an Intensifier",
+      "category": "word-usage",
+      "body": "# So as an Intensifier\n\n## Avoid in Writing\n\nIn formal writing, avoid the use of *so* as an intensifier: \"so good,\" \"so warm,\" \"so delightful.\" The word adds emphasis without precision.\n\n\u2705 The performance was extraordinary.\n\u274c The performance was **so** good.\n\n\u2705 The weather was oppressively hot.\n\u274c The weather was **so** warm.\n\n## Legitimate Uses\n\n*So* is correct when it introduces a clause of result (paired with *that*) or when it means *therefore*:\n\n\u2705 She practised **so** diligently that she won the competition.\n\u2705 I think, therefore I am.\n\n## In Speech\n\nThe intensifying *so* is natural and acceptable in speech. The caution applies to formal writing, where stronger, more specific words carry more weight than *so* + adjective.\n\n## Quick Fix\n\nWhen you catch yourself writing \"so [adjective],\" ask: can I replace it with one stronger word?\n\n| Weak | Strong |\n|---|---|\n| so big | enormous, vast |\n| so tired | exhausted |\n| so happy | delighted, elated |\n| so sad | despondent, heartbroken |",
+      "searchTerms": [
+        "an",
+        "so",
+        "intensifier",
+        "as"
+      ],
+      "relatedTopics": []
+    },
+    {
+      "id": "misuse-split-infinitive",
+      "title": "Split Infinitive",
+      "category": "word-usage",
+      "body": "# Split Infinitive\n\n## The Traditional View\n\nThere is precedent from the fourteenth century for placing an adverb between *to* and the infinitive, but the construction is in disfavour and is avoided by nearly all careful writers.\n\n\u2705 To inquire diligently\n\u274c To **diligently** inquire\n\n## The Classic Example\n\n\u274c To **boldly** go where no man has gone before.\n\u2705 To go **boldly** where no man has gone before.\n\n## When Splitting Is Justified\n\nModern usage accepts the split infinitive when the unsplit version is awkward or changes the meaning:\n\n\u2705 The company plans to **more than double** its output.\n(Placing \"more than\" elsewhere changes the meaning.)\n\n\u2705 She expected the value to **almost** triple.\n(Compared to \"almost to triple\" \u2014 which is worse.)\n\n## Modern Consensus\n\nMost modern style guides (including the later Strunk & White) take a moderate view: avoid the split infinitive when it is easy to do so, but do not torture a sentence to avoid it. Clarity and natural rhythm should prevail over rigid adherence to the rule.",
+      "searchTerms": [
+        "split",
+        "infinitive"
+      ],
+      "relatedTopics": []
+    },
+    {
+      "id": "misuse-state",
+      "title": "State",
+      "category": "word-usage",
+      "body": "# State\n\n## Not a Synonym for *Say*\n\n*State* should not be used as a mere substitute for *say* or *remark*. Restrict it to the sense of *express fully or clearly*.\n\n\u2705 He refused to **state** his objections.\n(He gave them clearly and formally \u2014 *state* fits.)\n\n\u274c \"I'll be there at noon,\" he **stated**.\n\u2705 \"I'll be there at noon,\" he **said**.\n\n## When *State* Is Correct\n\nUse *state* when the act involves formality, precision, or laying out a position:\n\n\u2705 The witness **stated** her name and address.\n\u2705 The report **states** that emissions have fallen by 12%.\n\u2705 The constitution **states** the rights of citizens.\n\n## When *Said* Is Better\n\nIn narrative and dialogue, *said* is almost always the right choice. It is invisible to the reader. *Stated*, *remarked*, *opined*, and similar verbs draw attention to themselves.\n\n\u2705 \"I disagree,\" she **said**.\n\u274c \"I disagree,\" she **stated**.",
+      "searchTerms": [
+        "state"
+      ],
+      "relatedTopics": []
+    },
+    {
+      "id": "misuse-system",
+      "title": "System",
+      "category": "word-usage",
+      "body": "# System\n\n## Frequently Used Without Need\n\n*System* is often tacked onto words where it adds nothing.\n\n\u2705 Dayton has adopted government by commission.\n\u274c Dayton has adopted the commission **system** of government.\n\n\u2705 Dormitories\n\u274c The dormitory **system**\n\n## Legitimate Uses\n\n*System* is correct when it refers to an organised, interconnected set of components:\n\n\u2705 The solar **system**\n\u2705 The nervous **system**\n\u2705 A new filing **system**\n\n## The Test\n\nIf you can delete *system* and the meaning holds, delete it.\n\n\u274c The company implemented a new bonus **system**.\n\u2705 The company implemented a new bonus **structure**. (if structure is what is meant)\n\u2705 The company changed how bonuses are calculated. (better yet \u2014 be specific)",
+      "searchTerms": [
+        "system"
+      ],
+      "relatedTopics": []
+    },
+    {
+      "id": "misuse-thanking-you",
+      "title": "Thanking You in Advance",
+      "category": "word-usage",
+      "body": "# Thanking You in Advance\n\n## Avoid This Phrase\n\n\"Thanking you in advance\" sounds as if the writer means, \"It will not be worth my while to write to you again.\" It presumes the reader's compliance and forecloses on gratitude.\n\n\u2705 Will you please send the files by Friday?\n\u274c **Thanking you in advance** for sending the files by Friday.\n\n## What to Use Instead\n\nMake your request directly and politely. If a further acknowledgement is warranted, send a separate thank-you note afterward.\n\n\u2705 I would appreciate it if you could send the files by Friday.\n\u2705 I shall be obliged if you would forward the documents.\n\u2705 Could you please send the files by Friday? Thank you.\n\n## The Principle\n\nGratitude should follow the favour, not precede it. Pre-emptive thanks can read as presumptuous. Reserve your thanks for when the request has been fulfilled.",
+      "searchTerms": [
+        "advance",
+        "you",
+        "thanking",
+        "in"
+      ],
+      "relatedTopics": []
+    },
+    {
+      "id": "misuse-that-which",
+      "title": "That vs. Which",
+      "category": "word-usage",
+      "body": "# That vs. Which\n\n## The Restrictive / Non-Restrictive Rule\n\n*That* introduces a restrictive clause \u2014 one essential to the meaning of the sentence. *Which* introduces a non-restrictive clause \u2014 one that adds information but is not essential. Non-restrictive clauses are set off by commas.\n\n\u2705 The book **that** I borrowed from you is excellent.\n(The clause identifies *which* book \u2014 essential.)\n\n\u2705 The book, **which** I finished last night, is excellent.\n(The clause adds extra information \u2014 not essential.)\n\n## The Comma Test\n\nIf the clause is surrounded by commas, use *which*. If it isn't, use *that*.\n\n\u2705 Cars **that** run on electricity are becoming common.\n(Not all cars \u2014 only electric ones. Restrictive. No commas.)\n\n\u2705 Electric cars, **which** produce no tailpipe emissions, are becoming common.\n(All electric cars share this quality. Non-restrictive. Commas.)\n\n## A Key Distinction\n\n\u274c The report, **that** was published yesterday, contains errors.\n\u2705 The report, **which** was published yesterday, contains errors.\n\n\u274c The report **which** I wrote is on your desk.\n\u2705 The report **that** I wrote is on your desk.\n\n## British Usage Note\n\nIn British English, *which* is commonly used for both restrictive and non-restrictive clauses. In American English, the distinction is observed more strictly and is preferred in formal writing.",
+      "searchTerms": [
+        "vs",
+        "that",
+        "which"
+      ],
+      "relatedTopics": []
+    },
+    {
+      "id": "misuse-that-who",
+      "title": "That vs Who (for People)",
+      "category": "word-usage",
+      "body": "# That vs Who (for People)\n\nWhen referring to people in restrictive clauses, the correct relative pronoun is *who*, not *that*. This is not a grammatical technicality \u2014 it is about recognising the humanity of the person you are writing about.\n\n## Key Rules\n\n1. **Who for People** \u2014 *The woman who won the prize*, not *the woman that won the prize*.\n2. **That for Things and Groups** \u2014 *The company that filed the patent, the idea that changed everything*. Groups, organisations, and animals generally take *that*.\n3. **Whom for Objects of Verbs or Prepositions** \u2014 *The candidate whom we interviewed* (formal) or *the candidate we interviewed* (dropped pronoun).\n\n\u2705 The researchers who published the study will present their findings next week.\n\u274c The researchers that published the study will present their findings next week.\n\n\u2705 The team that won the championship celebrated all night. *(team = collective entity)*\n\u2705 She is someone who always keeps her promises.\n\n## Why It Matters\n\nUsing *that* for people reduces them to objects \u2014 it is the linguistic equivalent of pointing with your thumb instead of your finger. In formal writing, job applications, profiles, and journalism, the distinction carries weight. In casual speech, *that* for people is common but still best avoided in writing.",
+      "searchTerms": [
+        "vs",
+        "who",
+        "people",
+        "that",
+        "for"
+      ],
+      "relatedTopics": []
+    },
+    {
+      "id": "misuse-they-their-singular",
+      "title": "Singular *They*",
+      "category": "word-usage",
+      "body": "# Singular *They*\n\n## Strunk's Original Rule (1919)\n\nA common inaccuracy is using a plural pronoun when the antecedent is a singular distributive expression \u2014 *each*, *each one*, *everybody*, *every one*, *many a man*. These require a singular pronoun.\n\nStrunk's prescription: use *he* with all the above words, unless the antecedent is or must be feminine.\n\n\u2705 Everybody should bring **his** own book. (Strunk, 1919)\n\n## Modern Usage\n\nSingular *they* is now widely accepted as a gender-neutral pronoun, endorsed by most major style guides including APA, MLA, Chicago, and AP.\n\n\u2705 Every student should bring **their** own materials. (modern, accepted)\n\u2705 A doctor must listen to **their** patients.\n\u2705 Someone left **their** umbrella.\n\n## Awkward Antecedents\n\nSome speakers use plural *they* even with clearly singular antecedents to avoid committing to gender \u2014 or simply from habit:\n\n\u274c A friend of mine told me that **they** were moving.\n\u2705 A friend of mine told me that **she** was moving. (if gender is known)\n\u2705 A friend of mine told me that **they** were moving. (acceptable in modern informal usage)\n\n## Recommendation\n\n- **Formal writing:** Singular *they* is now acceptable; avoid \"he\" as a generic pronoun.\n- **If it sounds awkward:** Recast to plural \u2014 \"All students should bring their books.\"",
+      "searchTerms": [
+        "they",
+        "singular"
+      ],
+      "relatedTopics": []
+    },
+    {
+      "id": "misuse-type",
+      "title": "Type",
+      "category": "word-usage",
+      "body": "# Type\n\n## Avoid Vague Use\n\n*Type* is often used vaguely where a more specific word or no word at all is needed. Like *kind of* and *sort of*, it should not be used as a filler.\n\n\u2705 I dislike that **type of** architecture.\n(The literal sense \u2014 a category \u2014 is correct.)\n\n\u274c It was a protest **type** situation.\n\u2705 It was a protest.\n\n\u274c He's the artistic **type**.\n\u2705 He is artistic.\n\n## Legitimate Uses\n\n*Type* is correct when referring to a classification, category, or model:\n\n\u2705 blood **type**; personality **type**; file **type**\n\u2705 The building is a fine example of the Gothic **type**.\n\n## Not a Substitute for *Kind of*\n\nIn colloquial use, *type* sometimes replaces *kind of* as a vague qualifier. Avoid this in writing:\n\n\u274c She was **type of** annoyed.\n\u2705 She was somewhat annoyed.\n\n## The Test\n\nIf you can delete \"type\" or \"type of\" without losing meaning, delete it.",
+      "searchTerms": [
+        "type"
+      ],
+      "relatedTopics": []
+    },
+    {
+      "id": "misuse-unique",
+      "title": "Unique",
+      "category": "word-usage",
+      "body": "# Unique\n\n## Means \"One of a Kind\"\n\n*Unique* means \"the only one of its kind.\" It is an absolute: something is either unique or it is not. It cannot be modified by *very*, *more*, *most*, *rather*, or *somewhat*.\n\n\u2705 The manuscript is **unique**.\n\u274c The manuscript is **very unique**.\n\u274c That is a **rather unique** perspective.\n\n## Common Misuse\n\n\u274c It was the **most unique** experience of my life.\n(Something cannot be \"most one-of-a-kind.\")\n\n\u2705 It was the most extraordinary experience of my life.\n\u2705 It was a **unique** experience. (If it truly had no parallel.)\n\n## Acceptable Alternatives\n\nWhen you mean *unusual*, *distinctive*, or *remarkable*, use those words:\n\n| Intended Meaning | Better Word |\n|---|---|\n| very unusual | extraordinary, remarkable |\n| quite distinctive | unusual, striking |\n| rather special | exceptional, singular |\n\n## The Only Exception\n\nSome usage authorities accept *unique* as meaning simply \"very unusual\" in informal contexts. In formal writing, preserve the absolute sense.",
+      "searchTerms": [
+        "unique"
+      ],
+      "relatedTopics": []
+    },
+    {
+      "id": "misuse-very",
+      "title": "Very",
+      "category": "word-usage",
+      "body": "# Very\n\n## Use Sparingly\n\nUse *very* sparingly. Where emphasis is necessary, use words strong in themselves.\n\n\u2705 The task was **arduous**.\n\u274c The task was **very** difficult.\n\n\u2705 She was **exhausted**.\n\u274c She was **very** tired.\n\n## Why It Weakens Writing\n\n*Very* is a qualifier that promises intensity but delivers vagueness. It tells the reader that the next word is not quite strong enough \u2014 so the writer is turning up the volume rather than choosing the right word.\n\n## Replacements\n\n| Weak | Strong |\n|---|---|\n| very big | enormous, vast, colossal |\n| very small | tiny, minute, minuscule |\n| very important | crucial, vital, essential |\n| very angry | furious, enraged |\n| very happy | delighted, elated, overjoyed |\n| very sad | despondent, heartbroken, bereft |\n| very fast | rapid, swift, breakneck |\n| very slow | sluggish, glacial, plodding |\n\n## When *Very* Is Acceptable\n\n*Very* has legitimate uses \u2014 particularly with adjectives that lack a stronger one-word equivalent, or in speech and informal writing:\n\n\u2705 That is a **very** specific question. (no obvious stronger word)\n\u2705 I was **very** pleased to meet her. (natural, unforced)",
+      "searchTerms": [
+        "very"
+      ],
+      "relatedTopics": []
+    },
+    {
+      "id": "misuse-while",
+      "title": "While",
+      "category": "word-usage",
+      "body": "# While\n\n## Avoid Indiscriminate Use\n\nAvoid using *while* as a casual substitute for *and*, *but*, or *although*. Many writers use it to vary their connectives without regard for whether it fits the logic.\n\n\u2705 The office and salesrooms are on the ground floor; the rest of the building is devoted to manufacturing.\n\u274c The office and salesrooms are on the ground floor, **while** the rest of the building is devoted to manufacturing.\n\n## Correct Use: *Although*\n\n*While* is allowable as an equivalent of *although* when it leads to no ambiguity or absurdity:\n\n\u2705 **While** I admire his energy, I wish it were employed in a better cause.\n(Paraphrase: I admire his energy; at the same time, I wish...)\n\n## Incorrect Use: Simultaneity Implied\n\n\u274c **While** the temperature reaches 90 or 95 degrees in the daytime, the nights are often chilly.\n\nThis implies the heat and the chill happen at the same time \u2014 which is absurd. Use *although*:\n\n\u2705 **Although** the temperature reaches 90 or 95 degrees in the daytime, the nights are often chilly.\n\n## Best Practice\n\nUse *while* only with strict literalness, in the sense of *during the time that*:\n\n\u2705 She read a book **while** she waited.\n\u2705 The phone rang **while** I was in the shower.\n\nFor logical contrast, prefer *although*, *but*, *whereas*, or a semicolon.",
+      "searchTerms": [
+        "while"
+      ],
+      "relatedTopics": []
+    },
+    {
+      "id": "misuse-who-whom",
+      "title": "Who vs. Whom",
+      "category": "word-usage",
+      "body": "# Who vs. Whom\n\n## The Rule\n\n*Who* is the subject form (the person doing the action). *Whom* is the object form (the person receiving the action).\n\n\u2705 The candidate **who** wins the primary will face the incumbent.\n(**Who** is the subject of *wins*.)\n\n\u2705 The candidate **whom** the party endorsed won the election.\n(**Whom** is the object of *endorsed*.)\n\n## The He/Him Test\n\nIf you can replace the word with *he* or *she*, use **who**. If you can replace it with *him* or *her*, use **whom**.\n\n- (**Who/Whom**) called? \u2192 **He** called. \u2192 **Who**\n- (**Who/Whom**) did you call? \u2192 You called **him**. \u2192 **Whom**\n\n## Common Trap: Parenthetical *He Said*\n\nDo not let expressions like *he said* or *I think* mislead you about the case:\n\n\u2705 His brother, **who** he said would send him the money...\n\u274c His brother, **whom** he said would send him the money...\n\n(Test: **He** would send the money \u2014 so *who*, not *whom*.)\n\n\u2705 The man **who** he thought was his friend...\n\u274c The man **whom** he thought was his friend...\n\n(Test: **He** was his friend \u2014 so *who*, not *whom*.)\n\n## Prepositions\n\nAfter a preposition, use *whom*:\n\n\u2705 To **whom** should I address the letter?\n\u2705 The person with **whom** I spoke was very helpful.",
+      "searchTerms": [
+        "who",
+        "whom",
+        "vs"
+      ],
+      "relatedTopics": []
+    },
+    {
+      "id": "plain-language",
+      "title": "Plain Language",
+      "category": "word-usage",
+      "body": "# Plain Language\n\nThe Plain English movement argues that clear writing is a form of respect \u2014 and in many contexts, a legal requirement. Governments, banks, and healthcare providers increasingly mandate plain language so that citizens can understand their rights, obligations, and options.\n\n## Key Rules\n\n1. **Prefer Short Words** \u2014 *Use* not *utilise; help* not *facilitate; show* not *demonstrate; need* not *requirement to effect compliance with*.\n2. **Use Active Voice** \u2014 *We sent the form* not *The form was sent*.\n3. **Concrete Nouns** \u2014 *Dogs, chairs, firefighters, children* are easier to process than *paradigms, apparatuses, synergies, stakeholders*.\n4. **Short Sentences** \u2014 Average 15\u201320 words per sentence. One idea per sentence. Break complex ideas across two or three sentences instead of cramming them into one.\n5. **Direct Address** \u2014 Use *you* when writing instructions or information for a specific reader.\n\n\u2705 If you miss the deadline, you will lose your application. Apply now at gov.uk/benefits.\n\u274c Failure to submit the requisite documentation within the prescribed 28-day period shall result in the termination of the application process in accordance with statutory regulation 14(b).\n\n## When Not to Use Plain Language\n\nTechnical precision, legal nuance, and academic rigour sometimes require complex language. The rule is not \"never use long words\" \u2014 it is \"never use a long word when a short one does the job better.\"",
+      "searchTerms": [
+        "language",
+        "plain"
+      ],
+      "relatedTopics": []
+    },
+    {
+      "id": "rhythm-and-flow",
+      "title": "Rhythm and Flow",
+      "category": "composition",
+      "body": "# Rhythm and Flow\n\nProse rhythm is the pattern of stressed and unstressed syllables, sentence lengths, and pauses. It affects pace, mood, and memorability \u2014 even in non-fiction.\n\n## The Three Rhythms\n\n### 1. Staccato \u2014 Short, Clipped\nShort sentences, hard stops, minimal connectives. Creates tension, urgency, or bluntness.\n\n> \"He looked at the door. It was closed. He listened. Nothing. He took a step. The floor creaked.\"\n\nEach period is a beat. The reader's eye snaps from stop to stop.\n\n### 2. Legato \u2014 Flowing, Connected\nLonger sentences with subordinate clauses and connectives. Creates momentum, reflection, or lyricism.\n\n> \"He looked at the door, which was closed as it had been all evening, and he listened \u2014 there was nothing, or perhaps there was something just beneath the threshold of hearing \u2014 so he took a step forward, and the floor creaked.\"\n\nThe clauses flow one into the next; the reader glides.\n\n### 3. Mixed \u2014 Natural\nMost good prose alternates. A long, flowing passage builds atmosphere; a short sentence breaks it for impact.\n\n> \"He looked at the door, which was closed as it had been all evening, and he listened \u2014 nothing, or perhaps there was something just beneath the threshold of hearing \u2014 so he took a step forward. The floor creaked. He froze.\"\n\nThe short sentences at the end land like punches.\n\n## The Sound of Sentences\n\n### Alliteration and Assonance\n\n**Alliteration** (repeated consonant sounds) and **assonance** (repeated vowel sounds) create subliminal music:\n\n> \"The fair breeze blew, the white foam flew, / The furrow followed free.\"\n\u2014 Samuel Taylor Coleridge, *The Rime of the Ancient Mariner*\n\nThe F-sounds mimic the rush of wind and water.\n\n> \"Do not go gentle into that good night.\"\n\u2014 Dylan Thomas, *Do Not Go Gentle Into That Good Night*\n\nThe repeated G and N sounds (go, gentle, good, night) create a sense of inevitability and weight. The line is heavy in the mouth.\n\n### Consonance and Dissonance\n\nHard consonants (K, T, P, G) create friction. Soft consonants (L, M, N, S, W) create smoothness.\n\n\u274c The contract requires strict compliance with complex corporate protocols. *(hard \u2014 bureaucratic, aggressive)*\n\u2705 The agreement asks that we follow a few shared principles. *(soft \u2014 collaborative, welcoming)*\n\nNeither is universally \"better\" \u2014 the choice should match the message.\n\n## The Power of the Polysyndeton\n\n**Polysyndeton:** Deliberately repeating conjunctions *(and, or, but)* between every item.\n\n> \"We have spoken of the sun and the moon and the stars and the earth beneath our feet.\"\n\u2014 Paraphrase of biblical cadence\n\nThe repeated *and* creates a sense of accumulation, abundance, or exhaustion. Each item feels equally weighty.\n\n**Asyndeton:** Deliberately omitting conjunctions.\n\n> \"I came, I saw, I conquered.\"\n\u2014 Julius Caesar (via Suetonius)\n\nThe omission of *and* creates speed, decisiveness, and finality.\n\n## Famous Examples of Masterful Rhythm\n\n### Dickens \u2014 The Long-Breath Opener\n> \"It was the best of times, it was the worst of times, it was the age of wisdom, it was the age of foolishness, it was the epoch of belief, it was the epoch of incredulity, it was the season of Light, it was the season of Darkness, it was the spring of hope, it was the winter of despair...\"\n\nCharles Dickens, *A Tale of Two Cities*\n\nNotice the rhythm: *best/worst, wisdom/foolishness, belief/incredulity, Light/Darkness, hope/despair*. It's anaphora (repeated opening) + antithesis (paired opposites) + crescendo. The passage builds and builds, and the reader is carried by the wave.\n\n### DeLillo \u2014 The Hypnotic Fragment\n> \"The smoke. The crowd. The sirens. The paper drifting down. He walked and kept walking.\"\n\nDon DeLillo, *Falling Man*\n\nFour sentence fragments. Each is a snapshot. The rhythm mimics the disorientation of the event \u2014 the brain processing in disconnected images.\n\n### Didion \u2014 The Long Sentence That Breathes\n> \"I am trying to think if there is anything else I remember about the cerebral cortex, which I studied in a neuroanatomy class at Cal, an impossibly hard class, and I recall that the cerebral cortex is the part of the brain that distinguishes us from the animals, that gives us the capacity to reason and to reflect, and that is why we are able to watch, say, a television documentary about the horrors of war and then get up and make a sandwich.\"\n\nJoan Didion, *The Year of Magical Thinking*\n\nOne sentence, 95 words. It starts in a clinical register (*cerebral cortex, neuroanatomy*) and collapses into the domestic (*make a sandwich*). The rhythm of the sentence \u2014 its inexorable slide from the academic to the mundane \u2014 is the argument. The form is the meaning.\n\n## Practical Checks for Your Own Prose\n\n1. **Read aloud.** If you stumble, your reader will too.\n2. **Count the stressed beats** in your most important sentence. Prose doesn't need strict meter, but stressed syllables should land with intention.\n3. **Look for accidental rhymes** \u2014 they distract unless deliberate.\n4. **Check the ratio.** A paragraph of all long sentences needs one short one. A paragraph of all short sentences needs one that stretches.\n5. **End sentences on strong words.** Avoid trailing off with prepositions or weak modifiers \u2014 unless the trailing-off is the effect you want.\n\n\u2705 He knew the truth. It was unbearable. *(final word: \"unbearable\" \u2014 lands hard)*\n\u274c He knew the truth. It was something he couldn't put up with. *(final word: \"with\" \u2014 drifts away)*",
+      "searchTerms": [
+        "rhythm",
+        "flow",
+        "and"
+      ],
+      "relatedTopics": []
+    },
+    {
+      "id": "rule-01-possessive-s",
+      "title": "Form the Possessive Singular of Nouns by Adding 's",
+      "category": "usage",
+      "body": "# Form the Possessive Singular of Nouns by Adding 's\n\nFollow this rule whatever the final consonant. The possessive singular is formed by adding _'s_ \u2014 even when the noun ends in _s_.\n\n## Key Points\n\n- Add _'s_ to all singular nouns, regardless of their final letter.\n- Avoid awkward constructions by rewording if the result sounds clumsy.\n\n\u2705 Charles's friend\n\u2705 Burns's poems\n\u2705 the witch's malice\n\nThe exceptions are few: ancient proper names ending in _-es_ or _-is_ (_Jesus'_, _Moses' laws_), and the fixed phrases _for conscience' sake_ and _for righteousness' sake_. When in doubt, recast: _the laws of Moses_ instead of _Moses' laws_.\n\nRemember that pronominal possessives \u2014 _hers_, _its_, _theirs_, _yours_, _oneself_ \u2014 never take an apostrophe.\n\n\u274c Charles' friend\n\u274c Burn's poems\n\u274c The cat licked it's paw.",
+      "searchTerms": [
+        "the",
+        "by",
+        "of",
+        "singular",
+        "adding",
+        "nouns",
+        "possessive",
+        "form",
+        "s"
+      ],
+      "relatedTopics": []
+    },
+    {
+      "id": "rule-02-serial-comma",
+      "title": "In a Series of Three or More Terms, Use a Comma After Each Term Except the Last",
+      "category": "usage",
+      "body": "# In a Series of Three or More Terms, Use a Comma After Each Term Except the Last\n\nIn a list joined by a single conjunction (_and_, _or_), place a comma after every item except the final one. This is the Oxford (or serial) comma.\n\n## Key Points\n\n- Always place a comma before the final _and_ or _or_ in a series of three or more.\n- The serial comma prevents ambiguity and clarifies that the last two items are distinct.\n\n\u2705 red, white, and blue\n\u2705 gold, silver, or copper\n\u2705 He opened the letter, read it, and made a note of its contents.\n\nOmitting the final comma can create confusion \u2014 the reader may momentarily group the last two items together as a pair. \n\n\u274c The flag is red, white and blue.\n\u274c We invited the parrots, Alice and Bob. &nbsp;_(Are Alice and Bob the parrots?)_",
+      "searchTerms": [
+        "the",
+        "series",
+        "in",
+        "of",
+        "each",
+        "last",
+        "more",
+        "use",
+        "comma",
+        "term",
+        "three",
+        "terms",
+        "except",
+        "a",
+        "after",
+        "or"
+      ],
+      "relatedTopics": []
+    },
+    {
+      "id": "rule-03-parenthetic-commas",
+      "title": "Enclose Parenthetic Expressions Between Commas",
+      "category": "usage",
+      "body": "# Enclose Parenthetic Expressions Between Commas\n\nAny word, phrase, or clause that interrupts the flow of a sentence without being essential to its meaning should be set off by commas (one on each side, or a comma and a period at the end of a sentence).\n\n## Key Points\n\n- A parenthetic expression is supplementary, not restrictive \u2014 removing it leaves the sentence grammatically intact.\n- Never insert only one comma; parenthetic commas always come in pairs.\n- Non-restrictive relative clauses (those that do not identify the antecedent) always take commas.\n\n\u2705 The best way to see a country, unless you are pressed for time, is to travel on foot.\n\u2705 The audience, which had at first been indifferent, became more and more interested.\n\u2705 Monday, November 11, 1918.\n\nAlways treat the following as parenthetic: years in dates, _etc._, _jr._, and non-restrictive clauses.\n\n\u274c Marjorie's husband, Colonel Nelson paid us a visit yesterday.\n\u274c My brother you will be pleased to hear, is now in perfect health.",
+      "searchTerms": [
+        "parenthetic",
+        "between",
+        "commas",
+        "expressions",
+        "enclose"
+      ],
+      "relatedTopics": []
+    },
+    {
+      "id": "rule-04-comma-before-conjunction",
+      "title": "Place a Comma Before a Conjunction Introducing a Co-ordinate Clause",
+      "category": "usage",
+      "body": "# Place a Comma Before a Conjunction Introducing a Co-ordinate Clause\n\nWhen a conjunction (_and_, _but_, _for_, _or_, _nor_, _while_ in the sense of _and at the same time_) joins two independent clauses, place a comma before the conjunction.\n\n## Key Points\n\n- Each clause must be able to stand alone as a complete sentence.\n- When the subject is the same for both clauses and the connective is _and_, the comma may be omitted if the relation is close.\n- With _but_, always use the comma even when the subject is shared.\n\n\u2705 The early records of the city have disappeared, and the story of its first years can no longer be reconstructed.\n\u2705 The situation is perilous, but there is still one chance of escape.\n\u2705 I have heard his arguments, but am still unconvinced.\n\u2705 He has had several years' experience and is thoroughly competent.\n\nThe comma signals that the first clause is complete and that a new, co-equal clause follows.\n\n\u274c The sun was setting and the temperature began to drop. &nbsp;_(Two independent clauses \u2014 needs a comma.)_\n\u274c She finished her work, but was too tired to go out. &nbsp;_(This one is actually acceptable \u2014 shared subject with_ but _is fine with a comma.)_",
+      "searchTerms": [
+        "place",
+        "ordinate",
+        "co",
+        "comma",
+        "introducing",
+        "a",
+        "before",
+        "clause",
+        "conjunction"
+      ],
+      "relatedTopics": []
+    },
+    {
+      "id": "rule-05-comma-splice",
+      "title": "Do Not Join Independent Clauses by a Comma",
+      "category": "usage",
+      "body": "# Do Not Join Independent Clauses by a Comma\n\nIf two or more grammatically complete clauses are not joined by a conjunction, use a semicolon \u2014 or make them separate sentences. A comma alone is not strong enough.\n\n## Key Points\n\n- The semicolon links related independent clauses without a conjunction; it signals a closer bond than a period.\n- If a conjunction is present, use a comma instead (see Rule 4).\n- If the second clause begins with an adverb (_accordingly_, _besides_, _then_, _therefore_, _thus_), the semicolon is still required.\n\n\u2705 Stevenson's romances are entertaining; they are full of exciting adventures.\n\u2705 It is nearly half past five; we cannot reach town before dark.\n\u2705 Stevenson's romances are entertaining, for they are full of exciting adventures.\n\nException: when clauses are very short and alike in form, a comma may suffice.\n\n\u2705 Man proposes, God disposes.\n\n\u274c Stevenson's romances are entertaining, they are full of exciting adventures.\n\u274c It was late, we decided to leave. &nbsp;_(Comma splice \u2014 use a semicolon or period.)_",
+      "searchTerms": [
+        "by",
+        "independent",
+        "join",
+        "comma",
+        "not",
+        "do",
+        "a",
+        "clauses"
+      ],
+      "relatedTopics": []
+    },
+    {
+      "id": "rule-06-no-sentence-fragments",
+      "title": "Do Not Break Sentences in Two",
+      "category": "usage",
+      "body": "# Do Not Break Sentences in Two\n\nIn other words, do not use periods where commas belong. A sentence fragment \u2014 a phrase or dependent clause punctuated as a complete sentence \u2014 leaves the reader hanging.\n\n## Key Points\n\n- Replace the stray period with a comma and continue the sentence.\n- Intentional fragments are permissible only for deliberate emphasis (e.g., _Again and again he called out. No reply._), and only when the emphasis is clearly warranted.\n\n\u2705 I met them on a Cunard liner several years ago, coming home from Liverpool to New York.\n\u2705 He was an interesting talker, a man who had traveled all over the world and lived in half a dozen countries.\n\n\u274c I met them on a Cunard liner several years ago. Coming home from Liverpool to New York.\n\u274c He was an interesting talker. A man who had traveled all over the world and lived in half a dozen countries.",
+      "searchTerms": [
+        "in",
+        "sentences",
+        "two",
+        "not",
+        "do",
+        "break"
+      ],
+      "relatedTopics": []
+    },
+    {
+      "id": "rule-07-participial-phrase",
+      "title": "A Participial Phrase at the Beginning Must Refer to the Grammatical Subject",
+      "category": "usage",
+      "body": "# A Participial Phrase at the Beginning Must Refer to the Grammatical Subject\n\nWhen a sentence opens with a participial phrase (or an adjective phrase, appositive, or prepositional phrase describing a noun), that phrase must modify the grammatical subject of the main clause. Violations are often unintentionally comic.\n\n## Key Points\n\n- Identify who or what performs the action in the opening phrase \u2014 that must be the subject of the sentence.\n- The same rule applies to introductory adjectives, appositives, and prepositional phrases describing a person or thing.\n\n\u2705 Walking slowly down the road, he saw a woman accompanied by two children.\n\u2705 On arriving in Chicago, his friends met him at the station. _(Awkward: \"his friends\" didn't arrive \u2014 fix as below.)_\n\u2705 When he arrived in Chicago, his friends met him at the station.\n\u2705 Young and inexperienced, I thought the task easy.\n\n\u274c Walking slowly down the road, a woman accompanied by two children came into view. &nbsp;_(The woman was walking, but she's not the subject.)_\n\u274c Being in a dilapidated condition, I was able to buy the house very cheap. &nbsp;_(The house was dilapidated \u2014 not the buyer.)_\n\u274c Wondering irresolutely what to do next, the clock struck twelve.",
+      "searchTerms": [
+        "the",
+        "beginning",
+        "phrase",
+        "to",
+        "at",
+        "refer",
+        "a",
+        "subject",
+        "must",
+        "participial",
+        "grammatical"
+      ],
+      "relatedTopics": []
+    },
+    {
+      "id": "rule-08-paragraph-unit",
+      "title": "Make the Paragraph the Unit of Composition",
+      "category": "composition",
+      "body": "# Make the Paragraph the Unit of Composition\n\nA paragraph should develop a single topic. When you move to a new topic, start a new paragraph. The paragraph break is a signal to the reader that a new step in the argument or narrative has begun.\n\n## Key Points\n\n- One paragraph = one topic. Subdivide liberally to guide the reader.\n- A single sentence is rarely a proper paragraph \u2014 the exception being sentences of transition between larger sections.\n- In dialogue, each change of speaker begins a new paragraph.\n\nFor a short composition, a single paragraph may suffice. For longer works, group related ideas under logical heads. For example, a book review might use:\n\n1. Account of the work.\n2. Critical discussion.\n\nA more detailed literary analysis might break into paragraphs covering facts of publication, metrical form, subject, treatment, distinguishing qualities, and relation to other works.\n\n\u2705 Short, focused paragraphs that each develop one idea.\n\u274c A rambling paragraph that mixes plot summary, character analysis, and historical background in a single block.",
+      "searchTerms": [
+        "the",
+        "of",
+        "unit",
+        "make",
+        "composition",
+        "paragraph"
+      ],
+      "relatedTopics": []
+    },
+    {
+      "id": "rule-09-topic-sentence",
+      "title": "Begin Each Paragraph with a Topic Sentence",
+      "category": "composition",
+      "body": "# Begin Each Paragraph with a Topic Sentence\n\nAs a rule, open each paragraph with a sentence that states its central idea. The body of the paragraph then explains, develops, or proves that idea, and the final sentence either reinforces it or states an important consequence.\n\n## Key Points\n\n- The topic sentence lets the reader grasp the paragraph's purpose immediately.\n- The body sentences support the topic sentence through restatement, illustration, proof, or development.\n- End with emphasis \u2014 never with a digression or an unimportant detail.\n\n\u2705 **Topic sentence.** The meaning is then made clearer by denial of the contrary.\n\u2705 **Topic sentence.** The definition is expanded. The definition is explained by contrast. Conclusion: an important consequence.\n\nIn narrative and description, the opening sentence may instead hold together the details that follow (_The breeze served us admirably._), but in exposition and argument, a clear topic sentence is indispensable.\n\n\u274c A paragraph that opens with a minor detail, wanders through supporting facts, and trails off without a concluding emphasis.",
+      "searchTerms": [
+        "sentence",
+        "each",
+        "with",
+        "a",
+        "begin",
+        "topic",
+        "paragraph"
+      ],
+      "relatedTopics": []
+    },
+    {
+      "id": "rule-10-active-voice",
+      "title": "Use the Active Voice",
+      "category": "composition",
+      "body": "# Use the Active Voice\n\nThe active voice is more direct, vigorous, and concise than the passive. It makes clear who is doing what.\n\n## Key Points\n\n- **Prefer active voice** \u2014 Active sentences are shorter, clearer, and more engaging.\n- **When passive works** \u2014 Use passive when the doer is unknown, unimportant, or when the receiver of the action should be the focus.\n- **Identify passive** \u2014 Look for a form of _to be_ + past participle (_was written_, _is being built_).\n- **Avoid stacked passives** \u2014 Never make one passive depend on another (_He has been proved to have been seen..._).\n- **Weak \"there is\" and \"could be heard\"** \u2014 Replace with an active verb for a livelier sentence.\n\n\u2705 I shall always remember my first visit to Boston.\n\u2705 Dead leaves covered the ground.\n\u2705 Somewhere in the house a guitar hummed sleepily.\n\u2705 Failing health compelled him to leave college.\n\u2705 He soon repented his words.\n\n\u274c My first visit to Boston will always be remembered by me.\n\u274c There were a great number of dead leaves lying on the ground.\n\u274c The sound of a guitar somewhere in the house could be heard.\n\u274c The reason that he left college was that his health became impaired.\n\u274c The experiment was conducted by the researcher.\n\u274c The decision was made by the committee.",
+      "searchTerms": [
+        "the",
+        "active",
+        "use",
+        "voice"
+      ],
+      "relatedTopics": []
+    },
+    {
+      "id": "rule-11-positive-form",
+      "title": "Put Statements in Positive Form",
+      "category": "composition",
+      "body": "# Put Statements in Positive Form\n\nMake definite assertions. Avoid tame, colorless, hesitating language. Use _not_ as a tool of denial or antithesis \u2014 never as a means of evasion.\n\n## Key Points\n\n- Readers want to be told what _is_, not what _is not_.\n- Express negatives in positive form wherever possible: _dishonest_ over _not honest_, _forgot_ over _did not remember_, _ignored_ over _did not pay any attention to_.\n- The antithesis of negative and positive is powerful: _Not charity, but simple justice._\n\n\u2705 He usually came late.\n\u2705 He thought the study of Latin useless.\n\u2705 The women in The Taming of the Shrew are unattractive. Katharine is disagreeable, Bianca insignificant.\n\n\u274c He was not very often on time.\n\u274c He did not think that studying Latin was much use.\n\u274c _The Taming of the Shrew_ is rather weak in spots. Shakespeare does not portray Katharine as a very admirable character, nor does Bianca remain long in memory as an important character in Shakespeare's works.\n\nNegative words other than _not_ are usually strong: _The sun never sets upon the British flag._",
+      "searchTerms": [
+        "in",
+        "put",
+        "form",
+        "statements",
+        "positive"
+      ],
+      "relatedTopics": []
+    },
+    {
+      "id": "rule-12-concrete-language",
+      "title": "Use Definite, Specific, Concrete Language",
+      "category": "composition",
+      "body": "# Use Definite, Specific, Concrete Language\n\nPrefer the specific to the general, the definite to the vague, the concrete to the abstract. The surest way to hold a reader's attention is to call up pictures.\n\n## Key Points\n\n- Readers do not think in generalities \u2014 they think in particulars. A concrete word conjures an image instantly; an abstract one forces the reader to translate.\n- In exposition and argument, ground general principles in specific examples.\n- Significant, well-chosen details make prose vivid \u2014 not exhaustive detail, but the telling detail.\n\n\u2705 It rained every day for a week.\n\u2705 He grinned as he pocketed the coin.\n\u2705 All who have tried surf-riding agree that it is most exhilarating.\n\u2705 In proportion as men delight in battles, bull-fights, and combats of gladiators, will they punish by hanging, burning, and the rack.\n\n\u274c A period of unfavorable weather set in.\n\u274c He showed satisfaction as he took possession of his well-earned reward.\n\u274c There is a general agreement among those who have enjoyed the experience that surf-riding is productive of great exhilaration.\n\u274c In proportion as the manners, customs, and amusements of a nation are cruel and barbarous, the regulations of their penal code will be severe.",
+      "searchTerms": [
+        "specific",
+        "use",
+        "definite",
+        "language",
+        "concrete"
+      ],
+      "relatedTopics": []
+    },
+    {
+      "id": "rule-13-omit-needless-words",
+      "title": "Omit Needless Words",
+      "category": "composition",
+      "body": "# Omit Needless Words\n\nVigorous writing is concise. A sentence should contain no unnecessary words, a paragraph no unnecessary sentences \u2014 for the same reason a drawing should have no unnecessary lines and a machine no unnecessary parts. Make every word tell.\n\n## Key Points\n\n- **Cut filler words** \u2014 Remove _very_, _really_, _actually_, _basically_, _just_, and _that_ when they add no meaning.\n- **Avoid redundancy** \u2014 Don't say the same thing twice: _past history_, _advance planning_, _each and every_.\n- **Replace phrases with words** \u2014 _due to the fact that_ \u2192 _because_; _in order to_ \u2192 _to_; _at this point in time_ \u2192 _now_.\n- **Use strong verbs** \u2014 _make a decision_ \u2192 _decide_; _conduct an investigation_ \u2192 _investigate_.\n- **Eliminate _the fact that_** \u2014 revise this phrase out of every sentence: _owing to the fact that_ \u2192 _since_; _in spite of the fact that_ \u2192 _though_.\n- **Trim _who is_, _which was_** \u2014 _His brother, who is a member..._ \u2192 _His brother, a member..._\n- **Combine choppy sentences** \u2014 Don't present a complex idea step by step in a series of short sentences when one will do.\n\n\u2705 We must finish the report today.\n\u2705 Because it rained, the game was cancelled.\n\u2705 She decided to leave early.\n\u2705 Encouraged by his wife, Macbeth achieved his ambition and realized the prediction of the witches by murdering Duncan and becoming king of Scotland in his place. _(26 words vs. 51)_\n\u2705 Trafalgar, Nelson's last battle.\n\u2705 His story is strange.\n\n\u274c It is important that we make sure we finish the report at some point today.\n\u274c Due to the fact that it was raining, the game was cancelled.\n\u274c She made the decision to leave early.\n\u274c the question as to whether\n\u274c there is no doubt but that\n\u274c used for fuel purposes\n\u274c His brother, who is a member of the same firm",
+      "searchTerms": [
+        "words",
+        "needless",
+        "omit"
+      ],
+      "relatedTopics": []
+    },
+    {
+      "id": "rule-14-avoid-loose-sentences",
+      "title": "Avoid a Succession of Loose Sentences",
+      "category": "composition",
+      "body": "# Avoid a Succession of Loose Sentences\n\nA \"loose sentence\" in this sense is one consisting of two co-ordinate clauses joined by a conjunction or relative pronoun. One such sentence is fine; a series of them becomes monotonous and sing-song.\n\n## Key Points\n\n- Vary sentence structure: mix simple sentences, periodic sentences, and sentences joined by semicolons.\n- If you find a paragraph consisting mostly of _...and..._, _...but..._, _...so..._ clauses, recast enough of them to break the pattern.\n- The connectives to watch for are _and_, _but_, _so_, and non-restrictive _who_, _which_, _when_, _where_, and _while_.\n\n\u2705 Varied paragraph with simple, complex, and periodic sentences interwoven.\n\u2705 A mix of sentence lengths and structures that reflects the real relations of the thought.\n\n\u274c The third concert was given last evening, and a large audience attended. Mr. Appleton was the soloist, and the Symphony Orchestra provided the music. The soloist showed himself an artist of the first rank, while the orchestra proved fully deserving of its reputation. The interest in the series has been gratifying, and it is planned to give a similar series annually. The fourth concert will be on Tuesday, when an equally attractive programme will be offered.\n\nRecast weak loose sentences into simple sentences, two-clause sentences with semicolons, or periodic sentences \u2014 whichever best represents the thought.",
+      "searchTerms": [
+        "of",
+        "sentences",
+        "succession",
+        "avoid",
+        "a",
+        "loose"
+      ],
+      "relatedTopics": []
+    },
+    {
+      "id": "rule-15-parallel-structure",
+      "title": "Express Co-ordinate Ideas in Similar Form",
+      "category": "composition",
+      "body": "# Express Co-ordinate Ideas in Similar Form\n\nParallel structure means using the same grammatical form for items in a series, pairs, or comparisons. Likeness of form enables the reader to recognize likeness of content.\n\n## Key Points\n\n- Elements joined by _and_, _or_, _but_ or correlative pairs (_both...and_, _either...or_, _neither...nor_, _not only...but also_) must share the same grammatical construction.\n- Articles and prepositions in a series should either appear only before the first term or be repeated before each term.\n- In comparisons, match the grammatical form on both sides.\n- Bullet lists should start each item with the same part of speech.\n\n\u2705 Formerly, science was taught by the textbook method; now it is taught by the laboratory method.\n\u2705 The ceremony was both long and tedious.\n\u2705 You must either grant his request or incur his ill will.\n\u2705 My objections are, first, that the measure is unjust; second, that it is unconstitutional.\n\u2705 The French, the Italians, the Spanish, and the Portuguese.\n\u2705 In spring, summer, or winter.\n\u2705 She likes running, swimming, and cycling.\n\u2705 The job involves typing, filing, and answering phones.\n\n\u274c Formerly, science was taught by the textbook method, while now the laboratory method is employed.\n\u274c It was both a long ceremony and very tedious.\n\u274c A time not for words, but action.\n\u274c Either you must grant his request or incur his ill will.\n\u274c My objections are, first, the injustice of the measure; second, that it is unconstitutional.\n\u274c She likes running, swimming, and to cycle.\n\u274c The job involves typing, filing, and to answer phones.",
+      "searchTerms": [
+        "in",
+        "ordinate",
+        "co",
+        "form",
+        "similar",
+        "ideas",
+        "express"
+      ],
+      "relatedTopics": []
+    },
+    {
+      "id": "rule-16-related-words-together",
+      "title": "Keep Related Words Together",
+      "category": "composition",
+      "body": "# Keep Related Words Together\n\nThe position of words in a sentence shows their relationship. Bring together words that are related in thought, and keep apart those that are not.\n\n## Key Points\n\n- **Subject and verb together** \u2014 Don't let a long phrase separate the subject from its verb unnecessarily. Move the interrupting phrase to the beginning.\n- **Relative pronoun next to its antecedent** \u2014 _who_, _which_, _that_ should immediately follow the noun they refer to.\n- **Modifiers next to the word modified** \u2014 misplaced _only_, _not_, and similar modifiers change meaning.\n- **Unscramble the sentence** \u2014 If several modifying phrases hang off the same word, arrange them so that no wrong relationship is suggested.\n\n\u2705 In the fifth book of _The Excursion_, Wordsworth gives a minute description of this church.\n\u2705 He published in Harper's Magazine three articles about his adventures in Spain.\n\u2705 Not all the members were present.\n\u2705 He found only two mistakes.\n\n\u274c Wordsworth, in the fifth book of _The Excursion_, gives a minute description of this church.\n\u274c He wrote three articles about his adventures in Spain, which were published in Harper's Magazine.\n\u274c All the members were not present.\n\u274c He only found two mistakes.\n\u274c Major Joyce will give a lecture on Tuesday evening in Bailey Hall, to which the public is invited, on \"My Experiences\" at eight P.M.",
+      "searchTerms": [
+        "keep",
+        "related",
+        "words",
+        "together"
+      ],
+      "relatedTopics": []
+    },
+    {
+      "id": "rule-17-tense-in-summaries",
+      "title": "In Summaries, Keep to One Tense",
+      "category": "composition",
+      "body": "# In Summaries, Keep to One Tense\n\nWhen summarizing a drama, always use the present tense. When summarizing a poem, story, or novel, the present tense is preferred, though the past tense is acceptable. Whatever tense you choose, stick to it throughout.\n\n## Key Points\n\n- **Drama** \u2192 always present tense.\n- **Fiction and poetry** \u2192 present tense preferred; past acceptable.\n- **Antecedent action** \u2192 if using present, use present perfect for earlier events; if using past, use past perfect.\n- **Indirect discourse** \u2192 past tense in indirect speech or questions remains past, regardless of the summary tense.\n- **Avoid tense shifting** \u2014 shifting between past and present suggests uncertainty and irresolution.\n\n\u2705 An unforeseen chance prevents Friar John from delivering the letter. Juliet has been compelled to drink the potion, and Balthasar informs Romeo of her supposed death before Friar Lawrence learns of the non-delivery.\n\u2705 The Friar confesses that it was he who married them.\n\n\u274c Friar John is delayed in delivering the letter. Juliet had been compelled to drink the potion, and Balthasar informed Romeo of her supposed death.\n\u274c The Friar confesses that it is he who married them. &nbsp;_(The marriage happened in the past relative to the confession.)_",
+      "searchTerms": [
+        "keep",
+        "in",
+        "to",
+        "summaries",
+        "tense",
+        "one"
+      ],
+      "relatedTopics": []
+    },
+    {
+      "id": "rule-18-emphatic-position",
+      "title": "Place the Emphatic Words of a Sentence at the End",
+      "category": "composition",
+      "body": "# Place the Emphatic Words of a Sentence at the End\n\nThe most prominent position in a sentence is the end. The word or group of words the writer wants to emphasize \u2014 usually the new element, the logical predicate \u2014 belongs there.\n\n## Key Points\n\n- **End with emphasis** \u2014 save the most important point for the final position.\n- **The beginning is also emphatic** \u2014 any element other than the subject gains emphasis when placed first.\n- **Periodic sentences** \u2014 sentences that delay the main clause until the end \u2014 derive their power from this principle.\n- A subject at the start is not automatically emphatic; the closing position carries more weight.\n\n\u2705 Humanity, since that time, has advanced in many other ways, but it has hardly advanced in fortitude.\n\u2705 Because of its hardness, this steel is principally used in making razors.\n\u2705 Deceit or treachery he could never forgive.\n\n\u274c Humanity has hardly advanced in fortitude since that time, though it has advanced in many other ways.\n\u274c This steel is principally used for making razors, because of its hardness.\n\nThe periodic sentence illustrates the principle perfectly: _Four centuries ago, Christopher Columbus, one of the Italian mariners...seeking for Spain a westward passage...lighted on America._ &nbsp;\u2014 all the energy builds toward the final revelation.",
+      "searchTerms": [
+        "sentence",
+        "the",
+        "place",
+        "of",
+        "at",
+        "end",
+        "words",
+        "a",
+        "emphatic"
+      ],
+      "relatedTopics": []
+    },
+    {
+      "id": "sentence-variety",
+      "title": "Sentence Variety",
+      "category": "composition",
+      "body": "# Sentence Variety\n\nWriting where every sentence is the same length and structure becomes monotonous. Varying sentence length and rhythm keeps the reader engaged and allows you to control pace.\n\n## Why Variety Matters\n\n- **Short sentences** create impact, urgency, tension.\n- **Medium sentences** carry exposition and explanation.\n- **Long sentences** build momentum, layer detail, and create flow.\n\n## The Rhythm of Length\n\n### All Same Length \u2014 Flat\n\u274c The sun rose. The birds sang. The air was cool. She opened the window. She breathed deeply. The day had begun. *(staccato \u2014 no flow)*\n\n### Varied Length \u2014 Engaging\n\u2705 The sun rose, spilling gold across the rooftops, and the birds began their morning chorus. The air was cool. She opened the window and breathed deeply \u2014 the day had begun. *(short sentence for emphasis, flanked by longer ones)*\n\n## Famous Examples\n\n### Hemingway \u2014 Short, Punched\n> \"He came to the river. The river was there.\"\n\nErnest Hemingway, *Big Two-Hearted River*\n\nHemingway's short declarative sentences create a flat, stoic surface tension. The brevity mirrors the character's emotional restraint.\n\n### Faulkner \u2014 Long, Accumulating\n> \"He walked through the clotting which had been the snow, tramping it, feeling it pack, feeling the cold through the rubber, through the leather, through the wool, through the flesh, through the bone...\"\n\nWilliam Faulkner, *The Bear*\n\nFaulkner piles clause on clause, building sensory weight. The sentence's length mimics the endurance of the character.\n\n### Woolf \u2014 Lyrical Modulation\n> \"It was a splendid morning. The duck-pond was smooth as glass. But the sky was too blue; the grass too green.\"\n\nVirginia Woolf, *Mrs Dalloway*\n\nWoolf alternates long and short. The clipped observation \"But the sky was too blue\" disrupts the pastoral calm, signalling psychological unease.\n\n## Patterns to Vary\n\n### 1. Sentence Openings\nDon't start every sentence with the subject:\n\n\u274c She walked to the door. She opened it. She stepped outside.\n\u2705 Walking to the door, she opened it. Outside, the world waited.\n\n### 2. Clause Structure\nMix simple, compound, and complex sentences within a paragraph:\n\n> *The storm broke at midnight. Rain hammered the windows, and the wind howled through the eaves. While the house shook, the children slept on, undisturbed by the chaos outside.*\n\n### 3. Periodic vs Loose Sentences\n\n| Type | Structure | Effect |\n|---|---|---|\n| **Loose (Cumulative)** | Main clause first, then details | Direct, conversational |\n| **Periodic** | Details first, main clause at end | Suspense, formality |\n\n**Loose:** \u2705 The house stood empty, its windows boarded, its garden overgrown, its chimney cold.\n\n**Periodic:** \u2705 With its boarded windows, overgrown garden, and cold chimney, the house stood empty.\n\n### 4. Fragment for Effect\nA deliberate fragment can land like a punch:\n\n\u2705 The committee deliberated for six hours. They debated every clause. Every comma. And still they couldn't agree.\n\nUse sparingly \u2014 one fragment per page, not one per paragraph.\n\n## Exercise: The 3-5-3 Drill\n\nWrite a paragraph using: one sentence of ~3 words, one of ~5 words, one of ~3 words:\n\n> She stopped. The silence was absolute. Nothing moved. The city held its breath, caught between sirens. She ran.\n\nThis pattern creates tension \u2192 space \u2192 resolution.\n\n## When to Break the Rules\n\n- **Technical writing** prioritizes clarity over rhythm \u2014 consistent medium-length sentences are fine.\n- **Extreme minimalism** (short sentences only) can work as a stylistic choice \u2014 but it's exhausting at scale.\n- **Extreme maximalism** (long sentences only) requires extraordinary skill to sustain \u2014 see Proust, Saramago, Bernhard.\n\n\u2705 Short. Then a sentence that carries the weight of multiple observations, layering detail upon detail so the reader feels the accumulating pressure before the next short one hits. Then: release.",
+      "searchTerms": [
+        "sentence",
+        "variety"
+      ],
+      "relatedTopics": []
+    },
+    {
+      "id": "signposting",
+      "title": "Signposting",
+      "category": "structure",
+      "body": "# Signposting\n\nSignposting is the explicit practice of telling the reader where you are in your argument and where you are going next. In longer documents \u2014 academic papers, reports, technical proposals \u2014 it prevents the reader from getting lost. In shorter pieces, it can feel heavy-handed.\n\n## Key Rules\n\n1. **Use In Longer Documents** \u2014 Anything over 3-4 pages benefits from phrases like *\"This section argues\u2026\"*, *\"Having established X, we now turn to\u2026\"*, *\"As discussed above\u2026\"*.\n2. **Keep It Brief** \u2014 *\"Next, I analyse the survey data\"* works; *\"The subsequent portion of this manuscript shall engage with the data\"* does not.\n3. **Avoid Overuse** \u2014 If every paragraph begins with *\"In this paragraph,\"* or *\"Next,\"*, the signposting has become clutter.\n4. **Use First-Person Sparingly** \u2014 *\"I will now argue\u2026\"* is acceptable in humanities; in scientific or business writing, prefer *\"The next section examines\u2026\"*.\n\n\u2705 Having established the scope of the problem, we now turn to the proposed solution.\n\u274c In this paragraph, I am going to tell you about the solution, which I will now begin to describe.\n\n## When to Skip\n\nIn a short memo, a blog post, or a narrative essay, signposting reads as padding. Trust your reader to follow a well-structured argument without a tour guide.",
+      "searchTerms": [
+        "signposting"
+      ],
+      "relatedTopics": []
+    },
+    {
+      "id": "tone-and-register",
+      "title": "Tone and Register",
+      "category": "voice",
+      "body": "# Tone and Register\n\nTone is the writer's attitude toward the subject and audience. Register is the level of formality. Matching both to context is essential for effective communication.\n\n## Register Levels\n\n| Level | Use | Example |\n|---|---|---|\n| **Formal** | Academic papers, legal documents, official reports | \"It is recommended that the committee convene at its earliest convenience.\" |\n| **Standard** | Business communication, essays, journalism | \"The committee should meet as soon as possible.\" |\n| **Informal** | Personal emails, blogs, casual conversation | \"Hey, the committee should get together soon.\" |\n| **Colloquial** | Close friends, dialogue | \"The committee needs to get its act together, like, yesterday.\" |\n\n## Shifting Register Inappropriately\n\nMixing registers within a passage creates tonal whiplash:\n\n\u274c The defendant's culpability is incontrovertible, and yeah, that's pretty bad.\n\u274c We must optimize our synergies across verticals \u2014 basically, let's work together.\n\u274c The author posits a compelling argument, and it's super persuasive.\n\n\u2705 The defendant's culpability is incontrovertible, and the consequences are severe.\n\u2705 Cross-departmental collaboration will improve efficiency.\n\u2705 The author's argument is compelling and well-supported by evidence.\n\n## Common Register Mistakes\n\n| Error | Correction |\n|---|---|\n| Contractions in formal writing | \u274c The results don't support... \u2192 \u2705 The results do not support... |\n| Slang in professional contexts | \u274c That presentation was lit. \u2192 \u2705 That presentation was excellent. |\n| Overly stiff language in casual contexts | \u274c I would be most gratified if you could attend. \u2192 \u2705 I'd love it if you could come. |\n| Jargon with non-specialist audiences | \u274c We need to leverage our core competencies. \u2192 \u2705 We need to focus on what we do best. |\n| Text-speak in writing | \u274c btw, lmk if u can make it \u2192 \u2705 By the way, let me know if you can make it. |\n\n## Matching Tone to Purpose\n\n| Purpose | Appropriate Tone |\n|---|---|\n| Persuade | Confident, reasonable, empathetic |\n| Inform | Neutral, clear, objective |\n| Entertain | Playful, vivid, engaging |\n| Instruct | Clear, patient, encouraging |\n| Criticize | Specific, constructive, fair |\n| Apologize | Sincere, direct, accountable |\n\n## Active Tone vs Passive Tone\n\nBeyond active/passive voice, *tone* can be active or passive:\n\n**Active tone:** Takes responsibility, names subjects, uses direct language.\n\u2705 I made a mistake.\n\u2705 The team decided to delay the launch.\n\n**Passive tone:** Deflects responsibility, hides the actor, uses hedging.\n\u274c Mistakes were made.\n\u274c It was decided that the launch would be delayed.\n\n## Hedging Language\n\nHedging weakens writing. Use it sparingly \u2014 only when genuine uncertainty exists.\n\n| Weak (Over-Hedged) | Strong |\n|---|---|\n| It seems that perhaps we might want to consider... | I recommend... |\n| I think it's kind of important to note... | Note that... |\n| The data sort of suggests maybe... | The data suggests... / The data does not conclusively show... |\n\n## Inclusive Tone\n\n\u2705 Use gender-neutral language when gender is unknown (*they*, not *he*).\n\u2705 Avoid idioms that assume shared cultural background (*hit a home run*, *sticky wicket*).\n\u2705 Use plain language where possible \u2014 technical terms should be explained on first use.\n\u2705 Frame to the reader's perspective: *\"You'll notice...\"* not *\"One will observe...\"*\n\n\u2705 The report outlines three areas for improvement.\n\u274c As per my last email, I literally cannot even with these quarterly numbers.",
+      "searchTerms": [
+        "tone",
+        "register",
+        "and"
+      ],
+      "relatedTopics": []
+    },
+    {
+      "id": "transitions",
+      "title": "Transitions",
+      "category": "structure",
+      "body": "# Transitions\n\nTransitions are the bridges between sentences, paragraphs, and sections. They guide the reader through your argument and signal how each thought relates to what came before. Weak or missing transitions suggest unclear thinking \u2014 not just unclear writing.\n\n## Key Rules\n\n1. **Use Logical Connectors** \u2014 *however, therefore, in contrast, building on this, consequently, similarly, meanwhile, for instance*.\n2. **Match Transition to Relationship** \u2014 Don't use *however* for an addition, or *therefore* for a contrast.\n3. **Avoid Over-Signalling** \u2014 Not every sentence needs a transition word. Let parallelism and natural flow do some of the work.\n4. **Transition at Boundaries** \u2014 The end of one paragraph and the start of the next form a natural hinge; use it.\n\n\u2705 The experiment failed to replicate. **However**, a subsequent trial with tighter controls produced the expected result.\n\u274c The experiment failed to replicate. It was raining outside that day.\n\n\u2705 The committee approved the budget. **Building on this**, the team launched the first phase in March.\n\u274c The committee approved the budget. The team launched the first phase in March. (no logical connection shown)\n\n## Why Weak Transitions Matter\n\nA missing or wrong transition forces the reader to guess the relationship between ideas. If they guess wrong, your argument collapses. If they must stop to figure it out, you lose their attention.",
+      "searchTerms": [
+        "transitions"
+      ],
+      "relatedTopics": []
+    },
+    {
+      "id": "word-choice-and-colour",
+      "title": "Word Choice and Colour",
+      "category": "word-usage",
+      "body": "# Word Choice and Colour\n\nPrecision in word choice is the difference between a sketch and a painting. Every word carries denotation (literal meaning) and connotation (emotional weight, cultural association, tone).\n\n## Denotation vs Connotation\n\n| Word | Denotation | Connotation |\n|---|---|---|\n| slender | thin | positive \u2014 graceful, elegant |\n| skinny | thin | negative \u2014 undernourished, scrawny |\n| slim | thin | positive \u2014 trim, attractive |\n| gaunt | thin | negative \u2014 haggard, ill |\n| determined | strong-willed | positive \u2014 resolute |\n| stubborn | strong-willed | negative \u2014 inflexible, unreasonable |\n| assertive | confident | positive \u2014 self-assured |\n| aggressive | confident | negative \u2014 hostile, pushy |\n\nChoosing the wrong word changes the meaning \u2014 not just the mood.\n\n\u2705 She was **slender** and moved with ease. *(admiring)*\n\u274c She was **gaunt** and moved with ease. *(contradicts \u2014 gaunt implies illness)*\n\n## The Ladder of Abstraction\n\nS.I. Hayakawa's concept: move up for overview, down for detail.\n\n| Level | Example |\n|---|---|\n| **Abstract** | wealth |\n| | asset |\n| | property |\n| | house |\n| | bungalow |\n| **Concrete** | the peeling yellow bungalow on Ash Street with the broken mailbox |\n\nGood writing moves fluidly between levels:\n\u2705 He was wealthy. *(abstract \u2014 sets the scene)* His fortune was built on a single patent. *(mid-level)* The patent was for a brass nozzle that could spray paint in a perfectly even coat \u2014 the kind of thing no one notices but everyone depends on. *(concrete)*\n\n## Sensory Language\n\nAbstract words tell. Concrete sensory words show.\n\n| Abstract (Telling) | Concrete (Showing) |\n|---|---|\n| The room was unpleasant. | The room smelled of damp wool and old cigarettes. |\n| She was angry. | Her jaw tightened and her fingers curled around the pen until the plastic creaked. |\n| The food was good. | The bread was still warm, its crust crackling under the knife, steam rising from the soft centre. |\n| It was a cold day. | Frost spiderwebbed across the windscreen; her breath hung in the air. |\n\n## Famous Examples of Precise Word Choice\n\n### Nabokov \u2014 Synesthetic Precision\n> \"Lolita, light of my life, fire of my loins. My sin, my soul. Lo-lee-ta: the tip of the tongue taking a trip of three steps down the palate to tap, at three, on the teeth. Lo. Lee. Ta.\"\n\nVladimir Nabokov, *Lolita*\n\nNabokov maps sound to physical sensation. The sentence doesn't describe \u2014 it performs.\n\n### Orwell \u2014 Anti-Precision as Critique\n> \"The statement 'I have not been negligent in my duties' is rendered 'I have not been remiss in the execution of my responsibilities with regard to...' and then 'I have been a good steward of the resources entrusted to me...' until the truth has been thoroughly obscured.\"\n\nParaphrase of George Orwell, *Politics and the English Language*\n\nOrwell's point: bad word choice isn't just ugly \u2014 it's dishonest. Vague language protects the speaker from accountability.\n\n### Toni Morrison \u2014 Single Words That Carry Worlds\n> \"124 was spiteful. Full of a baby's venom.\"\n\nToni Morrison, *Beloved*\n\nTwo sentences. *Spiteful* for a house, *venom* for a baby \u2014 both unexpected, both precise. The wrongness of the word choices is the point.\n\n## Weak Words to Interrogate\n\n| Weak Word | Stronger Alternative (context-dependent) |\n|---|---|\n| nice | pleasant, charming, gracious, thoughtful |\n| good | excellent, effective, skilled, satisfying |\n| bad | harmful, incompetent, unpleasant, corrosive |\n| thing | item, object, concept, issue, element |\n| stuff | material, substance, belongings, content |\n| very | *(delete; use a stronger adjective)* |\n| really | *(delete; use a stronger adverb)* |\n| a lot | many, numerous, frequently, substantially |\n| got | obtained, received, became, understood |\n| interesting | *(say what's interesting about it)* |\n| important | vital, crucial, essential, central *(or better: say why it matters)* |\n\n## The \"One Perfect Word\" Fallacy\n\nFlaubert famously preached *le mot juste* \u2014 the one right word. But in practice, there's rarely one perfect word. There are better and worse choices, and the right one depends on rhythm, register, and intention:\n\n\u2705 He **walked** into the room. *(neutral)*\n\u2705 He **strode** into the room. *(confident)*\n\u2705 He **shuffled** into the room. *(tired, old)*\n\u2705 He **slunk** into the room. *(ashamed, furtive)*\n\u2705 He **burst** into the room. *(urgent, dramatic)*\n\nNone are \"wrong\" \u2014 each creates a different character and scene.\n\n## Verdict\n\nInterrogate every adjective and verb in a second draft. If a word is doing real work \u2014 carrying weight, setting tone, distinguishing meaning \u2014 keep it. If it's filler, cut it. If it's carrying the wrong connotation, replace it.\n\n\u2705 The investigation **uncovered** evidence of fraud.\n\u274c The investigation **found** evidence of fraud. *(weaker \u2014 \"found\" is generic)*\n\u2705 The investigation **unearthed** evidence of fraud. *(strong, but slightly sensational)*\n\u2705 The investigation **revealed** evidence of fraud. *(balanced \u2014 precise, not melodramatic)*",
+      "searchTerms": [
+        "choice",
+        "colour",
+        "word",
+        "and"
+      ],
+      "relatedTopics": []
+    }
+  ]
+}

@@ -43,10 +43,11 @@ public enum HelpExternalSearchBuilder {
             let q2Parts = [term, context].filter { !$0.isEmpty } + ["examples"]
             let q2 = q2Parts.joined(separator: " ")
             if let url2 = googleSearchURL(query: q2) {
-                results.append(HelpExternalSearch(
-                    label: "Search the web for \(term)\(labelSuffix) examples",
-                    url: url2
-                ))
+                results.append(
+                    HelpExternalSearch(
+                        label: "Search the web for \(term)\(labelSuffix) examples",
+                        url: url2
+                    ))
             }
         }
 
@@ -57,12 +58,13 @@ public enum HelpExternalSearchBuilder {
 
     static func contextWord(for kind: HelpTopic) -> String {
         switch kind {
-        case .grammar:  return "grammar"
+        case .grammar: return "grammar"
+        case .style: return "writing style"
         case .markdown: return "markdown syntax"
-        case .html:     return "HTML"
-        case .json:     return "JSON"
+        case .html: return "HTML"
+        case .json: return "JSON"
         case .asciiArt: return "ASCII art"
-        case .sputnik:  return ""
+        case .sputnik: return ""
         }
     }
 

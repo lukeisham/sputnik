@@ -39,7 +39,7 @@ public actor SputnikCompletionCorpus: CompletionProviding {
         guard prefix.count >= 2 else { return [] }
 
         switch query.language {
-        case .spelling, .grammar:
+        case .spelling, .grammar, .style:
             return []
         case .markdown:
             return prefixMatches(in: loadMarkdown(), prefix: prefix, limit: query.limit)

@@ -6,6 +6,7 @@ import Foundation
 public enum WritingAssistLanguage: String, Codable, CaseIterable, Sendable {
     case spelling
     case grammar
+    case style
     case markdown
     case html
     case json
@@ -34,6 +35,7 @@ public enum WritingAssistFunction: String, Codable, CaseIterable, Sendable {
 /// |-----------|:---:|:---:|:---:|:---:|
 /// | Spelling  |  ✓  |  ✓  |  —  |  —  |
 /// | Grammar   |  ✓  |  —  |  ✓  |  ✓  |
+/// | Style     |  —  |  —  |  ✓  |  ✓  |
 /// | Markdown  |  —  |  ✓  |  ✓  |  ✓  |
 /// | HTML      |  —  |  ✓  |  ✓  |  ✓  |
 /// | JSON      |  —  |  ✓  |  ✓  |  ✓  |
@@ -70,9 +72,11 @@ public struct WritingAssistMatrix: Codable, Sendable, Equatable {
             return lang == .spelling || lang == .markdown || lang == .html || lang == .json
                 || lang == .asciiArt
         case .moreContext:
-            return lang == .grammar || lang == .markdown || lang == .html || lang == .json
+            return lang == .grammar || lang == .style || lang == .markdown || lang == .html
+                || lang == .json
         case .interaction:
-            return lang == .grammar || lang == .markdown || lang == .html || lang == .json
+            return lang == .grammar || lang == .style || lang == .markdown || lang == .html
+                || lang == .json
                 || lang == .asciiArt
         }
     }

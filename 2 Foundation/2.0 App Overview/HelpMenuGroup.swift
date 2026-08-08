@@ -40,7 +40,13 @@ struct HelpMenuGroup: Commands {
                 appState.requestedHelpTopic = .grammar
             }
 
+            Button("Style Guide") {
+                appState.requestedHelpTopic = .style
+            }
+
             Divider()
+
+            moreContextSubmenu
 
             interactionSubmenu
 
@@ -58,6 +64,50 @@ struct HelpMenuGroup: Commands {
                 }
             }
         }
+    }
+
+    // MARK: - More Context Submenu
+
+    /// The "More Context ▶" submenu, parallel to Interaction.
+    /// Per-language toggles reading/writing `WritingAssistMatrix.moreContext`.
+    /// Applies to: Grammar, Markdown, HTML, JSON (ASCII Art has no More Context).
+    @ViewBuilder
+    private var moreContextSubmenu: some View {
+        Menu("More Context") {
+            Menu("Grammar") {
+                toggleMoreContext(.grammar)
+            }
+            Menu("Markdown") {
+                toggleMoreContext(.markdown)
+            }
+            Menu("HTML") {
+                toggleMoreContext(.html)
+            }
+            Menu("JSON") {
+                toggleMoreContext(.json)
+            }
+            Menu("Style") {
+                toggleMoreContext(.style)
+            }
+            Divider()
+            Button("All On") {
+                settings.setWritingAssistAllMoreContext(to: true)
+            }
+            Button("All Off") {
+                settings.setWritingAssistAllMoreContext(to: false)
+            }
+        }
+    }
+
+    @ViewBuilder
+    private func toggleMoreContext(_ lang: WritingAssistLanguage) -> some View {
+        Toggle(
+            lang.rawValue,
+            isOn: Binding(
+                get: { settings.writingAssist.isEnabled(.moreContext, for: lang) },
+                set: { settings.setWritingAssist(.moreContext, for: lang, to: $0) }
+            )
+        )
     }
 
     // MARK: - Interaction Submenu
@@ -81,6 +131,9 @@ struct HelpMenuGroup: Commands {
             }
             Menu("Grammar") {
                 toggleInteraction(.grammar)
+            }
+            Menu("Style") {
+                toggleInteraction(.style)
             }
             Divider()
             Button("All On") {

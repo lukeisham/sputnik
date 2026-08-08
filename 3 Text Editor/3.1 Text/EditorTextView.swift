@@ -519,6 +519,7 @@ public final class EditorTextView: NSTextView {
         case .html: return .html
         case .json: return .json
         case .grammar: return .grammar
+        case .style: return .style
         case .asciiArt: return .asciiArt
         case .sputnik: return nil
         }
