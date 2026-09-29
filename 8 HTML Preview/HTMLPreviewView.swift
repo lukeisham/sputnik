@@ -11,7 +11,7 @@ import WebKit
 ///
 /// Overrides `willOpenMenu(_:with:)` to read the current selection from the coordinator
 /// and build resolver-driven menu items via `MoreContextMenu.items(...)`. Both HelpTopic
-/// kinds relevant to HTML preview — `.grammar` and `.html` — are offered.
+/// kinds relevant to HTML preview — `.style` and `.html` — are offered.
 private final class MoreContextWebView: WKWebView {
 
     /// Weak reference to the coordinator so we can read captured selection, resolver, etc.
@@ -40,7 +40,7 @@ private final class MoreContextWebView: WKWebView {
             language: .html,
             detector: detector,
             interactionEnabled: interactionEnabled,
-            moreContextKinds: [.grammar, .html],
+            moreContextKinds: [.style, .html],
             resolver: resolver,
             onInteract: { [weak coordinator] element in
                 guard let coordinator, let ic = coordinator.interactionCoordinator else { return }

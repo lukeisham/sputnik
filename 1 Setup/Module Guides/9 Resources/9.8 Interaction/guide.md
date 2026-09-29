@@ -1,7 +1,7 @@
 ---
 module: 9.8 Interaction
 status: stable
-last_updated: 2026-06-16
+last_updated: 2026-09-28
 last_verified: 2026-06-16
 open_issues:
 ---
@@ -28,7 +28,7 @@ InteractionCoordinator
        │
        ├─ InteractionProvider (actor)
        │     ├ PRIMARY  registry definition → walk slots → fill .resource slots from
-       │     │          the named index lookup (e.g. GrammarHelpIndex.searchByTerm)
+       │     │          the named index lookup (e.g. MarkdownHelpIndex.search)
        │     │          ↓ InteractionResult (one section per slot, template order)  → AUTO-FILL
        │     └ FALLBACK definitionID == nil → ResourceSectionIndex + HeadingFuzzyMatcher
        │                ↓ InteractionResult (ranked single-section candidates)      → user picks
@@ -90,19 +90,13 @@ The provider does **not** do a flat `index.search(selectedText)`. Two paths:
 
 | `lookup` | Resource call (reused) |
 |---|---|
-| `lexicalDefinition` | `GrammarHelpIndex.searchByTerm(selection, preferStructural: false)` |
-| `structuralAnalysis` | `GrammarHelpIndex.searchByTerm(selection, preferStructural: true)` + `GrammarSelectionAnalyzer` |
-| `markdownTopic` / `htmlTopic` / `asciiTopic` | the respective index `search(selection)` best match |
+| `markdownTopic` / `htmlTopic` / `asciiTopic` / `jsonTopic` | the respective index `search(selection)` best match |
 
-Worked example — `sentence-parser` (container `markdownTableRow`, language `grammar`):
+The grammar lookups `lexicalDefinition` and `structuralAnalysis`, and the `sentence-parser` registry entry that used them, were removed with Grammar Help on 2026-09-28. `special_elements.json` now holds generic entries only (no heading-cued entries). The heading-cued ranking rule in `SpecialElementRegistry.resolve` stays for future entries.
 
-| Slot | Source | Filled by |
-|---|---|---|
-| `sentence` | `userContent` | left empty for the user |
-| `lexical` | `resource(.lexicalDefinition)` | top Grammar lexical topic for the selected sentence/word |
-| `structural` | `resource(.structuralAnalysis)` | top Grammar structural topic for the selection |
 
-**Fallback — generic element (`definitionID == nil`):** pick the base resource from `kind`, build a weighted query (`contextHeading` + `syntaxTerm` + `selectedText`), and fuzzy-match it via `HeadingFuzzyMatcher` against `ResourceSectionIndex` headings — topic titles for every resource plus `##`/`###` body sub-headings (Grammar 49/50, Markdown 11/11; HTML/ASCII use title + `searchTerms`). Returns up to 8 ranked single-section candidates for the user to pick one.
+
+**Fallback — generic element (`definitionID == nil`):** pick the base resource from `kind`, build a weighted query (`contextHeading` + `syntaxTerm` + `selectedText`), and fuzzy-match it via `HeadingFuzzyMatcher` against `ResourceSectionIndex` headings — topic titles for every resource plus `##`/`###` body sub-headings (Markdown and Style; HTML/ASCII/JSON use title + `searchTerms`). Returns up to 8 ranked single-section candidates for the user to pick one.
 
 ## Technical Summary
 
@@ -111,7 +105,7 @@ Worked example — `sentence-parser` (container `markdownTableRow`, language `gr
 - **Precedence:** the `SelectionContextMenu` Foundation helper runs the detector first; a detected element (with Interaction enabled) shows "Interact with…" **instead of** the More-Context items — the two never coexist on a menu
 - **Activation:** `isInteractionAvailable` (Bool, `@MainActor`) is set by the coordinator on selection-change; Edit menu "Interact with" item (⌘I) and right-click item observe it
 - **Toggle:** per-language flags stored in `WritingAssistMatrix.interaction` (new `.interaction` function axis added to Foundation 2.3)
-- **Lookup:** registry-driven — a resolved `SpecialElementDefinition` walks its slots and fills each `resource` slot via the named index lookup (reusing `searchByTerm(_:preferStructural:)` etc.); fuzzy `HeadingFuzzyMatcher` is the fallback for unregistered elements only (deterministic, no NLEmbedding)
+- **Lookup:** registry-driven — a resolved `SpecialElementDefinition` walks its slots and fills each `resource` slot via the named index lookup (reusing each help index's `search(query:)`); fuzzy `HeadingFuzzyMatcher` is the fallback for unregistered elements only (deterministic, no NLEmbedding)
 - **Popup:** `NSMenu` presented via `NSMenu.popUpContextMenu(_:with:for:)` at the selection or button origin; menu items carry resource section closures
 - **Insertion:** `ContentInserter` determines line/range of the element's insertion point, then calls `NSTextView.insertText(_:replacementRange:)` (undo-safe) or evaluates JS in WKWebView for HTML preview
 
@@ -124,7 +118,7 @@ Worked example — `sentence-parser` (container `markdownTableRow`, language `gr
 - A registered element auto-fills every `resource` slot from its index lookup; only a slot with genuine alternates shows a pick UI. Fuzzy ranking is used **only** when no registry definition matches
 - `contextHeading` (Signal 2) refines registry resolution but is never required — a syntax term that hits a generic container definition is enough to recognise an element
 - Interaction and More-Context are mutually exclusive on the right-click menu (enforced once in `SelectionContextMenu`, not per-host)
-- Per-language `.interaction` toggle is checked before detection begins — disabling Grammar Interaction skips grammar detection entirely
+- Per-language `.interaction` toggle is checked before detection begins — disabling Style Interaction skips detection for that language entirely
 - A resource slot whose lookup returns nothing is omitted from the inserted template — never an empty/garbage row (SR-2)
 - Fallback lookup uses lightweight fuzzy matching only; `LocalSemanticSearch`/NLEmbedding is intentionally excluded from the inline path (SR-3/SR-4)
 - The module owns no `AppState` state directly — it reads `AppState.activeDocument` and writes via the editor's command handler protocol (SR-1)

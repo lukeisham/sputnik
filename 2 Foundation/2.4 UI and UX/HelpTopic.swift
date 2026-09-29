@@ -12,7 +12,6 @@ public enum HelpTopic: String, Codable, Sendable, CaseIterable, Identifiable {
     case html
     case json
     case asciiArt
-    case grammar
     case style
 
     public var id: String { rawValue }
@@ -25,7 +24,6 @@ public enum HelpTopic: String, Codable, Sendable, CaseIterable, Identifiable {
         case .html: return "HTML Help"
         case .json: return "JSON Help"
         case .asciiArt: return "ASCII Art Help"
-        case .grammar: return "Grammar Help"
         case .style: return "Style Guide"
         }
     }

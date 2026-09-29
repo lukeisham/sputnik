@@ -74,18 +74,15 @@ public final class SettingsStore {
     public var wordWrapEnabled: Bool = true
 
     /// The per-language × per-function writing-assist toggle matrix (ISS-011).
-    /// `spellCheckEnabled` / `grammarCheckEnabled` are computed over this matrix.
     public var writingAssist: WritingAssistMatrix = .default
 
-    /// Whether Instant Correct is on for Spelling. Computed over `writingAssist` (ISS-011).
-    public var spellCheckEnabled: Bool {
-        writingAssist.isEnabled(.instantCorrect, for: .spelling)
-    }
+    /// Whether Apple's `NSTextView` spelling checker underlines misspelled words while the
+    /// user types. Applies to `.txt` and `.md` files only. Default: `true`.
+    public var systemSpellCheckEnabled: Bool = true
 
-    /// Whether Instant Correct is on for Grammar. Computed over `writingAssist` (ISS-011).
-    public var grammarCheckEnabled: Bool {
-        writingAssist.isEnabled(.instantCorrect, for: .grammar)
-    }
+    /// Whether Apple's `NSTextView` grammar checker runs together with the spelling
+    /// checker. Applies to `.txt` and `.md` files only. Default: `false`.
+    public var systemGrammarCheckEnabled: Bool = false
 
     /// Supporting AI provider configuration (provider, model name + base URL).
     /// The API key is stored separately in the Keychain — see `KeychainService`.
@@ -123,9 +120,6 @@ public final class SettingsStore {
     /// Debounce interval (seconds) for HTML ghost-text suggestions. Default: `0.3`.
     public var htmlDebounceInterval: TimeInterval = 0.3
 
-    /// Debounce interval (seconds) for spell/grammar checking. Default: `0.5`.
-    public var spellCheckDebounceInterval: TimeInterval = 0.5
-
     // MARK: - Auto-complete debounce steps
 
     /// Stepped debounce for Markdown ghost-text auto-complete. Default: `.half` (0.5 s).
@@ -137,14 +131,8 @@ public final class SettingsStore {
     /// Stepped debounce for HTML ghost-text auto-complete. Default: `.half` (0.5 s).
     public var htmlAutoCompleteStep: AutoCompleteDebounceStep = .default
 
-    /// Stepped debounce for spelling ghost-text auto-complete. Default: `.half` (0.5 s).
-    public var spellingAutoCompleteStep: AutoCompleteDebounceStep = .default
-
     /// Trigger key character for ASCII art block completion. Default: `"_"`.
     public var asciiTriggerKey: String = "_"
-
-    /// BCP-47 language tag passed to `NSSpellChecker`. `nil` → system default locale.
-    public var spellCheckLocale: String? = nil
 
     // MARK: - Editor appearance
 
@@ -205,7 +193,7 @@ public final class SettingsStore {
         static let autoSave = "sputnik.settings.autoSave"
         static let lineNumbers = "sputnik.settings.lineNumbers"
         static let wordWrap = "sputnik.settings.wordWrap"
-        // Legacy keys kept for migration only; new code reads/writes writingAssist.
+        // Apple checker toggles. The keys are the same as before, so old choices stay.
         static let spellCheck = "sputnik.settings.spellCheck"
         static let grammarCheck = "sputnik.settings.grammarCheck"
         static let writingAssist = "sputnik.settings.writingAssist"
@@ -224,14 +212,11 @@ public final class SettingsStore {
         static let markdownDebounceInterval = "sputnik.settings.markdownDebounceInterval"
         static let asciiDebounceInterval = "sputnik.settings.asciiDebounceInterval"
         static let htmlDebounceInterval = "sputnik.settings.htmlDebounceInterval"
-        static let spellCheckDebounceInterval = "sputnik.settings.spellCheckDebounceInterval"
         // Auto-complete debounce steps
         static let markdownAutoCompleteStep = "sputnik.settings.markdownAutoCompleteStep"
         static let asciiAutoCompleteStep = "sputnik.settings.asciiAutoCompleteStep"
         static let htmlAutoCompleteStep = "sputnik.settings.htmlAutoCompleteStep"
-        static let spellingAutoCompleteStep = "sputnik.settings.spellingAutoCompleteStep"
         static let asciiTriggerKey = "sputnik.settings.asciiTriggerKey"
-        static let spellCheckLocale = "sputnik.settings.spellCheckLocale"
         // Editor appearance
         static let currentLineHighlight = "sputnik.settings.currentLineHighlight"
         static let indentGuides = "sputnik.settings.indentGuides"
@@ -302,14 +287,16 @@ public final class SettingsStore {
         persistence.saveSetting(writingAssist, forKey: DefaultsKey.writingAssist)
     }
 
-    /// Convenience wrapper retained for existing consumers — updates `spelling × instantCorrect`.
-    public func setSpellCheckEnabled(_ value: Bool) {
-        setWritingAssist(.instantCorrect, for: .spelling, to: value)
+    /// Turns Apple's spelling checker on or off for natural-language files and persists it.
+    public func setSystemSpellCheckEnabled(_ value: Bool) {
+        systemSpellCheckEnabled = value
+        persistence.saveSetting(value, forKey: DefaultsKey.spellCheck)
     }
 
-    /// Convenience wrapper retained for existing consumers — updates `grammar × instantCorrect`.
-    public func setGrammarCheckEnabled(_ value: Bool) {
-        setWritingAssist(.instantCorrect, for: .grammar, to: value)
+    /// Turns Apple's grammar checker on or off for natural-language files and persists it.
+    public func setSystemGrammarCheckEnabled(_ value: Bool) {
+        systemGrammarCheckEnabled = value
+        persistence.saveSetting(value, forKey: DefaultsKey.grammarCheck)
     }
 
     /// Sets or clears the `.interaction` flag for all applicable languages and persists.
@@ -429,11 +416,6 @@ public final class SettingsStore {
         persistence.saveSetting(value, forKey: DefaultsKey.htmlDebounceInterval)
     }
 
-    public func setSpellCheckDebounceInterval(_ value: TimeInterval) {
-        spellCheckDebounceInterval = value
-        persistence.saveSetting(value, forKey: DefaultsKey.spellCheckDebounceInterval)
-    }
-
     // MARK: - Auto-complete step mutators
 
     public func setMarkdownAutoCompleteStep(_ value: AutoCompleteDebounceStep) {
@@ -449,11 +431,6 @@ public final class SettingsStore {
     public func setHtmlAutoCompleteStep(_ value: AutoCompleteDebounceStep) {
         htmlAutoCompleteStep = value
         persistence.saveSetting(value, forKey: DefaultsKey.htmlAutoCompleteStep)
-    }
-
-    public func setSpellingAutoCompleteStep(_ value: AutoCompleteDebounceStep) {
-        spellingAutoCompleteStep = value
-        persistence.saveSetting(value, forKey: DefaultsKey.spellingAutoCompleteStep)
     }
 
     public func setAsciiTriggerKey(_ value: String) {
@@ -500,11 +477,6 @@ public final class SettingsStore {
     public func setSupportingAIConfig(_ config: SupportingAIConfiguration) {
         supportingAIConfig = config
         persistence.saveSetting(config, forKey: DefaultsKey.supportingAIConfig)
-    }
-
-    public func setSpellCheckLocale(_ value: String?) {
-        spellCheckLocale = value
-        persistence.saveSetting(value, forKey: DefaultsKey.spellCheckLocale)
     }
 
     // MARK: - Private helpers

@@ -17,9 +17,8 @@ private struct CompletionsFile: Codable, Sendable {
 /// The concrete `CompletionProviding` implementation for Sputnik (module 9).
 ///
 /// Lazily loads one `*_completions.json` per supported language on first use and
-/// builds a weight-sorted prefix index from it. Spelling and Grammar have no corpus
-/// here (Spelling completions come from `NSSpellChecker` in module 3.5; Grammar has
-/// no Auto-Complete per the applicability matrix). JSON uses `9.7 JSON Help/json_completions.json`.
+/// builds a weight-sorted prefix index from it. Style has no corpus here (Style has no
+/// Auto-Complete per the applicability matrix). JSON uses `9.7 JSON Help/json_completions.json`.
 ///
 /// **RAM:** Each index is loaded once and held for the app's lifetime — the lists are
 /// compact (≤ 60 entries each) so the total resident cost is negligible.
@@ -39,7 +38,7 @@ public actor SputnikCompletionCorpus: CompletionProviding {
         guard prefix.count >= 2 else { return [] }
 
         switch query.language {
-        case .spelling, .grammar, .style:
+        case .style:
             return []
         case .markdown:
             return prefixMatches(in: loadMarkdown(), prefix: prefix, limit: query.limit)

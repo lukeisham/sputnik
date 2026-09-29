@@ -358,7 +358,7 @@ public struct ContentView: View {
         case .asciiStudio:
             ASCIIStudioView()
 
-        case .asciiArtHelp, .markdownHelp, .htmlHelp, .grammarHelp:
+        case .asciiArtHelp, .markdownHelp, .htmlHelp:
             // Help panels are rendered via helpPanelOverlay, not as columns.
             EmptyView()
         }
@@ -391,7 +391,7 @@ public struct ContentView: View {
     // MARK: - Help panel overlay
 
     /// Overlays the help panels on top of the column area.
-    /// All five views stay in the tree so each panel's @State survives topic switches.
+    /// All the views stay in the tree so each panel's @State survives topic switches.
     @ViewBuilder
     private var helpPanelOverlay: some View {
         let topic = windowState.requestedHelpTopic
@@ -415,9 +415,6 @@ public struct ContentView: View {
 
             HTMLHelpPanelView()
                 .opacity(topic == .html ? 1 : 0)
-
-            GrammarHelpPanelView()
-                .opacity(topic == .grammar ? 1 : 0)
         }
     }
 }

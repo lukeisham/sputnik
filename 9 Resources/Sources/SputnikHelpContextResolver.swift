@@ -30,20 +30,6 @@ public final class SputnikHelpContextResolver: HelpContextResolving {
         let topicID: String?
 
         switch query.kind {
-        case .grammar:
-            // Build selection analysis for structural-aware lookup
-            let analysis = await GrammarSelectionAnalyzer.analyze(
-                fullText: query.fullText,
-                cursorOffset: query.cursorOffset,
-                selectionLength: query.selectionLength
-            )
-            let result = await GrammarHelpCoordinator.shared.lookup(
-                word: query.selectedText,
-                source: .editor,
-                analysisResult: analysis
-            )
-            topicID = result?.primaryTopic.id
-
         case .markdown:
             topicID = MarkdownHelpCoordinator.shared.lookupContext(
                 fullText: query.fullText,

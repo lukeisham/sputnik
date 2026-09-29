@@ -1,10 +1,13 @@
 ---
 module: 2.7 Foundation – Utilities
 status: active
-last_updated: 2026-06-16
+last_updated: 2026-09-28
 last_verified: 2026-06-16
 open_issues:
 ---
+
+## Recent Changes (2026-09-28)
+- **Grammar Help removed:** `ResourceLookup` no longer has `lexicalDefinition` or `structuralAnalysis`. `WritingAssistLanguage` (2.3) no longer has `spelling` or `grammar`. The `MoreContextMenu` and `HelpContextResolving` doc comments now use `.style` as the natural-language example. `HelpContextQuery.selectionLength` stays; a resolver can use it to tell a multi-word selection from a single word.
 
 ## Recent Changes (2026-06-16)
 - **Interaction feature added:** New types `InteractionQuery`, `InteractionSectionItem`, `InteractionResult`, `InteractionProviding`, `InteractionInserting`, `SpecialElement`, `SpecialElementKind`, `SpecialElementDefinition` (with `ElementTriggers`, `ElementSlot`, `SlotSource`, `ResourceLookup`), `SpecialElementDetecting`, and `SelectionContextMenu`. See the [9.8 Interaction guide](../9%20Resources/9.8%20Interaction/guide.md) for the full feature documentation.
@@ -257,7 +260,7 @@ Provide Foundation-specific utilities: structured logging, AI monitors, menu hel
 - **Key types remaining in Foundation:**
   - *(DebounceTimer moved → SputnikShared)*
   - `ClosureMenuItem` — `@MainActor NSMenuItem` subclass that runs a stored `() -> Void` on activation via its own `target`/`action`; avoids each host wiring `@objc` selectors
-  - `HelpContextQuery` — `Sendable` value type describing a user's current selection and context: the target `HelpTopic` kind, selected text, full document text, cursor offset, and selection length (UTF-16 code units); content-agnostic — Foundation owns the query type, not the orchestration (SR-1); selection length defaults to 0 and is used by Grammar Help to detect multi-word selections
+  - `HelpContextQuery` — `Sendable` value type describing a user's current selection and context: the target `HelpTopic` kind, selected text, full document text, cursor offset, and selection length (UTF-16 code units); content-agnostic — Foundation owns the query type, not the orchestration (SR-1); selection length defaults to 0 and lets a resolver tell a multi-word selection from a single word
   - `HelpContextResolving` — `Sendable` protocol with `func resolve(_ query: HelpContextQuery) async -> HelpRequest?`; content-agnostic seam for resolving a text selection to a help topic; Foundation owns the protocol, module 9 provides the concrete resolver (SR-1)
   - `MoreContextMenu` — `@MainActor` builder enum; static `items(forSelectedText:kinds:fullText:cursorOffset:selectionLength:resolver:onRequest:) -> [NSMenuItem]` creates one `ClosureMenuItem` per candidate `HelpTopic` kind titled `"More Context: <kind.title>"`; returns `[]` when selection is empty/whitespace; optional `selectionLength` (default 0) is passed through to `HelpContextQuery` to support multi-word selection detection; on activation, runs the resolver in a `Task` and routes the result through the caller-supplied `onRequest` sink
   - `CompletionQuery` — `Sendable` value type: `language: WritingAssistLanguage`, `prefix: String`, `fullText: String`, `cursorOffset: Int`, `limit: Int`; content-agnostic completion request passed from editor providers to the corpus (SR-1)
@@ -289,10 +292,10 @@ Provide Foundation-specific utilities: structured logging, AI monitors, menu hel
 ## Known consumers
 | Module | Use |
 |---|---|
-| 3.1 Text (and 3.2–3.5 via 3.1) | Debounce ghost-text suggestion requests on keypress |
-| 3.1 Text Editor | More Context right-click menu (single kind based on editor mode: grammar/markdown/html/asciiArt) |
-| 4 Markdown Preview | More Context right-click menu (two kinds: .grammar + .markdown) |
-| 8 HTML Preview | More Context right-click menu (two kinds: .grammar + .html) |
+| 3.1 Text (and 3.2–3.6 via 3.1) | Debounce ghost-text suggestion requests on keypress |
+| 3.1 Text Editor | More Context right-click menu (single kind based on editor mode: style/markdown/html/json/asciiArt) |
+| 4 Markdown Preview | More Context right-click menu (two kinds: .style + .markdown) |
+| 8 HTML Preview | More Context right-click menu (two kinds: .style + .html) |
 | 2.3 AI Settings (F-3) | Store and retrieve API key in macOS Keychain via `KeychainService` |
 | 2.4 Status Bar (F-5) | RAM and CPU % readings consumed by `StatusBarView` from `ProcessMonitor` |
 | 3.1 Text Editor (F-7) | Registers Markdown / HTML / ASCII slash-command sets via `SlashCommandRegistry.register(_:)` at module init |

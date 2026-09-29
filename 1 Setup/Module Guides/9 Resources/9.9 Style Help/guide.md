@@ -1,7 +1,7 @@
 ---
 module: 9.9 Style Help
 status: active
-last_updated: 2026-06-29
+last_updated: 2026-09-28
 last_verified: 2026-06-29
 open_issues: none
 ---
@@ -31,7 +31,8 @@ Provide a library of English writing-style reference topics derived from the ope
 - **Dependencies**: `FoundationModule` for `HelpTopicProtocol`, `SputnikHelpPanel`, `SputnikColor`, `SputnikFont`, `SputnikSpacing`
 - **Context lookup**: `StyleHelpCoordinator.lookup(word:source:)` — lexical-only lookup (no structural analyzer)
 - **Panel**: Registered via `SputnikHelpPanel` wrapper; `onNavigate` wired to `AppState.requestedHelpTarget`
-- **No `GrammarSelectionAnalyzer`** dependency — style lookup is always lexical
+- **No structural analyzer** — style lookup is always lexical
+- **Only natural-language help:** Grammar Help (9.5) was removed on 2026-09-28. Plain text in the editor, the Markdown Preview and the HTML Preview use `.style` for More Context and Interaction
 
 ## Invariants
 - All index access goes through `await StyleHelpIndex.shared`

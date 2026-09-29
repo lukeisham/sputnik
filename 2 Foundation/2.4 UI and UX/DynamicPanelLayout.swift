@@ -33,6 +33,40 @@ public struct DynamicPanelLayout: Codable, Sendable, Equatable {
         self.columns = columns
     }
 
+    // MARK: - Codable (skips unknown panels)
+
+    private enum CodingKeys: String, CodingKey {
+        case columns
+    }
+
+    /// Decodes each column one at a time and drops a column that does not decode
+    /// (for example, a `PanelID` that a later version removed). The other columns stay,
+    /// and their widths are rescaled so the sum stays 1.0. If no column decodes, the
+    /// decoder throws, and `LayoutState` falls back to `.default`.
+    public init(from decoder: any Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        var list = try container.nestedUnkeyedContainer(forKey: .columns)
+        var decoded: [PanelColumn] = []
+        while !list.isAtEnd {
+            if let column = try? list.decode(PanelColumn.self) {
+                decoded.append(column)
+            } else {
+                // Step over the bad element so the loop continues with the next one.
+                _ = try? list.decode(SkippedElement.self)
+            }
+        }
+        guard !decoded.isEmpty else {
+            throw DecodingError.dataCorruptedError(
+                forKey: .columns, in: container,
+                debugDescription: "No column in the saved layout could be decoded")
+        }
+        self.columns = decoded
+        rescaleWidthsProportionallyForRemoval()
+    }
+
+    /// Decodes any JSON value and ignores it. Used to move past a column that failed.
+    private struct SkippedElement: Decodable {}
+
     // MARK: - Column role
 
     public enum ColumnRole: Equatable {

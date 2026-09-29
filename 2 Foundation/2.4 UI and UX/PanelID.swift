@@ -18,7 +18,6 @@ public enum PanelID: String, Codable, Sendable, CaseIterable, Hashable {
     case asciiArtHelp
     case markdownHelp
     case htmlHelp
-    case grammarHelp
 
     /// Short label for badge display in column tabs.
     /// Returns `nil` for panels that should not show a badge (help panels only).
@@ -30,7 +29,7 @@ public enum PanelID: String, Codable, Sendable, CaseIterable, Hashable {
         case .pdfViewer: return "PDF"
         case .asciiStudio: return "ASCII"
         case .fileTree: return "FILES"
-        case .asciiArtHelp, .markdownHelp, .htmlHelp, .grammarHelp: return nil
+        case .asciiArtHelp, .markdownHelp, .htmlHelp: return nil
         }
     }
 
@@ -47,7 +46,6 @@ public enum PanelID: String, Codable, Sendable, CaseIterable, Hashable {
         case .asciiArtHelp: return "ASCII Art Help"
         case .markdownHelp: return "Markdown Help"
         case .htmlHelp: return "HTML Help"
-        case .grammarHelp: return "Grammar Help"
         }
     }
 }

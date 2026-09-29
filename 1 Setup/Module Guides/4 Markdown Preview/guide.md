@@ -1,7 +1,7 @@
 ---
 module: 4 Markdown Preview
 status: stable
-last_updated: 2026-06-15
+last_updated: 2026-09-28
 last_verified: 2026-06-15
 open_issues: none
 plan: 1 Setup/Plans Completed/2026-06-08 4 Markdown Preview Implement Markdown Preview module.md
@@ -100,7 +100,7 @@ MARKDOWN PREVIEW PANEL  (occupies a resizable vertical column; toggled via toolb
 - **Key types:**
   - `MarkdownPreviewPanel` — top-level SwiftUI `View`; `@Environment(AppState.self)` + `@Environment(SettingsStore.self)`; creates `MarkdownPreviewCoordinator` in `@MainActor init` (stable across re-renders); holds `@State private var viewModel = MarkdownPreviewViewModel()`; triggers renders via `.onChange(of: appState.activeDocument?.text)` and `.onChange(of: appState.activeDocumentID)`
   - `MarkdownRenderView` — `NSViewRepresentable` wrapping `NSTextView`; receives the pre-created `MarkdownPreviewCoordinator` as an `init` parameter (`makeCoordinator()` returns the externally-provided instance, not a freshly created one); applies per-panel font/background from `SettingsStore` (F-4)
-  - `MarkdownPreviewCoordinator` — `@MainActor NSObject, NSTextViewDelegate`; routes link clicks (`file://` → `InterPanelRouter`, `http/https/mailto` → `NSWorkspace`, unsafe schemes blocked); injects "More Context: Grammar Help" and "More Context: Markdown Help" into the right-click menu via `MoreContextMenu.items(...)` (2.7) when text is selected; holds `weak var router: (any InterPanelRouter)?`, `onRequestHelp` closure, `helpContextResolver`
+  - `MarkdownPreviewCoordinator` — `@MainActor NSObject, NSTextViewDelegate`; routes link clicks (`file://` → `InterPanelRouter`, `http/https/mailto` → `NSWorkspace`, unsafe schemes blocked); injects "More Context: Style Guide" and "More Context: Markdown Help" into the right-click menu via `MoreContextMenu.items(...)` (2.7) when text is selected; holds `weak var router: (any InterPanelRouter)?`, `onRequestHelp` closure, `helpContextResolver`
   - `MarkdownPreviewViewModel` — `@Observable @MainActor` class; owns `renderedString: NSAttributedString`, `scrollOffset: CGFloat` (wired — ISS-061 resolved), `fontScale: CGFloat` (0.5–2.0), `isRendering: Bool`, `renderError: String?`, `isLargeFile: Bool` (true when `text.utf16.count >= 80_000`), `sourceMap: [MarkdownSourceBlock]` (built by each render, used for ⌘-click navigation); `blockCache: [Int: (text: String, rendered: SendableAttributedString)]` (per-block hash cache storing source text for collision detection; half-evicts oldest entries when count exceeds 500 — ISS-091); `adaptiveDelay(for:)` returns 0.05/0.10/0.20/0.30 s based on document size; uses a monotonically-increasing `renderGeneration: UInt64` as a stale-render guard; delegates render throttling to `RenderThrottle` (Foundation 2.7); `cancel()` invalidates any pending render and clears `isRendering` — called by the panel before clearing `renderedString` on document close or type switch (ISS-089)
   - `MarkdownSourceBlock` — public `Sendable` struct; `sourceStartLine`, `sourceEndLine` (0-based), `renderedLocation`, `renderedLength` in the output `NSAttributedString`; `contains(renderedOffset:)` helper for fast lookup; built by `buildBlockCachedAttributedString` and stored on `viewModel.sourceMap`
   - `splitMarkdownBlocks(_:)` — splits raw Markdown on blank lines into `[MarkdownBlock]`; tracks fenced code blocks (```` ``` ```` / `~~~`) to avoid splitting inside them; assigns `startLine`/`endLine` per block

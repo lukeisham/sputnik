@@ -73,24 +73,15 @@ public struct EditorView: NSViewRepresentable {
         textView.ghostTextOverlay = overlay
         textView.searchController = search
 
-        // Spelling/grammar checker: held strongly by the coordinator (lives as long as the
-        // view); the text view holds it weakly for click hit-testing (SW-2).
-        let checker = SpellingGrammarChecker(
-            textView: textView,
-            viewModel: viewModel,
-            settings: settings)
-        textView.spellingChecker = checker
         textView.editorViewModel = viewModel
         textView.settings = settings
 
-        // HTML structural checker: same lifetime/ownership model as the spelling checker
-        // (coordinator holds it strongly, the text view weakly). Reads the spelling checker's
-        // annotations so HTML underlines defer to overlapping spelling underlines.
+        // HTML structural checker: held strongly by the coordinator (lives as long as the
+        // view); the text view holds it weakly for click hit-testing (SW-2).
         let htmlSyntaxChecker = HTMLSyntaxChecker(
             textView: textView,
             viewModel: viewModel,
-            settings: settings,
-            spellingChecker: checker)
+            settings: settings)
         textView.htmlSyntaxChecker = htmlSyntaxChecker
 
         // Route "Look Up Help" through the Foundation help target (SR-1). Capture weakly
@@ -110,7 +101,7 @@ public struct EditorView: NSViewRepresentable {
         textView.interactionCoordinator = interactionCoordinator
         textView.setupSelectionChangeObserver()
 
-        // Completion corpus — created once, shared across all four providers (SR-3).
+        // Completion corpus — created once, shared across all three providers (SR-3).
         let corpus = SputnikCompletionCorpus()
 
         // Language providers — wired to the shared ghost overlay; one is active per mode.
@@ -127,20 +118,14 @@ public struct EditorView: NSViewRepresentable {
             textView: textView, ghostOverlay: overlay, blockCompletion: blockCompletion,
             settings: settings, completionProvider: corpus
         )
-        let spellingCompletionProvider = SpellingCompletionProvider(
-            textView: textView, ghostOverlay: overlay,
-            settings: settings, spellDocumentTag: checker.spellDocumentTag
-        )
 
         context.coordinator.textView = textView
         context.coordinator.ghostOverlay = overlay
         context.coordinator.search = search
-        context.coordinator.checker = checker
         context.coordinator.htmlSyntaxChecker = htmlSyntaxChecker
         context.coordinator.markdownProvider = markdownProvider
         context.coordinator.htmlProvider = htmlProvider
         context.coordinator.asciiProvider = asciiProvider
-        context.coordinator.spellingCompletionProvider = spellingCompletionProvider
 
         // Wire SearchController and TextView into the view model.
         viewModel.searchController = search
@@ -156,6 +141,7 @@ public struct EditorView: NSViewRepresentable {
         }
 
         configureTypography(textView, settings: settings)
+        applySpellingAndGrammar(textView)
         textView.isEditable = isEditable
 
         // Publish the editor's scroll fraction for preview sync (ISS-063, Step 4).
@@ -211,6 +197,10 @@ public struct EditorView: NSViewRepresentable {
         // while the view was alive (e.g. per-panel override toggled in Preferences).
         applyFontAndBackground(textView, settings: settings)
 
+        // Apply Apple's spelling and grammar checker. The settings or the file can change
+        // while the view is alive.
+        applySpellingAndGrammar(textView)
+
         // Update isEditable in case the column role changed.
         textView.isEditable = isEditable
 
@@ -253,7 +243,8 @@ public struct EditorView: NSViewRepresentable {
         applyFontAndBackground(textView, settings: settings)
         textView.isRichText = false
         textView.allowsUndo = true
-        // Disable built-in auto-corrections — module 3.5 owns spelling/grammar.
+        // Apple's spelling checker underlines words but does not change them by default.
+        // The user can turn on Edit ▸ Spelling and Grammar ▸ Correct Spelling Automatically.
         textView.isAutomaticSpellingCorrectionEnabled = false
         textView.isAutomaticQuoteSubstitutionEnabled = false
         textView.isAutomaticDashSubstitutionEnabled = false
@@ -261,6 +252,25 @@ public struct EditorView: NSViewRepresentable {
         // Opt into full Apple Intelligence Writing Tools on macOS 15+.
         if #available(macOS 15.0, *) {
             textView.writingToolsBehavior = .complete
+        }
+    }
+
+    /// Turns Apple's `NSTextView` spelling and grammar checker on or off.
+    ///
+    /// The checker runs only when the setting is on **and** the file is `.txt` or `.md`
+    /// (`EditorViewModel.naturalLanguageFile`), so code files have no underlines. Apple
+    /// draws its underlines with temporary layout attributes, so they do not conflict
+    /// with the attributes that `SyntaxHighlighter` writes to `NSTextStorage`.
+    private func applySpellingAndGrammar(_ textView: NSTextView) {
+        let naturalLanguage = viewModel.naturalLanguageFile
+        let spelling = naturalLanguage && settings.systemSpellCheckEnabled
+        let grammar = naturalLanguage && settings.systemGrammarCheckEnabled
+        // Set only on change: each set makes AppKit check the full document again.
+        if textView.isContinuousSpellCheckingEnabled != spelling {
+            textView.isContinuousSpellCheckingEnabled = spelling
+        }
+        if textView.isGrammarCheckingEnabled != grammar {
+            textView.isGrammarCheckingEnabled = grammar
         }
     }
 
@@ -283,10 +293,8 @@ public struct EditorView: NSViewRepresentable {
         var textView: EditorTextView?
         var ghostOverlay: GhostTextOverlay?
         var search: SearchController?
-        /// Strong reference keeps the checker alive for the view's lifetime (SW-2: the
-        /// text view's reference is weak).
-        var checker: SpellingGrammarChecker?
-        /// Strong reference to the HTML structural checker (same ownership model as `checker`).
+        /// Strong reference keeps the HTML structural checker alive for the view's lifetime
+        /// (SW-2: the text view's reference is weak).
         var htmlSyntaxChecker: HTMLSyntaxChecker?
 
         // Track the last applied load token to prevent re-applying stale content.
@@ -304,7 +312,6 @@ public struct EditorView: NSViewRepresentable {
         var markdownProvider: MarkdownLanguageProvider?
         var htmlProvider: HTMLLanguageProvider?
         var asciiProvider: ASCIIArtLanguageProvider?
-        var spellingCompletionProvider: SpellingCompletionProvider?
 
         init(viewModel: EditorViewModel) {
             self.viewModel = viewModel
@@ -337,8 +344,6 @@ public struct EditorView: NSViewRepresentable {
                 }
             }
 
-            // Debounced spelling/grammar re-check (no-op when spellCheckActive is false).
-            checker?.onTextChange()
             // Debounced HTML structural re-check (no-op unless htmlModeActive + enabled).
             htmlSyntaxChecker?.onTextChange()
             // Dispatch to the active language provider for ghost-text completions.
@@ -360,8 +365,7 @@ public struct EditorView: NSViewRepresentable {
             case .markdown: markdownProvider?.onKeypress()
             case .html: htmlProvider?.onKeypress()
             case .asciiArt: asciiProvider?.onKeypress()
-            case .plainText: spellingCompletionProvider?.onKeypress()
-            case .json: break
+            case .plainText, .json: break
             }
         }
     }

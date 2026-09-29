@@ -11,7 +11,7 @@ import ResourcesModule
 /// All sub-modules in module 3 read or mutate this view model. Keeping the mode,
 /// gating flags, and file URL here (not scattered across sub-modules) honours SR-1
 /// ("module owns its state") and matches the module guides, which explicitly place
-/// `htmlModeActive` and `spellCheckActive` in `EditorViewModel`.
+/// `htmlModeActive` and `naturalLanguageFile` in `EditorViewModel`.
 @Observable
 @MainActor
 public final class EditorViewModel: EditorCommandHandling {
@@ -48,9 +48,21 @@ public final class EditorViewModel: EditorCommandHandling {
     /// Views observe this to show an error banner and underline.
     public var jsonValidationErrors: [JSONValidator.JSONError] = []
 
-    /// Set by `SpellCheckFileTypeGuard` when the file extension is `.txt` or `.md`.
-    /// Enables real-time spell/grammar checking (3.5).
-    public var spellCheckActive: Bool = false
+    /// `true` when the open file is a `.txt` or `.md` file. Only these files get Apple's
+    /// spelling and grammar checker, so code files have no underlines. `false` for an
+    /// untitled buffer.
+    public var naturalLanguageFile: Bool {
+        Self.isNaturalLanguageFile(fileURL)
+    }
+
+    /// The file extensions that get Apple's spelling and grammar checker.
+    nonisolated private static let naturalLanguageExtensions: Set<String> = ["txt", "md"]
+
+    /// Returns `true` when `url` has a `.txt` or `.md` extension (any letter case).
+    public nonisolated static func isNaturalLanguageFile(_ url: URL?) -> Bool {
+        guard let ext = url?.pathExtension.lowercased() else { return false }
+        return naturalLanguageExtensions.contains(ext)
+    }
 
     // MARK: - Document loading
 
@@ -178,7 +190,6 @@ public final class EditorViewModel: EditorCommandHandling {
 
         // Run gating checks.
         HTMLDocTypeGuard.check(text, viewModel: self)
-        SpellCheckFileTypeGuard.check(url, viewModel: self)
         jsonModeActive = (fileType == .json)
 
         // Update text and bump token to notify `EditorView`.
@@ -230,7 +241,6 @@ public final class EditorViewModel: EditorCommandHandling {
         htmlModeActive = false
         jsonModeActive = false
         jsonValidationErrors = []
-        spellCheckActive = false
         mode = .plainText
     }
 

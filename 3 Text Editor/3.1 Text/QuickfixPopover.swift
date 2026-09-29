@@ -1,6 +1,6 @@
 import SwiftUI
 
-/// The single-click quick-fix popover for a spelling or grammar issue (3.5).
+/// The single-click quick-fix popover for an `EditorAnnotation` (today, HTML structural issues).
 ///
 /// Shown by `EditorTextView` (hosted in an `NSPopover`, the AppKit seam) when the user
 /// single-clicks an underline. Presentation/layout stay in SwiftUI (SW-3); the Fix and
@@ -8,10 +8,10 @@ import SwiftUI
 /// checker's ignore/re-check path respectively.
 struct QuickfixPopover: View {
 
-    /// `"Spelling"` or `"Grammar"`, shown as the popover header.
+    /// The issue type (for example `"HTML"`), shown as the popover header.
     let kindLabel: String
 
-    /// Correction candidates, best first. May be empty for grammar-only descriptions.
+    /// Correction candidates or messages, best first. Can be empty.
     let suggestions: [String]
 
     /// Applies the chosen suggestion (replaces the underlined text).

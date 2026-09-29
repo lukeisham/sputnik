@@ -18,7 +18,7 @@ public struct HelpContextQuery: Sendable, Equatable {
     /// The UTF-16 offset of the cursor or selection start.
     public let cursorOffset: Int
     /// The length of the selection in UTF-16 code units (default 0 for cursor-only).
-    /// Used by grammar help to detect multi-word selections and prioritize structural topics.
+    /// Lets a resolver tell a multi-word selection from a single word.
     public let selectionLength: Int
 
     /// Creates a help context query.
@@ -49,8 +49,7 @@ public struct HelpContextQuery: Sendable, Equatable {
 ///
 /// Foundation owns this protocol (SR-1) — it knows nothing about concrete help
 /// coordinators in module 9. Module 9 provides the concrete resolver that dispatches
-/// to `GrammarHelpCoordinator`, `MarkdownHelpCoordinator`, `HTMLHelpCoordinator`,
-/// and `ASCIIArtHelpCoordinator`.
+/// to the Markdown, HTML, JSON, ASCII Art and Style help coordinators.
 ///
 /// Conforming types must be `Sendable` so they can be invoked from a `Task` without
 /// actor-isolation violations.

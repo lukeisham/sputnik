@@ -82,7 +82,7 @@ public final class SpecialElementDetector: SpecialElementDetecting {
         language: WritingAssistLanguage
     ) -> (kind: SpecialElementKind, syntaxTerm: String)? {
         switch language {
-        case .markdown, .spelling:
+        case .markdown:
             return detectMarkdownSyntax(
                 in: selectedLine, fullText: fullText, selectedRange: selectedRange)
         case .html:
@@ -93,8 +93,8 @@ public final class SpecialElementDetector: SpecialElementDetecting {
         case .json:
             // JSON detection is not yet implemented.
             return nil
-        case .grammar, .style:
-            // Grammar/Style detection uses the parent document's mode (Markdown/HTML).
+        case .style:
+            // Style detection uses the parent document's mode (Markdown/HTML).
             // Default to Markdown detection.
             return detectMarkdownSyntax(
                 in: selectedLine, fullText: fullText, selectedRange: selectedRange)
@@ -260,7 +260,7 @@ public final class SpecialElementDetector: SpecialElementDetecting {
         let lines = textBefore.components(separatedBy: .newlines)
 
         switch language {
-        case .markdown, .grammar, .style, .spelling:
+        case .markdown, .style:
             return findMarkdownHeading(lines: lines)
         case .html:
             return findHTMLHeading(lines: lines)

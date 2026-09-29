@@ -1,7 +1,7 @@
 ---
 module: 9 Resources
 status: active
-last_updated: 2026-06-29
+last_updated: 2026-09-28
 last_verified: 2026-06-29
 open_issues: none
 ---
@@ -12,13 +12,12 @@ Host all bundled help content, resources, and the orchestration layer for contex
 ## Diagram
 ```
 Foundation (2.0 App Overview)
-  HelpTopic enum (.sputnik, .markdown, .html, .json, .asciiArt, .grammar, .style)
+  HelpTopic enum (.sputnik, .markdown, .html, .json, .asciiArt, .style)
   HelpContextResolving protocol
         │
         ▼
 9 Resources (SputnikHelpContextResolver)
   switch query.kind:
-    .grammar  → GrammarHelpCoordinator  → GrammarHelpIndex  → grammar_help_index.json
     .style    → StyleHelpCoordinator    → StyleHelpIndex    → style_help_index.json
     .markdown → MarkdownHelpCoordinator → MarkdownHelpIndex
     .html     → HTMLHelpCoordinator     → HTMLHelpIndex
@@ -45,15 +44,14 @@ Foundation (2.0 App Overview)
 | `9.2 ASCII art Help/` | ASCII Art help topics + index |
 | `9.3 Markdown Help/` | Markdown help topics + index |
 | `9.4 Html Help/` | HTML help topics + index |
-| `9.5 Grammar Help/` | Grammar help topics + index (no style topics) |
 | `9.7 JSON Help/` | JSON help topics + index |
 | `9.8 Interaction/` | Resource section index for interaction feature |
-| `9.9 Style Help/` | Style help topics + index (new, separated from Grammar) |
+| `9.9 Style Help/` | Style help topics + index. The natural-language help for plain text |
 
 ## Technical Summary
 - **Package**: `ResourcesModule` in `9 Resources/Package.swift`, depends on `FoundationModule`
 - **Resources**: All `9.X */` directories are `.process()` bundled via Package.swift
-- **Style Help (9.9)** was separated from Grammar Help (9.5) in 2026-06-29
+- **Style Help (9.9)** was separated from Grammar Help (9.5) on 2026-06-29. Grammar Help (9.5) was removed on 2026-09-28; Apple's `NSTextView` checker now handles spelling and grammar in the editor, and Style Help is the only natural-language help. There is no `9.5` folder and no `9.5` line in `Package.swift`
 - **`SputnikHelpContextResolver`** dispatches `.style` to `StyleHelpCoordinator` (lexical lookup only)
 - **`ResourceSectionIndex`** loads `.style` topics via `flattenStyleTopic` for the interaction feature
 - **`EditMenuGroup`** has a Style submenu under Writing Assistance (More Context toggle)

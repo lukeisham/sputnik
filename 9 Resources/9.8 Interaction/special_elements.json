@@ -2,21 +2,6 @@
   "comment": "Special Element Registry — declarative list for the Interaction feature",
   "definitions": [
     {
-      "id": "sentence-parser",
-      "displayName": "Sentence Parser",
-      "resourceLanguage": "grammar",
-      "container": "markdownTableRow",
-      "triggers": {
-        "syntaxTerms": ["table"],
-        "headingCues": ["Sentence parser", "Sentence Parser", "sentence parser", "Sentence analysis", "Parse sentence"]
-      },
-      "slots": [
-        { "role": "sentence", "label": "Your Sentence", "source": { "type": "userContent" } },
-        { "role": "lexical", "label": "Lexical Analysis", "source": { "type": "resource", "lookup": "lexicalDefinition" } },
-        { "role": "structural", "label": "Structural Analysis", "source": { "type": "resource", "lookup": "structuralAnalysis" } }
-      ]
-    },
-    {
       "id": "markdown-table-generic",
       "displayName": "Markdown Table",
       "resourceLanguage": "markdown",

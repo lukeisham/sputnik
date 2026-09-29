@@ -13,7 +13,7 @@ import AppKit
 /// ```swift
 /// let moreItems = MoreContextMenu.items(
 ///     forSelectedText: selected,
-///     kinds: [.grammar, .markdown],
+///     kinds: [.style, .markdown],
 ///     fullText: fullText,
 ///     cursorOffset: cursorOffset,
 ///     resolver: resolver,

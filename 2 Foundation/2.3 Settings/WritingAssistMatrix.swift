@@ -3,9 +3,10 @@ import Foundation
 // MARK: - Writing Assist Language
 
 /// The language/mode axis of the writing-assist toggle matrix (Foundation 2.3).
+///
+/// Spelling and grammar are not in the matrix. Apple's `NSTextView` checker handles them,
+/// and `SettingsStore.systemSpellCheckEnabled` / `systemGrammarCheckEnabled` control it.
 public enum WritingAssistLanguage: String, Codable, CaseIterable, Sendable {
-    case spelling
-    case grammar
     case style
     case markdown
     case html
@@ -17,7 +18,6 @@ public enum WritingAssistLanguage: String, Codable, CaseIterable, Sendable {
 
 /// The function axis of the writing-assist toggle matrix.
 public enum WritingAssistFunction: String, Codable, CaseIterable, Sendable {
-    case instantCorrect
     case autoComplete
     case moreContext
     case interaction
@@ -31,15 +31,16 @@ public enum WritingAssistFunction: String, Codable, CaseIterable, Sendable {
 /// from `isEnabled(_:for:)` and are never shown in the Writing Assistance menu.
 ///
 /// Applicability:
-/// | Language  | Instant Correct | Auto-Complete | More Context | Interaction |
-/// |-----------|:---:|:---:|:---:|:---:|
-/// | Spelling  |  ✓  |  ✓  |  —  |  —  |
-/// | Grammar   |  ✓  |  —  |  ✓  |  ✓  |
-/// | Style     |  —  |  —  |  ✓  |  ✓  |
-/// | Markdown  |  —  |  ✓  |  ✓  |  ✓  |
-/// | HTML      |  —  |  ✓  |  ✓  |  ✓  |
-/// | JSON      |  —  |  ✓  |  ✓  |  ✓  |
-/// | ASCII Art |  —  |  ✓  |  —  |  ✓  |
+/// | Language  | Auto-Complete | More Context | Interaction |
+/// |-----------|:---:|:---:|:---:|
+/// | Style     |  —  |  ✓  |  ✓  |
+/// | Markdown  |  ✓  |  ✓  |  ✓  |
+/// | HTML      |  ✓  |  ✓  |  ✓  |
+/// | JSON      |  ✓  |  ✓  |  ✓  |
+/// | ASCII Art |  ✓  |  —  |  ✓  |
+///
+/// Stored JSON from older versions can contain keys for removed cells (for example
+/// `instantCorrect.spelling`). They decode without error and are ignored.
 public struct WritingAssistMatrix: Codable, Sendable, Equatable {
 
     // MARK: - Storage (keyed by "<fn>.<lang>")
@@ -48,13 +49,13 @@ public struct WritingAssistMatrix: Codable, Sendable, Equatable {
 
     // MARK: - Default
 
-    /// Default matrix — Auto-Complete and More Context on, Instant Correct off.
+    /// Default matrix — every applicable cell on.
     public static let `default`: WritingAssistMatrix = {
         var m = WritingAssistMatrix()
         for lang in WritingAssistLanguage.allCases {
             for fn in WritingAssistFunction.allCases where WritingAssistMatrix.applies(fn, to: lang)
             {
-                m.cells[WritingAssistMatrix.cellKey(fn, lang)] = (fn != .instantCorrect)
+                m.cells[WritingAssistMatrix.cellKey(fn, lang)] = true
             }
         }
         return m
@@ -66,17 +67,12 @@ public struct WritingAssistMatrix: Codable, Sendable, Equatable {
     public static func applies(_ fn: WritingAssistFunction, to lang: WritingAssistLanguage) -> Bool
     {
         switch fn {
-        case .instantCorrect:
-            return lang == .spelling || lang == .grammar
         case .autoComplete:
-            return lang == .spelling || lang == .markdown || lang == .html || lang == .json
-                || lang == .asciiArt
+            return lang == .markdown || lang == .html || lang == .json || lang == .asciiArt
         case .moreContext:
-            return lang == .grammar || lang == .style || lang == .markdown || lang == .html
-                || lang == .json
+            return lang == .style || lang == .markdown || lang == .html || lang == .json
         case .interaction:
-            return lang == .grammar || lang == .style || lang == .markdown || lang == .html
-                || lang == .json
+            return lang == .style || lang == .markdown || lang == .html || lang == .json
                 || lang == .asciiArt
         }
     }
@@ -86,8 +82,8 @@ public struct WritingAssistMatrix: Codable, Sendable, Equatable {
     /// Returns whether `fn` × `lang` is currently on. Non-applicable cells always return `false`.
     public func isEnabled(_ fn: WritingAssistFunction, for lang: WritingAssistLanguage) -> Bool {
         guard WritingAssistMatrix.applies(fn, to: lang) else { return false }
-        // Fallback: AutoComplete/MoreContext default on; InstantCorrect defaults off.
-        return cells[WritingAssistMatrix.cellKey(fn, lang)] ?? (fn != .instantCorrect)
+        // Fallback: every applicable cell defaults on.
+        return cells[WritingAssistMatrix.cellKey(fn, lang)] ?? true
     }
 
     /// Returns a copy of the matrix with the specified cell toggled to `value`.

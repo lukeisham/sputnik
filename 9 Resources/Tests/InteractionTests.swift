@@ -14,14 +14,21 @@ struct SpecialElementRegistryTests {
         #expect(!defs.isEmpty)
     }
 
-    @Test func registryResolvesSentenceParser() async {
+    @Test func headingWithNoCuedEntryFallsBackToGeneric() async {
         let registry = SpecialElementRegistry.shared
+        // The grammar "Sentence Parser" entry was removed with Grammar Help (plan 1 of 4).
         let resolved = await registry.resolve(
             syntaxTerm: "table",
             contextHeading: "Sentence Parser"
         )
         #expect(resolved != nil)
-        #expect(resolved?.id == "sentence-parser")
+        #expect(resolved?.triggers.headingCues.isEmpty == true)
+    }
+
+    @Test func sentenceParserEntryIsRemoved() async {
+        let registry = SpecialElementRegistry.shared
+        let def = await registry.definition(id: "sentence-parser")
+        #expect(def == nil)
     }
 
     @Test func registryResolvesGenericTable() async {
@@ -44,23 +51,12 @@ struct SpecialElementRegistryTests {
         #expect(resolved == nil)
     }
 
-    @Test func registryHeadingCuedOutranksGeneric() async {
-        let registry = SpecialElementRegistry.shared
-        // Both "Sentence Parser" and "markdown-table-generic" match syntax "table".
-        // Heading-cued should win.
-        let resolved = await registry.resolve(
-            syntaxTerm: "table",
-            contextHeading: "Sentence parser"
-        )
-        #expect(resolved?.id == "sentence-parser")
-    }
-
     @Test func registryDefinitionFetchesById() async {
         let registry = SpecialElementRegistry.shared
-        let def = await registry.definition(id: "sentence-parser")
+        let def = await registry.definition(id: "markdown-table-generic")
         #expect(def != nil)
         #expect(def?.container == .markdownTableRow)
-        #expect(def?.slots.count == 3)
+        #expect(def?.slots.count == 1)
     }
 }
 
@@ -161,15 +157,17 @@ struct SpecialElementDetectorTests {
 struct WritingAssistMatrixInteractionTests {
 
     @Test func interactionAppliesToContentLanguages() {
-        #expect(WritingAssistMatrix.applies(.interaction, to: .grammar) == true)
+        #expect(WritingAssistMatrix.applies(.interaction, to: .style) == true)
         #expect(WritingAssistMatrix.applies(.interaction, to: .markdown) == true)
         #expect(WritingAssistMatrix.applies(.interaction, to: .html) == true)
         #expect(WritingAssistMatrix.applies(.interaction, to: .json) == true)
         #expect(WritingAssistMatrix.applies(.interaction, to: .asciiArt) == true)
     }
 
-    @Test func interactionDoesNotApplyToSpelling() {
-        #expect(WritingAssistMatrix.applies(.interaction, to: .spelling) == false)
+    @Test func matrixHasNoSpellingOrGrammarLanguage() {
+        // Apple's checker replaced them (plan 1 of 4).
+        #expect(WritingAssistLanguage(rawValue: "spelling") == nil)
+        #expect(WritingAssistLanguage(rawValue: "grammar") == nil)
     }
 
     @Test func interactionDefaultsToOn() {
@@ -188,31 +186,30 @@ struct WritingAssistMatrixInteractionTests {
 
 struct InteractionProviderPrimaryPathTests {
 
-    @Test func sentenceParserYieldsSlotsInOrder() async {
+    @Test func registeredElementUsesDefinitionName() async {
         let provider = InteractionProvider()
         let element = SpecialElement(
             kind: .markdownTableRow,
-            definitionID: "sentence-parser",
+            definitionID: "markdown-table-generic",
             syntaxTerm: "table",
-            contextHeading: "Sentence Parser",
+            contextHeading: nil,
             elementRange: NSRange(location: 0, length: 10),
             selectedLineRange: NSRange(location: 0, length: 10),
             insertionRange: NSRange(location: 10, length: 0),
             insertionPrefix: "| "
         )
         let query = InteractionQuery(
-            selectedText: "The cat sat on the mat.",
+            selectedText: "table",
             fullText: "",
             cursorOffset: 0,
             selectionLength: 0,
-            fileLanguage: .grammar,
+            fileLanguage: .markdown,
             detectedElement: element
         )
         let result = await provider.sections(for: query)
-        // Should have 3 slots: userContent (sentence), lexical, structural
-        #expect(result.sections.count == 3)
-        #expect(result.sections[0].sectionTitle == "Your Sentence")
-        #expect(result.sections[0].content.isEmpty)  // userContent = empty
+        // One resource slot; a slot with no match is skipped (SR-2).
+        #expect(result.sections.count <= 1)
+        #expect(result.insertionDescription == "Markdown Table")
     }
 
     @Test func emptyElementReturnsEmptyResult() async {
@@ -249,13 +246,13 @@ struct ContentInserterTests {
                 InteractionSectionItem(
                     sectionTitle: "Lexical Analysis",
                     content: "Noun, Verb",
-                    resourceLanguage: .grammar,
+                    resourceLanguage: .style,
                     matchScore: 0.8
                 ),
                 InteractionSectionItem(
                     sectionTitle: "Structural Analysis",
                     content: "Subject-Verb-Object",
-                    resourceLanguage: .grammar,
+                    resourceLanguage: .style,
                     matchScore: 0.9
                 ),
             ],

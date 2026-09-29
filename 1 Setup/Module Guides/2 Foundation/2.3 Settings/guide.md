@@ -1,13 +1,13 @@
 ---
 module: 2.3 Settings
 status: active
-last_updated: 2026-06-16
+last_updated: 2026-09-28
 last_verified: 2026-06-16
 ---
 
 ## Purpose
 
-Provides the app-wide settings window where users configure appearance, editor behaviour, spelling/grammar checking, terminal styling, the Supporting AI provider, templates, and a keyboard shortcuts reference.
+Provides the app-wide settings window where users configure appearance, editor behaviour, Apple's spelling and grammar checker, terminal styling, the Supporting AI provider, templates, and a keyboard shortcuts reference.
 
 ---
 
@@ -61,12 +61,8 @@ The settings window is a tabbed panel with seven sections. Opened via the Sputni
 │                                                              │
 │  ┌─── Spelling & Grammar ──────────────────────────────────┐ │
 │  │                                                         │ │
-│  │  ☑ Spell checking                                       │ │
-│  │  ☑ Grammar checking                                     │ │
-│  │  ───────────────────────────────────────────────────────│ │
-│  │  Auto-complete delay                                    │ │
-│  │  Spelling  [ 0.5s ▼ ]                                   │ │
-│  │  Language  [ en-AU  ]                                   │ │  ← BCP-47 field
+│  │  ☑ Check spelling while typing                          │ │
+│  │  ☐ Check grammar with spelling                          │ │
 │  └─────────────────────────────────────────────────────────┘ │
 │                                                              │
 │  ┌─── Terminal ────────────────────────────────────────────┐ │
@@ -124,7 +120,7 @@ The settings window is a tabbed panel with seven sections. Opened via the Sputni
 | `SettingsView.swift` | TabView container — hosts all seven setting tabs, 460 pt wide |
 | `AppearanceTab.swift` | Theme, Editor Font, Per-Panel Override disclosure groups (Text Editor / Markdown Preview / HTML Preview) |
 | `EditorTab.swift` | Toggles (auto-save, line numbers, word wrap, code block highlighting, HTML syntax check, vertical indent lines), max file size, ASCII trigger key, auto-complete delay pickers |
-| `SpellingTab.swift` | Spell check + grammar check toggles, spelling auto-complete delay, BCP-47 language field |
+| `SpellingTab.swift` | Two toggles for Apple's checker: "Check spelling while typing" (`systemSpellCheckEnabled`) and "Check grammar with spelling" (`systemGrammarCheckEnabled`). The language follows the macOS system setting. |
 | `TerminalTab.swift` | Font name/size, scrollback line count, foreground/background color pickers |
 | `SupportingAISettingsView.swift` | Provider selector, model name, Keychain-backed API key, base URL override, Save button, session usage metrics |
 | `TemplatesTab.swift` | Template folder path display, "Choose…" (`NSOpenPanel`, directory picker), "Reset to Default" button; calls `settings.setTemplateDirectoryURL(_:)` and `appState.applyTemplateDirectory(_:)` |
@@ -148,6 +144,8 @@ The settings window is a tabbed panel with seven sections. Opened via the Sputni
 
 - `CaseIterable` on `WritingAssistLanguage` and `WritingAssistFunction` is used by the Settings UI to enumerate toggle rows
 - The **Writing Assistance** per-language toggle matrix is NOT in this settings window — it lives in the **Edit → Writing Assistance** menu instead (and the **Help → Interaction** submenu for Interaction toggles)
-- The **Spelling & Grammar** tab controls `NSSpellChecker` (Apple's classic checker), not Apple Intelligence — Apple Intelligence Writing Tools are opted into independently via `writingToolsBehavior = .complete` in module 3.1
+- The **Spelling & Grammar** tab controls Apple's `NSTextView` checker (`isContinuousSpellCheckingEnabled` / `isGrammarCheckingEnabled`), not Apple Intelligence. Apple Intelligence Writing Tools are turned on independently via `writingToolsBehavior = .complete` in module 3.1
+- `systemSpellCheckEnabled` (default `true`) and `systemGrammarCheckEnabled` (default `false`) are stored `Bool`s under the old keys `sputnik.settings.spellCheck` and `sputnik.settings.grammarCheck`, so each user's old on/off choice stays. They are not part of `WritingAssistMatrix`
+- `WritingAssistMatrix` has no spelling or grammar language and no Instant Correct function. Old matrix JSON that has these keys decodes without error, and the old keys are ignored
 - All seven tabs share a single `SettingsStore` instance injected via `.environment(settingsStore)` at the app level
 - The AI tab configures the **Supporting AI** (Sputnik's own helper for help lookups/completions), not Apple Intelligence — uses third-party providers (DeepSeek, Gemini, Local) with Keychain-backed API keys

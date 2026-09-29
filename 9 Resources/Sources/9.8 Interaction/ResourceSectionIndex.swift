@@ -3,7 +3,7 @@ import FoundationModule
 
 /// Flattens resource topics into sections keyed by heading (topic title, `##`/`###` sub-headings).
 ///
-/// Used only by the fallback path (unregistered elements). Grammar and Markdown topics
+/// Used only by the fallback path (unregistered elements). Markdown and Style topics
 /// are parsed for body sub-headings; HTML/ASCII/JSON topics fall back to title + `searchTerms`.
 /// Cached per language for app lifetime.
 public actor ResourceSectionIndex {
@@ -49,10 +49,6 @@ public actor ResourceSectionIndex {
         didLoad.insert(language)
 
         switch language {
-        case .grammar:
-            let topics = await GrammarHelpIndex.shared.allTopics()
-            cache[language] = topics.flatMap { flattenGrammarTopic($0) }
-
         case .markdown:
             let topics = await MarkdownHelpIndex.shared.allTopics()
             cache[language] = topics.flatMap { flattenMarkdownTopic($0) }
@@ -69,10 +65,6 @@ public actor ResourceSectionIndex {
             let topics = await JSONHelpIndex.shared.allTopics()
             cache[language] = topics.flatMap { flattenGenericTopic($0, language: .json) }
 
-        case .spelling:
-            // Spelling has no index; no sections.
-            cache[language] = []
-
         case .style:
             let topics = await StyleHelpIndex.shared.allTopics()
             cache[language] = topics.flatMap { flattenStyleTopic($0) }
@@ -80,56 +72,6 @@ public actor ResourceSectionIndex {
     }
 
     // MARK: - Flattening Helpers
-
-    private func flattenGrammarTopic(_ topic: GrammarHelpContent) -> [ResourceSection] {
-        var sections: [ResourceSection] = []
-
-        // Topic title as a section.
-        sections.append(
-            ResourceSection(
-                topicID: topic.id,
-                heading: topic.title,
-                sectionBody: topic.body,
-                resourceLanguage: .grammar
-            ))
-
-        // Parse body for ## or ### sub-headings.
-        let lines = topic.body.components(separatedBy: .newlines)
-        var currentHeading: String?
-        var currentBody: [String] = []
-        for line in lines {
-            let trimmed = line.trimmingCharacters(in: .whitespaces)
-            if trimmed.hasPrefix("##") {
-                if let h = currentHeading {
-                    sections.append(
-                        ResourceSection(
-                            topicID: topic.id,
-                            heading: h,
-                            sectionBody: currentBody.joined(separator: "\n").trimmingCharacters(
-                                in: .whitespacesAndNewlines),
-                            resourceLanguage: .grammar
-                        ))
-                }
-                currentHeading = trimmed.trimmingCharacters(
-                    in: CharacterSet(charactersIn: "#").union(.whitespaces))
-                currentBody = []
-            } else {
-                currentBody.append(line)
-            }
-        }
-        if let h = currentHeading {
-            sections.append(
-                ResourceSection(
-                    topicID: topic.id,
-                    heading: h,
-                    sectionBody: currentBody.joined(separator: "\n").trimmingCharacters(
-                        in: .whitespacesAndNewlines),
-                    resourceLanguage: .grammar
-                ))
-        }
-
-        return sections
-    }
 
     private func flattenMarkdownTopic(_ topic: MarkdownHelpContent) -> [ResourceSection] {
         var sections: [ResourceSection] = []
@@ -257,7 +199,6 @@ public protocol HelpTopicCommon: Sendable {
     var searchTerms: [String] { get }
 }
 
-extension GrammarHelpContent: HelpTopicCommon {}
 extension MarkdownHelpContent: HelpTopicCommon {}
 extension HTMLHelpContent: HelpTopicCommon {}
 extension ASCIIArtHelpContent: HelpTopicCommon {}

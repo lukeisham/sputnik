@@ -58,7 +58,6 @@ public enum HelpExternalSearchBuilder {
 
     static func contextWord(for kind: HelpTopic) -> String {
         switch kind {
-        case .grammar: return "grammar"
         case .style: return "writing style"
         case .markdown: return "markdown syntax"
         case .html: return "HTML"

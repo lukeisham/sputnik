@@ -74,28 +74,46 @@ struct EditMenuGroup: Commands {
                     .keyboardShortcut("g", modifiers: [.command, .shift])
                 }
 
+                // Apple's `NSTextView` checker. The two toggles write to `SettingsStore`
+                // (not `toggleContinuousSpellChecking(_:)`), so the choice persists and
+                // applies to every editor. The editor applies it to `.txt` and `.md` only.
                 Menu("Spelling and Grammar") {
-                    Button("Check Now") {
+                    Button("Show Spelling and Grammar") {
                         NSApp.sendAction(
-                            #selector(NSTextView.checkSpelling(_:)), to: nil, from: nil)
+                            #selector(NSText.showGuessPanel(_:)), to: nil, from: nil)
+                    }
+                    .keyboardShortcut(":", modifiers: .command)
+
+                    Button("Check Document Now") {
+                        NSApp.sendAction(
+                            #selector(NSText.checkSpelling(_:)), to: nil, from: nil)
                     }
                     .keyboardShortcut(";", modifiers: .command)
 
+                    Divider()
+
                     Toggle(
-                        "Check While Typing",
+                        "Check Spelling While Typing",
                         isOn: Binding(
-                            get: { settings.spellCheckEnabled },
-                            set: { settings.setSpellCheckEnabled($0) }
+                            get: { settings.systemSpellCheckEnabled },
+                            set: { settings.setSystemSpellCheckEnabled($0) }
                         )
                     )
 
                     Toggle(
-                        "Grammar Checking",
+                        "Check Grammar With Spelling",
                         isOn: Binding(
-                            get: { settings.grammarCheckEnabled },
-                            set: { settings.setGrammarCheckEnabled($0) }
+                            get: { settings.systemGrammarCheckEnabled },
+                            set: { settings.setSystemGrammarCheckEnabled($0) }
                         )
                     )
+
+                    // Per-editor and not persisted, the same as in other Apple apps.
+                    Button("Correct Spelling Automatically") {
+                        NSApp.sendAction(
+                            #selector(NSTextView.toggleAutomaticSpellingCorrection(_:)),
+                            to: nil, from: nil)
+                    }
                 }
 
                 writingAssistanceMenu
@@ -129,16 +147,6 @@ struct EditMenuGroup: Commands {
             }
 
             Divider()
-
-            Menu("Spelling") {
-                toggleCell(.instantCorrect, .spelling, label: "Instant Correct")
-                toggleCell(.autoComplete, .spelling, label: "Auto-Complete")
-            }
-
-            Menu("Grammar") {
-                toggleCell(.instantCorrect, .grammar, label: "Instant Correct")
-                toggleCell(.moreContext, .grammar, label: "More Context")
-            }
 
             Menu("Style") {
                 toggleCell(.moreContext, .style, label: "More Context")

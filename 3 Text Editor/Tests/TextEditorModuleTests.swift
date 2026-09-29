@@ -178,95 +178,83 @@ struct EncodingGuardTests {
     }
 }
 
-// MARK: - GrammarAnnotationTests
+// MARK: - EditorAnnotationTests
 
-struct GrammarAnnotationTests {
+struct EditorAnnotationTests {
 
     // MARK: Happy Path
 
-    @Test func spellingAnnotationKind() {
-        let ann = GrammarAnnotation(
-            range: NSRange(location: 0, length: 5), kind: .spelling, suggestions: ["fix"])
-        #expect(ann.kind == .spelling)
+    @Test func htmlSyntaxAnnotationKind() {
+        let ann = EditorAnnotation(
+            range: NSRange(location: 0, length: 5), kind: .htmlSyntax, suggestions: ["fix"])
+        #expect(ann.kind == .htmlSyntax)
     }
 
-    @Test func grammarAnnotationSuggestions() {
-        let ann = GrammarAnnotation(
-            range: NSRange(location: 3, length: 2), kind: .grammar, suggestions: ["a", "b"])
+    @Test func annotationSuggestions() {
+        let ann = EditorAnnotation(
+            range: NSRange(location: 3, length: 2), kind: .htmlSyntax, suggestions: ["a", "b"])
         #expect(ann.suggestions == ["a", "b"])
-    }
-
-    @Test func isSuppressedDefaultsFalse() {
-        let ann = GrammarAnnotation(
-            range: NSRange(location: 0, length: 1), kind: .spelling, suggestions: [])
-        #expect(!ann.isSuppressed)
-    }
-
-    @Test func suppressedFlagRoundtrips() {
-        let ann = GrammarAnnotation(
-            range: NSRange(location: 0, length: 1), kind: .grammar, suggestions: [],
-            isSuppressed: true)
-        #expect(ann.isSuppressed)
     }
 
     // MARK: Edge Cases
 
     @Test func equalAnnotationsAreEqual() {
-        let a = GrammarAnnotation(
-            range: NSRange(location: 2, length: 4), kind: .spelling, suggestions: ["ok"])
-        let b = GrammarAnnotation(
-            range: NSRange(location: 2, length: 4), kind: .spelling, suggestions: ["ok"])
+        let a = EditorAnnotation(
+            range: NSRange(location: 2, length: 4), kind: .htmlSyntax, suggestions: ["ok"])
+        let b = EditorAnnotation(
+            range: NSRange(location: 2, length: 4), kind: .htmlSyntax, suggestions: ["ok"])
         #expect(a == b)
     }
 
     @Test func differentRangeMakesAnnotationsUnequal() {
-        let a = GrammarAnnotation(
-            range: NSRange(location: 0, length: 3), kind: .spelling, suggestions: [])
-        let b = GrammarAnnotation(
-            range: NSRange(location: 1, length: 3), kind: .spelling, suggestions: [])
+        let a = EditorAnnotation(
+            range: NSRange(location: 0, length: 3), kind: .htmlSyntax, suggestions: [])
+        let b = EditorAnnotation(
+            range: NSRange(location: 1, length: 3), kind: .htmlSyntax, suggestions: [])
         #expect(a != b)
     }
 }
 
-// MARK: - SpellCheckFileTypeGuardTests
+// MARK: - NaturalLanguageFileTests
 
+/// Apple's spelling and grammar checker runs only on `.txt` and `.md` files.
 @MainActor
-struct SpellCheckFileTypeGuardTests {
+struct NaturalLanguageFileTests {
 
     // MARK: Happy Path
 
-    @Test func txtFileActivatesSpellCheck() {
-        let vm = makeTestEditorViewModel()
-        SpellCheckFileTypeGuard.check(URL(fileURLWithPath: "/tmp/notes.txt"), viewModel: vm)
-        #expect(vm.spellCheckActive)
+    @Test func txtFileIsNaturalLanguage() {
+        #expect(EditorViewModel.isNaturalLanguageFile(URL(fileURLWithPath: "/tmp/notes.txt")))
     }
 
-    @Test func mdFileActivatesSpellCheck() {
-        let vm = makeTestEditorViewModel()
-        SpellCheckFileTypeGuard.check(URL(fileURLWithPath: "/tmp/readme.md"), viewModel: vm)
-        #expect(vm.spellCheckActive)
+    @Test func mdFileIsNaturalLanguage() {
+        #expect(EditorViewModel.isNaturalLanguageFile(URL(fileURLWithPath: "/tmp/readme.md")))
     }
 
     // MARK: Error Conditions
 
-    @Test func htmlFileDoesNotActivateSpellCheck() {
-        let vm = makeTestEditorViewModel()
-        SpellCheckFileTypeGuard.check(URL(fileURLWithPath: "/tmp/index.html"), viewModel: vm)
-        #expect(!vm.spellCheckActive)
+    @Test func codeAndDataFilesAreNotNaturalLanguage() {
+        for name in ["index.html", "data.json", "main.swift", "art.ascii", "archive.zip"] {
+            #expect(
+                !EditorViewModel.isNaturalLanguageFile(URL(fileURLWithPath: "/tmp/\(name)")),
+                "\(name) must not get spelling underlines")
+        }
     }
 
-    @Test func binaryFileDoesNotActivateSpellCheck() {
+    @Test func untitledBufferIsNotNaturalLanguage() {
         let vm = makeTestEditorViewModel()
-        SpellCheckFileTypeGuard.check(URL(fileURLWithPath: "/tmp/archive.zip"), viewModel: vm)
-        #expect(!vm.spellCheckActive)
+        #expect(vm.fileURL == nil)
+        #expect(!vm.naturalLanguageFile)
     }
 
     // MARK: Edge Cases
 
     @Test func uppercaseExtensionIsNormalized() {
-        let vm = makeTestEditorViewModel()
-        SpellCheckFileTypeGuard.check(URL(fileURLWithPath: "/tmp/Notes.MD"), viewModel: vm)
-        #expect(vm.spellCheckActive)
+        #expect(EditorViewModel.isNaturalLanguageFile(URL(fileURLWithPath: "/tmp/Notes.MD")))
+    }
+
+    @Test func fileWithoutExtensionIsNotNaturalLanguage() {
+        #expect(!EditorViewModel.isNaturalLanguageFile(URL(fileURLWithPath: "/tmp/README")))
     }
 }
 
@@ -605,12 +593,12 @@ struct EditorViewModelTests {
         #expect(vm.mode == .html)
     }
 
-    @Test func openMarkdownDocumentActivatesSpellCheck() async throws {
+    @Test func openMarkdownDocumentIsNaturalLanguageFile() async throws {
         let url = try writeTempFile(content: "Some prose", name: "evm_spell.md")
         defer { try? FileManager.default.removeItem(at: url) }
         let vm = makeTestEditorViewModel()
         try await vm.openDocument(url)
-        #expect(vm.spellCheckActive)
+        #expect(vm.naturalLanguageFile)
     }
 
     @Test func openHTMLDocumentWithDoctypeActivatesHTMLMode() async throws {

@@ -201,7 +201,7 @@ public final class MarkdownPreviewCoordinator: NSObject, NSTextViewDelegate {
     // MARK: - Context Menu
 
     /// Intercepts the right-click context menu and injects "More Context" items for
-    /// Grammar Help and Markdown Help when text is selected.
+    /// Style Help and Markdown Help when text is selected.
     ///
     /// - Parameters:
     ///   - textView:      The text view that received the right-click.
@@ -244,7 +244,7 @@ public final class MarkdownPreviewCoordinator: NSObject, NSTextViewDelegate {
             language: .markdown,
             detector: detector,
             interactionEnabled: interactionEnabled,
-            moreContextKinds: [.grammar, .markdown],
+            moreContextKinds: [.style, .markdown],
             resolver: resolver,
             onInteract: { [weak self] element in
                 guard let self, let coordinator = self.interactionCoordinator else { return }

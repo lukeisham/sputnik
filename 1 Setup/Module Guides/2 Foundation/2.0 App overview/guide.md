@@ -1,7 +1,7 @@
 ---
 module: 2.0 App Overview
 status: active
-last_updated: 2026-06-16
+last_updated: 2026-09-28
 last_verified: 2026-06-16
 ---
 
@@ -142,9 +142,11 @@ ACTIVE PAIR — how column roles work:
                   │  └ Find Previous      ⇧⌘G     │
                   ├───────────────────────────────┤
                   │ Spelling and Grammar▶         │
-                  │  ├ Check Now          ⌘;      │
+                  │  ├ Show Spelling…     ⌘:      │
+                  │  ├ Check Document Now ⌘;      │
                   │  ├ Check While Typing         │
-                  │  └ Show Corrections           │
+                  │  ├ Check Grammar              │
+                  │  └ Correct Automatically      │
                   └───────────────────────────────┘
 
                            ┌──────────────────────────────────┐
@@ -195,22 +197,22 @@ ACTIVE PAIR — how column roles work:
                                              │ HTML Help                  │
                                              │ JSON Help                  │
                                              │ ASCII Art Help             │
-                                             │ Grammar Help               │
+                                             │ Style Guide                │
                                              ├────────────────────────────┤
                                              │ More Context           ▶   │
-                                             │  ├ Grammar                 │
                                              │  ├ Markdown                │
                                              │  ├ HTML                    │
                                              │  ├ JSON                    │
+                                             │  ├ Style                   │
                                              │  ├ ────                    │
                                              │  ├ All On                  │
                                              │  └ All Off                 │
                                              │ Interaction            ▶   │
-                                             │  ├ Grammar                 │
                                              │  ├ Markdown                │
                                              │  ├ HTML                    │
-                                             │  ├ JSON                    │
                                              │  ├ ASCII Art               │
+                                             │  ├ JSON                    │
+                                             │  ├ Style                   │
                                              │  ├ ────                    │
                                              │  ├ All On                  │
                                              │  └ All Off                 │
@@ -270,9 +272,13 @@ ACTIVE PAIR — how column roles work:
 - **Undo ⌘Z / Redo ⇧⌘Z** — forwards `undo:` / `redo:` selectors to the responder chain (handled by `NSTextView` inside the editor).
 - **Cut ⌘X / Copy ⌘C / Paste ⌘V / Select All ⌘A** — forwards the standard `NSText` selectors to the responder chain.
 - **Find… ⌘F / Find and Replace… ⌥⌘F / Find Next ⌘G / Find Previous ⇧⌘G** — forwards `performFindPanelAction(_:)` to `NSTextView`; the native find bar appears inside the editor.
-- **Check Spelling Now ⌘;** — forwards `checkSpelling(_:)` to `NSTextView`.
-- **Check While Typing (toggle)** — reads/writes `settings.spellCheckEnabled` via `SettingsStore`; live spell-check underlines update immediately.
-- **Grammar Checking (toggle)** — reads/writes `settings.grammarCheckEnabled`.
+- **Spelling and Grammar ▶** — controls Apple's `NSTextView` spelling and grammar checker. The editor applies it to `.txt` and `.md` files only.
+  - **Show Spelling and Grammar ⌘:** — sends `showGuessPanel(_:)` to the first responder.
+  - **Check Document Now ⌘;** — sends `checkSpelling(_:)` to the first responder.
+  - **Check Spelling While Typing (toggle)** — reads and writes `settings.systemSpellCheckEnabled`. The setting persists and applies to all editors.
+  - **Check Grammar With Spelling (toggle)** — reads and writes `settings.systemGrammarCheckEnabled`. The setting persists and applies to all editors.
+  - **Correct Spelling Automatically** — sends `toggleAutomaticSpellingCorrection(_:)` to the first responder. It applies to the focused editor only and does not persist. It is off by default.
+  - The toggles do not use `toggleContinuousSpellChecking(_:)`, because that changes only the focused view and does not persist.
 - **Minimize ⌘M** — calls `NSApp.keyWindow?.miniaturize(nil)`.
 - **Zoom** — calls `NSApp.keyWindow?.zoom(nil)`; toggles between user-set size and macOS-computed ideal size.
 
@@ -300,8 +306,7 @@ ACTIVE PAIR — how column roles work:
 - **ASCII Studio ⌥⌘A** — calls `editorCommandHandler?.showASCIIStudio()`; opens the ASCII art creation panel for the active document; disabled when no document is open.
 - **Writing Assistance ▶** — per-language AI writing feature toggles backed by `SettingsStore.writingAssist`:
   - **All On / All Off** — calls `settings.setWritingAssistMatrix(.allOn() / .allOff())`; bulk-enables or disables every writing feature at once.
-  - **Spelling ▶** — Instant Correct (auto-fixes typos on space) and Auto-Complete (inline word suggestions).
-  - **Grammar ▶** — Instant Correct and More Context (sends surrounding sentences for richer grammar analysis).
+  - **Style ▶** — More Context.
   - **Markdown ▶** — Auto-Complete (suggests Markdown syntax) and More Context.
   - **HTML ▶** — Auto-Complete (tag and attribute suggestions) and More Context.
   - **ASCII Art ▶** — Auto-Complete (suggests shapes from the ASCII library).
@@ -312,9 +317,9 @@ ACTIVE PAIR — how column roles work:
 - **HTML Help** — sets `appState.requestedHelpTopic = .html`; opens the HTML reference guide.
 - **JSON Help** — sets `appState.requestedHelpTopic = .json`; opens the JSON reference guide.
 - **ASCII Art Help** — sets `appState.requestedHelpTopic = .asciiArt`; opens the ASCII Art reference guide.
-- **Grammar Help** — sets `appState.requestedHelpTopic = .grammar`; opens the Grammar reference guide.
-- **More Context ▶** — per-language toggles for `WritingAssistFunction.moreContext`; applies to Grammar, Markdown, HTML, JSON (ASCII Art has no More Context). Each toggle reads/writes `settings.writingAssist` via `settings.setWritingAssist(.moreContext, for: lang, to:)`. "All On / All Off" calls `settings.setWritingAssistAllMoreContext(to:)`.
-- **Interaction ▶** — per-language toggles for `WritingAssistFunction.interaction`; applies to Grammar, Markdown, HTML, JSON, ASCII Art. "All On / All Off" calls `settings.setWritingAssistAllInteraction(to:)`.
+- **Style Guide** — sets `appState.requestedHelpTopic = .style`; opens the Style reference guide.
+- **More Context ▶** — per-language toggles for `WritingAssistFunction.moreContext`; applies to Markdown, HTML, JSON, Style (ASCII Art has no More Context). Each toggle reads/writes `settings.writingAssist` via `settings.setWritingAssist(.moreContext, for: lang, to:)`. "All On / All Off" calls `settings.setWritingAssistAllMoreContext(to:)`.
+- **Interaction ▶** — per-language toggles for `WritingAssistFunction.interaction`; applies to Markdown, HTML, ASCII Art, JSON, Style. "All On / All Off" calls `settings.setWritingAssistAllInteraction(to:)`.
 - **Release Notes** — currently disabled (no URL assigned yet).
 - **Report an Issue…** — constructs a `mailto:` URL with a pre-filled subject and calls `NSWorkspace.shared.open(_:)`; opens the user's default mail client addressed to the developer.
 - **Status bar — Supporting AI token count** — `StatusBarView` shows `appState.supportingAIUsage.totalTokensSinceLaunch` formatted as "· 4 312 tk" immediately after the model name, when tokens > 0. Wired to `AppState.supportingAIUsage: SupportingAIUsage?`.
@@ -331,7 +336,7 @@ ACTIVE PAIR — how column roles work:
 | `FormatMenuGroup.swift` | Format menu group (ASCII Studio, Render as HTML) |
 | `ViewMenuGroup.swift` | View menu group (panel toggles, focus modes, scratchpad, appearance) |
 | `WindowMenuGroup.swift` | Window menu group (Move Tab, Merge All Windows, window list) |
-| `HelpMenuGroup.swift` | Help menu group (Sputnik Help, Markdown/HTML/ASCII/Grammar Help, Release Notes, Report Issue) |
+| `HelpMenuGroup.swift` | Help menu group (Sputnik Help, Markdown/HTML/JSON/ASCII Help, Style Guide, Release Notes, Report Issue) |
 | `MenuHelpers.swift` | Reusable `NSMenuItem` builders and action helpers |
 
 ## 2.7.4 Error & Performance Utilities

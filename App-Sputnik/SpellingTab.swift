@@ -1,45 +1,29 @@
 import FoundationModule
 import SwiftUI
 
+/// Settings for Apple's `NSTextView` spelling and grammar checker.
+///
+/// The checker runs on `.txt` and `.md` files only. The language follows the macOS
+/// system setting.
 struct SpellingTab: View {
     let settings: SettingsStore
 
     var body: some View {
         Form {
             Toggle(
-                "Spell checking",
+                "Check spelling while typing",
                 isOn: Binding(
-                    get: { settings.spellCheckEnabled }, set: { settings.setSpellCheckEnabled($0) })
+                    get: { settings.systemSpellCheckEnabled },
+                    set: { settings.setSystemSpellCheckEnabled($0) }
+                )
             )
             Toggle(
-                "Grammar checking",
+                "Check grammar with spelling",
                 isOn: Binding(
-                    get: { settings.grammarCheckEnabled },
-                    set: { settings.setGrammarCheckEnabled($0) }))
-
-            Divider()
-
-            Text("Auto-complete delay")
-                .font(.headline)
-
-            DebounceStepPicker(
-                label: "Spelling",
-                step: Binding(
-                    get: { settings.spellingAutoCompleteStep },
-                    set: { settings.setSpellingAutoCompleteStep($0) }
+                    get: { settings.systemGrammarCheckEnabled },
+                    set: { settings.setSystemGrammarCheckEnabled($0) }
                 )
             )
-
-            LabeledContent("Language (BCP-47)") {
-                TextField(
-                    "System default",
-                    text: Binding(
-                        get: { settings.spellCheckLocale ?? "" },
-                        set: { settings.setSpellCheckLocale($0.isEmpty ? nil : $0) }
-                    )
-                )
-                .frame(width: 140)
-            }
         }
     }
 }

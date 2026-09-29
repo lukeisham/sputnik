@@ -4,8 +4,7 @@
 // The structural logic lives in the pure, off-main `HTMLSyntaxChecker.scan(_:)` function,
 // so the bulk of these tests drive it directly and assert on findings (deterministic, no
 // async). A smaller set exercises the live checker for gating, annotation hit-testing, and
-// session dismissal. Spelling-overlap suppression depends on a live `NSSpellChecker` pass
-// and is verified manually (see the plan's verification checklist).
+// session dismissal.
 
 import AppKit
 import Foundation
@@ -211,24 +210,23 @@ struct HTMLCheckerLiveTests {
     }
 }
 
-// MARK: - GrammarAnnotation.htmlSyntax kind
+// MARK: - EditorAnnotation.htmlSyntax kind
 
 struct HTMLAnnotationKindTests {
 
     @Test func htmlSyntaxAnnotationRoundtrips() {
-        let annotation = GrammarAnnotation(
+        let annotation = EditorAnnotation(
             range: NSRange(location: 0, length: 5),
             kind: .htmlSyntax,
             suggestions: ["Unclosed <div>"])
         #expect(annotation.kind == .htmlSyntax)
         #expect(annotation.suggestions == ["Unclosed <div>"])
-        #expect(!annotation.isSuppressed)
     }
 
     @Test func htmlSyntaxAnnotationEquatable() {
-        let a = GrammarAnnotation(
+        let a = EditorAnnotation(
             range: NSRange(location: 0, length: 5), kind: .htmlSyntax, suggestions: ["x"])
-        let b = GrammarAnnotation(
+        let b = EditorAnnotation(
             range: NSRange(location: 0, length: 5), kind: .htmlSyntax, suggestions: ["x"])
         #expect(a == b)
     }

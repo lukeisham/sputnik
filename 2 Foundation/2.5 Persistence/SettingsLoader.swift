@@ -34,21 +34,18 @@ struct SettingsLoader {
         if let saved: Bool = persistence.loadSetting(forKey: DefaultsKey.wordWrap) {
             store.wordWrapEnabled = saved
         }
-        // Load the writing-assist matrix, migrating legacy boolean keys on first run.
+        // Old matrix JSON can contain keys for removed cells. They decode and are ignored.
         if let saved: WritingAssistMatrix = persistence.loadSetting(
             forKey: DefaultsKey.writingAssist)
         {
             store.writingAssist = saved
-        } else {
-            var m = WritingAssistMatrix.default
-            if let legacySpell: Bool = persistence.loadSetting(forKey: DefaultsKey.spellCheck) {
-                m = m.setting(.instantCorrect, for: .spelling, to: legacySpell)
-            }
-            if let legacyGrammar: Bool = persistence.loadSetting(forKey: DefaultsKey.grammarCheck) {
-                m = m.setting(.instantCorrect, for: .grammar, to: legacyGrammar)
-            }
-            store.writingAssist = m
-            persistence.saveSetting(m, forKey: DefaultsKey.writingAssist)
+        }
+        // Apple checker toggles.
+        if let saved: Bool = persistence.loadSetting(forKey: DefaultsKey.spellCheck) {
+            store.systemSpellCheckEnabled = saved
+        }
+        if let saved: Bool = persistence.loadSetting(forKey: DefaultsKey.grammarCheck) {
+            store.systemGrammarCheckEnabled = saved
         }
         // Terminal
         if let saved: String = persistence.loadSetting(forKey: DefaultsKey.terminalFontName) {
@@ -84,11 +81,6 @@ struct SettingsLoader {
         if let saved: Double = persistence.loadSetting(forKey: DefaultsKey.htmlDebounceInterval) {
             store.htmlDebounceInterval = saved
         }
-        if let saved: Double = persistence.loadSetting(
-            forKey: DefaultsKey.spellCheckDebounceInterval)
-        {
-            store.spellCheckDebounceInterval = saved
-        }
         // Auto-complete debounce steps
         if let saved: AutoCompleteDebounceStep = persistence.loadSetting(
             forKey: DefaultsKey.markdownAutoCompleteStep)
@@ -105,16 +97,8 @@ struct SettingsLoader {
         {
             store.htmlAutoCompleteStep = saved
         }
-        if let saved: AutoCompleteDebounceStep = persistence.loadSetting(
-            forKey: DefaultsKey.spellingAutoCompleteStep)
-        {
-            store.spellingAutoCompleteStep = saved
-        }
         if let saved: String = persistence.loadSetting(forKey: DefaultsKey.asciiTriggerKey) {
             store.asciiTriggerKey = saved
-        }
-        if let saved: String? = persistence.loadSetting(forKey: DefaultsKey.spellCheckLocale) {
-            store.spellCheckLocale = saved
         }
         // Editor appearance
         if let saved: Bool = persistence.loadSetting(forKey: DefaultsKey.currentLineHighlight) {
@@ -204,13 +188,10 @@ private enum DefaultsKey {
     static let markdownDebounceInterval = "sputnik.settings.markdownDebounceInterval"
     static let asciiDebounceInterval = "sputnik.settings.asciiDebounceInterval"
     static let htmlDebounceInterval = "sputnik.settings.htmlDebounceInterval"
-    static let spellCheckDebounceInterval = "sputnik.settings.spellCheckDebounceInterval"
     static let markdownAutoCompleteStep = "sputnik.settings.markdownAutoCompleteStep"
     static let asciiAutoCompleteStep = "sputnik.settings.asciiAutoCompleteStep"
     static let htmlAutoCompleteStep = "sputnik.settings.htmlAutoCompleteStep"
-    static let spellingAutoCompleteStep = "sputnik.settings.spellingAutoCompleteStep"
     static let asciiTriggerKey = "sputnik.settings.asciiTriggerKey"
-    static let spellCheckLocale = "sputnik.settings.spellCheckLocale"
     static let currentLineHighlight = "sputnik.settings.currentLineHighlight"
     static let indentGuides = "sputnik.settings.indentGuides"
     static let codeBlockHighlight = "sputnik.settings.codeBlockHighlight"

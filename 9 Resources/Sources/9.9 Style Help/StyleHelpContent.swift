@@ -3,8 +3,8 @@ import Foundation
 /// A single Style Help topic conforming to `HelpTopicProtocol`.
 ///
 /// Style Help provides writing-style reference topics for prose improvement.
-/// Unlike Grammar Help, Style topics are always guidance-level — there is no
-/// structural-vs-lexical distinction.
+/// Style topics are always guidance-level — there is no structural-vs-lexical
+/// distinction.
 ///
 /// Valid categories: `"usage"`, `"composition"`, `"form"`, `"word-usage"`,
 /// `"structure"`, `"voice"`.

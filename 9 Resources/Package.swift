@@ -21,7 +21,6 @@ let package = Package(
                 .process("9.2 ASCII art Help"),
                 .process("9.3 Markdown Help"),
                 .process("9.4 Html Help"),
-                .process("9.5 Grammar Help"),
                 .process("9.7 JSON Help"),
                 .process("9.8 Interaction"),
                 .process("9.9 Style Help"),

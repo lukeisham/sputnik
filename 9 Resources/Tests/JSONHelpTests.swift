@@ -238,10 +238,6 @@ struct WritingAssistMatrixJSONTests {
         #expect(WritingAssistMatrix.applies(.moreContext, to: .json))
     }
 
-    @Test func jsonInstantCorrectIsNotApplicable() {
-        #expect(!WritingAssistMatrix.applies(.instantCorrect, to: .json))
-    }
-
     @Test func defaultMatrixHasJSONAutoCompleteOn() {
         let m = WritingAssistMatrix.default
         #expect(m.isEnabled(.autoComplete, for: .json))
@@ -250,10 +246,5 @@ struct WritingAssistMatrixJSONTests {
     @Test func defaultMatrixHasJSONMoreContextOn() {
         let m = WritingAssistMatrix.default
         #expect(m.isEnabled(.moreContext, for: .json))
-    }
-
-    @Test func jsonInstantCorrectAlwaysReturnsFalse() {
-        let m = WritingAssistMatrix.default
-        #expect(!m.isEnabled(.instantCorrect, for: .json))
     }
 }

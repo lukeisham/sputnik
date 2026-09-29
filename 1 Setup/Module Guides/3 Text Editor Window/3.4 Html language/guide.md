@@ -1,7 +1,7 @@
 ---
 module: 3.4 Html language
 status: stable
-last_updated: 2026-06-12
+last_updated: 2026-09-28
 last_verified: 2026-06-12
 ---
 
@@ -60,6 +60,7 @@ Adds HTML-specific editing intelligence to the base text editor — debounced in
 |---|---|
 | `HTMLDocTypeGuard.swift` | Scans first ~512 characters for `<!DOCTYPE html>` (case-insensitive); sets `EditorViewModel.htmlModeActive` |
 | `HTMLLanguageProvider.swift` | `@MainActor` — parses partial HTML tags and attributes at cursor; returns ghost-text completions; gated by `htmlModeActive` |
+| `HTMLSyntaxChecker.swift` | `@MainActor` — debounced structural scan (unclosed/mismatched tags, unquoted attribute values, duplicate ids) off the main thread; blue underlines; keeps a hit-testable `[EditorAnnotation]` model; session-only Dismiss |
 | `RenderAsHTMLCommand.swift` | `@MainActor` — handles "Render as HTML" (⌘⌥P) via `InterPanelRouter.open(url)`; enabled only when `htmlModeActive` is `true` |
 
 ## Technical Summary
@@ -67,6 +68,7 @@ Adds HTML-specific editing intelligence to the base text editor — debounced in
 - **Key types:**
   - `HTMLDocTypeGuard` — `enum`; scans the first ~512 characters of content (case-insensitive) for `<!DOCTYPE html>`; sets `EditorViewModel.htmlModeActive`; re-runs on file open and on each full document reload
   - `HTMLLanguageProvider` — `@MainActor` class; parses partial HTML tags and attributes at the cursor; returns a completion string (e.g. closes an open tag, suggests common attributes); only invoked when `htmlModeActive` is `true`; uses `DebounceTimer` (2.7) and `CompletionProviding` (module 9)
+  - `HTMLSyntaxChecker` — `@MainActor` class; active only when `htmlModeActive` and `SettingsStore.htmlSyntaxCheckEnabled`; `scan(_:)` is `nonisolated` and runs on a `.utility` task; writes `.underlineStyle` / `.underlineColor` (`.systemBlue`) to `NSTextStorage`; `annotation(at:)` and `dismiss(_:)` serve the click-to-fix popover in `EditorTextView`. Uses `EditorAnnotation` and `QuickfixPopover` from 3.1. It has no dependency on spelling (module 3.5 was removed on 2026-09-28; Apple's spelling underlines use temporary layout attributes and do not overlap its model)
   - `GhostTextOverlay` — shared with 3.2/3.3; lives in 3.1 Text
   - `RenderAsHTMLCommand` — `@MainActor` class; calls the Foundation `InterPanelRouter.open(url)` to open module 8 with the current file URL; only enabled when `htmlModeActive` is `true`
 - **Threading model:** `HTMLDocTypeGuard` scan on `Task(priority: .userInitiated)` (runs at file open); completion generation on `Task(priority: .utility)`; all `NSTextStorage` and UI updates on `@MainActor`
@@ -83,6 +85,7 @@ Adds HTML-specific editing intelligence to the base text editor — debounced in
 - Ghost-text rendering uses the shared `GhostTextOverlay` from 3.1 — never re-implemented or copied (SC-2)
 - `HTMLDocTypeGuard` scans only the first ~512 characters — scan time is bounded regardless of file size (SR-3, SR-4)
 - `RenderAsHTMLCommand` routes through `InterPanelRouter.open(url)` — never calls module 8 directly (SR-1, SC-9)
+- `HTMLSyntaxChecker` never references a spelling or grammar checker; its annotations are all `.htmlSyntax`
 - `HTMLLanguageProvider` is only invoked when `EditorViewModel.htmlModeActive` is `true` (SC-10)
 
 ## Spec Reference

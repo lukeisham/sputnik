@@ -22,10 +22,6 @@ public struct ElementTriggers: Codable, Sendable {
 
 /// Named resource lookups that fill a slot from an existing index call.
 public enum ResourceLookup: String, Codable, Sendable {
-    /// `GrammarHelpIndex.searchByTerm(selection, preferStructural: false)` — lexical grammar topic.
-    case lexicalDefinition = "lexicalDefinition"
-    /// `GrammarHelpIndex.searchByTerm(selection, preferStructural: true)` — structural grammar topic.
-    case structuralAnalysis = "structuralAnalysis"
     /// Best match from the Markdown help index.
     case markdownTopic = "markdownTopic"
     /// Best match from the HTML help index.
@@ -111,7 +107,7 @@ public struct SpecialElementDefinition: Codable, Sendable {
     public let id: String
     /// Human-readable name shown in the menu (e.g. "Sentence Parser").
     public let displayName: String
-    /// The resource language used for slot lookups (e.g. `.grammar`, `.markdown`).
+    /// The resource language used for slot lookups (e.g. `.style`, `.markdown`).
     public let resourceLanguage: WritingAssistLanguage
     /// The container kind — determines insertion mechanics.
     public let container: SpecialElementKind

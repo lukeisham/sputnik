@@ -50,4 +50,24 @@ public struct PanelColumn: Codable, Sendable, Equatable, Identifiable {
         self.activeDocumentIndex = 0
         self.width = width
     }
+
+    // MARK: - Codable
+
+    private enum CodingKeys: String, CodingKey {
+        case id, renderMode, originalRenderMode, documentIDs, activeDocumentIndex, width
+    }
+
+    /// Throws when `renderMode` is not a known `PanelID`, so `DynamicPanelLayout` can
+    /// drop this column. An unknown `originalRenderMode` decodes as `nil` and keeps the
+    /// column.
+    public init(from decoder: any Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        id = try container.decode(UUID.self, forKey: .id)
+        renderMode = try container.decode(PanelID.self, forKey: .renderMode)
+        let originalRaw = try container.decodeIfPresent(String.self, forKey: .originalRenderMode)
+        originalRenderMode = originalRaw.flatMap(PanelID.init(rawValue:))
+        documentIDs = try container.decode([UUID].self, forKey: .documentIDs)
+        activeDocumentIndex = try container.decode(Int.self, forKey: .activeDocumentIndex)
+        width = try container.decode(CGFloat.self, forKey: .width)
+    }
 }

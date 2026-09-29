@@ -22,12 +22,8 @@ public final class EditorTextView: NSTextView {
     /// The find/replace controller. Wired by `EditorView`.
     weak var searchController: SearchController?
 
-    /// The spelling/grammar checker that owns the hit-testable annotation model (3.5).
-    /// Wired by `EditorView`; used to map a click to an issue and its suggestions.
-    weak var spellingChecker: SpellingGrammarChecker?
-
-    /// The HTML structural checker (3.4). Wired by `EditorView`; queried as a fallback when
-    /// the spelling checker has no annotation at the clicked location.
+    /// The HTML structural checker (3.4). Wired by `EditorView`; used to map a click to an
+    /// issue and its message.
     weak var htmlSyntaxChecker: HTMLSyntaxChecker?
 
     /// The editor view model — read for the active mode when routing "Look Up Help".
@@ -127,10 +123,11 @@ public final class EditorTextView: NSTextView {
         super.keyDown(with: event)
     }
 
-    // MARK: - Click-to-fix (3.5)
+    // MARK: - Click-to-fix (HTML structural issues)
 
-    /// On a plain single click that lands on a rendered spelling/grammar underline, present
-    /// the quick-fix popover. Otherwise fall through to normal `NSTextView` behaviour, so
+    /// On a plain single click that lands on a rendered HTML structural underline, present
+    /// the quick-fix popover. Apple's spelling and grammar underlines use their own
+    /// right-click menu, so they do not come here. Otherwise fall through to normal `NSTextView` behaviour, so
     /// caret placement, selection, and drag are untouched (SW-3 seam documented here).
     public override func mouseDown(with event: NSEvent) {
         super.mouseDown(with: event)
@@ -148,11 +145,7 @@ public final class EditorTextView: NSTextView {
         let glyphIndex = layoutManager.glyphIndex(for: containerPoint, in: textContainer)
         let charIndex = layoutManager.characterIndexForGlyph(at: glyphIndex)
 
-        // Spelling/grammar takes priority; fall back to an HTML structural underline.
-        guard
-            let annotation = spellingChecker?.annotation(at: charIndex)
-                ?? htmlSyntaxChecker?.annotation(at: charIndex)
-        else {
+        guard let annotation = htmlSyntaxChecker?.annotation(at: charIndex) else {
             quickfixPopover?.close()
             return
         }
@@ -161,7 +154,7 @@ public final class EditorTextView: NSTextView {
     }
 
     private func presentQuickfix(
-        for annotation: GrammarAnnotation,
+        for annotation: EditorAnnotation,
         layoutManager: NSLayoutManager,
         textContainer: NSTextContainer
     ) {
@@ -178,12 +171,6 @@ public final class EditorTextView: NSTextView {
         let label: String
         let suggestions: [String]
         switch annotation.kind {
-        case .spelling:
-            label = "Spelling"
-            suggestions = annotation.suggestions
-        case .grammar:
-            label = "Grammar"
-            suggestions = annotation.suggestions
         case .htmlSyntax:
             // The HTML checker carries a descriptive message, not a replacement string, so
             // surface it in the header and offer only Dismiss (no auto-fix for structure).
@@ -204,7 +191,7 @@ public final class EditorTextView: NSTextView {
         quickfixPopover = popover
     }
 
-    private func applyFix(_ annotation: GrammarAnnotation, suggestion: String) {
+    private func applyFix(_ annotation: EditorAnnotation, suggestion: String) {
         quickfixPopover?.close()
         guard let storage = textStorage else { return }
         let range = annotation.range
@@ -215,16 +202,13 @@ public final class EditorTextView: NSTextView {
 
         storage.replaceCharacters(in: range, with: suggestion)
         didChangeText()  // notify the delegate → debounced re-check
-        spellingChecker?.recheckNow()  // and refresh underlines immediately
+        htmlSyntaxChecker?.recheckNow()  // and refresh underlines immediately
     }
 
-    private func dismissAnnotation(_ annotation: GrammarAnnotation) {
+    private func dismissAnnotation(_ annotation: EditorAnnotation) {
         quickfixPopover?.close()
-        // Ignore + re-check: clears this underline and surfaces any grammar issue the
-        // dismissed spelling word was suppressing. Route HTML issues to their own checker.
+        // Ignore + re-check: clears this underline.
         switch annotation.kind {
-        case .spelling, .grammar:
-            spellingChecker?.dismiss(annotation)
         case .htmlSyntax:
             htmlSyntaxChecker?.dismiss(annotation)
         }
@@ -371,7 +355,7 @@ public final class EditorTextView: NSTextView {
         return (spaces: spaceCount / indentSize, tabs: 0)
     }
 
-    // MARK: - Right-click More Context (3.5 / module 9 / shared utility)
+    // MARK: - Right-click More Context (module 9 / shared utility)
 
     /// Appends "More Context: …" menu items for the active editor mode's help panel
     /// when there is a non-empty selection. Uses the shared `MoreContextMenu` builder
@@ -381,6 +365,8 @@ public final class EditorTextView: NSTextView {
         let menu = super.menu(for: event) ?? NSMenu()
 
         let selection = selectedRange()
+        // Apple's spelling suggestions stay at the top of the menu (see `sputnikItemIndex`).
+        let base = sputnikItemIndex(in: menu, selection: selection)
 
         // Add "Summarize Locally" when there is a non-empty selection.
         if selection.length > 0 {
@@ -389,8 +375,8 @@ public final class EditorTextView: NSTextView {
                 action: #selector(summarizeSelectionLocally),
                 keyEquivalent: "")
             summarizeItem.target = self
-            menu.insertItem(summarizeItem, at: 0)
-            menu.insertItem(.separator(), at: 1)
+            menu.insertItem(summarizeItem, at: base)
+            menu.insertItem(.separator(), at: base + 1)
         }
 
         guard selection.length > 0,
@@ -439,8 +425,8 @@ public final class EditorTextView: NSTextView {
                 action: nil, keyEquivalent: "")
             parentItem.submenu = asciiSubmenu
 
-            menu.insertItem(.separator(), at: 0)
-            menu.insertItem(parentItem, at: 0)
+            menu.insertItem(.separator(), at: base)
+            menu.insertItem(parentItem, at: base)
             return menu
         }
 
@@ -492,18 +478,40 @@ public final class EditorTextView: NSTextView {
 
         guard !contextItems.isEmpty else { return menu }
 
-        menu.insertItem(.separator(), at: 0)
+        menu.insertItem(.separator(), at: base)
         for item in contextItems.reversed() {
-            menu.insertItem(item, at: 0)
+            menu.insertItem(item, at: base)
         }
         return menu
     }
 
+    /// Returns the menu index where Sputnik items go.
+    ///
+    /// When the selection is a misspelled word, Apple puts its spelling suggestions at the
+    /// top of the menu, followed by a separator. In that case, Sputnik items go after that
+    /// separator so Apple's suggestions stay first. In all other cases, the index is 0.
+    private func sputnikItemIndex(in menu: NSMenu, selection: NSRange) -> Int {
+        // Only a short selection can be a single misspelled word. This also keeps the
+        // check fast on large selections (SR-4).
+        guard isContinuousSpellCheckingEnabled,
+            selection.length > 0, selection.length <= 64,
+            selection.location + selection.length <= (string as NSString).length
+        else { return 0 }
+        let word = (string as NSString).substring(with: selection)
+        let misspelled = NSSpellChecker.shared.checkSpelling(
+            of: word, startingAt: 0, language: nil, wrap: false,
+            inSpellDocumentWithTag: spellCheckerDocumentTag, wordCount: nil)
+        guard misspelled.location != NSNotFound,
+            let separator = menu.items.firstIndex(where: \.isSeparatorItem)
+        else { return 0 }
+        return separator + 1
+    }
+
     /// Maps the active editor mode (and HTML gating) to its help panel, or `nil` when no
-    /// help is appropriate. Grammar is always available in plain text.
+    /// help is appropriate. Style help is always available in plain text.
     private func helpKind(for viewModel: EditorViewModel) -> HelpTopic? {
         switch viewModel.mode {
-        case .plainText: return viewModel.htmlModeActive ? .html : .grammar
+        case .plainText: return viewModel.htmlModeActive ? .html : .style
         case .markdown: return .markdown
         case .html: return .html
         case .json: return .json
@@ -518,7 +526,6 @@ public final class EditorTextView: NSTextView {
         case .markdown: return .markdown
         case .html: return .html
         case .json: return .json
-        case .grammar: return .grammar
         case .style: return .style
         case .asciiArt: return .asciiArt
         case .sputnik: return nil

@@ -36,10 +36,6 @@ struct HelpMenuGroup: Commands {
                 appState.requestedHelpTopic = .asciiArt
             }
 
-            Button("Grammar Help") {
-                appState.requestedHelpTopic = .grammar
-            }
-
             Button("Style Guide") {
                 appState.requestedHelpTopic = .style
             }
@@ -70,13 +66,10 @@ struct HelpMenuGroup: Commands {
 
     /// The "More Context ▶" submenu, parallel to Interaction.
     /// Per-language toggles reading/writing `WritingAssistMatrix.moreContext`.
-    /// Applies to: Grammar, Markdown, HTML, JSON (ASCII Art has no More Context).
+    /// Applies to: Markdown, HTML, JSON, Style (ASCII Art has no More Context).
     @ViewBuilder
     private var moreContextSubmenu: some View {
         Menu("More Context") {
-            Menu("Grammar") {
-                toggleMoreContext(.grammar)
-            }
             Menu("Markdown") {
                 toggleMoreContext(.markdown)
             }
@@ -128,9 +121,6 @@ struct HelpMenuGroup: Commands {
             }
             Menu("JSON") {
                 toggleInteraction(.json)
-            }
-            Menu("Grammar") {
-                toggleInteraction(.grammar)
             }
             Menu("Style") {
                 toggleInteraction(.style)

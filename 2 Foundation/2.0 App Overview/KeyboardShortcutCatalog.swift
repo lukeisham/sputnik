@@ -85,7 +85,8 @@ private let _all: [ShortcutEntry] = [
     ShortcutEntry(title: "Find and Replace…", keys: "⌥⌘F", group: "Edit"),
     ShortcutEntry(title: "Find Next", keys: "⌘G", group: "Edit"),
     ShortcutEntry(title: "Find Previous", keys: "⇧⌘G", group: "Edit"),
-    ShortcutEntry(title: "Check Now", keys: "⌘;", group: "Edit"),
+    ShortcutEntry(title: "Show Spelling and Grammar", keys: "⌘:", group: "Edit"),
+    ShortcutEntry(title: "Check Document Now", keys: "⌘;", group: "Edit"),
     ShortcutEntry(title: "Interact with", keys: "⌘I", group: "Edit"),
     ShortcutEntry(title: "Render as JSON", keys: "⌃⌘J", group: "Edit"),
 

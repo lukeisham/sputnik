@@ -1,7 +1,7 @@
 ---
 module: 2.5 Persistence
 status: stable
-last_updated: 2026-06-14
+last_updated: 2026-09-28
 last_verified: 2026-06-14
 open_issues: none
 ---
@@ -75,7 +75,7 @@ Provides the serialisation contract (`PersistenceService` protocol) and concrete
 | `LayoutState.swift` | Top-level persisted blob: `dynamicLayout: DynamicPanelLayout`, `terminalVisible`, `recentFiles`, `openDocumentURLs`, `activeDocumentURL`; backward-compatible Codable decode |
 | `WindowDescriptor.swift` | Per-window persisted snapshot: `id`, `workspaceDirectoryURL`, `openTabURLs`, `activeDocumentURL`, `layout: LayoutState`, `windowFrame`, `documentViewStates`; backward-compatible decode |
 | `DocumentViewState.swift` | Per-document editor state: caret position (`selectedRange`) and scroll offset; used in `WindowDescriptor.documentViewStates` |
-| `SettingsLoader.swift` | Extracted `SettingsStore` deserialisation orchestration (SR-6) |
+| `SettingsLoader.swift` | Extracted `SettingsStore` deserialisation orchestration (SR-6). Loads the writing-assist matrix as saved (no migration) and the two Apple checker toggles from `sputnik.settings.spellCheck` / `sputnik.settings.grammarCheck` |
 
 ## Technical Summary
 
@@ -96,7 +96,7 @@ Provides the serialisation contract (`PersistenceService` protocol) and concrete
 - All async file I/O flows through `PersistenceWriter` actor — never directly from `@MainActor` code
 - Quit-time writes use `flushLayoutSync` / `saveWindowsSync` — never the async `flushLayout` / `saveWindows` from `applicationWillTerminate`
 - Recovery files are named `<display>-<djb2hash>.recovery` and contain a `// source: <absolute-path>` header as their first line
-- `LayoutState.dynamicLayout` falls back to `.default` on decode failure (old schema or corrupt file)
+- `LayoutState.dynamicLayout` falls back to `.default` on decode failure (old schema or corrupt file). A column with an unknown `PanelID` is not a decode failure: `DynamicPanelLayout` drops only that column (see 2.4). The layout falls back to `.default` only when no column decodes
 - `WindowDescriptor` fields added after the original schema decode with safe defaults (e.g. `windowFrame` → `nil`, `documentViewStates` → `[:]`)
 - Scratchpad state (text + docked width) is stored in `UserDefaults`, not in `layout.json`/`windows.json`
 - Settings keys use `UserDefaults` with `Data`-encoded JSON values, written synchronously on `@MainActor`

@@ -3,16 +3,14 @@ import FoundationModule
 
 /// Lightweight, real-time HTML structural checker.
 ///
-/// A deliberately small clone of `SpellingGrammarChecker`'s pipeline — debounce → scan →
-/// annotate → underline → hit-test — but with the `NSSpellChecker` call replaced by a
+/// A small pipeline — debounce → scan → annotate → underline → hit-test — that uses a
 /// regex-based structural scan. It catches the common, high-signal mistakes (unclosed and
 /// mismatched tags, unquoted attribute values broken by a space, duplicate `id`s) without
 /// a full HTML5 parser.
 ///
-/// Like the spelling checker, it writes `.underlineStyle` / `.underlineColor` attributes
-/// directly to `NSTextStorage` and keeps a parallel `GrammarAnnotation` model the editor can
-/// hit-test on click. HTML underlines are blue (`.systemBlue`) to distinguish them from
-/// spelling (red) and grammar (orange).
+/// It writes `.underlineStyle` / `.underlineColor` attributes directly to `NSTextStorage`
+/// and keeps a parallel `EditorAnnotation` model the editor can hit-test on click. HTML
+/// underlines are blue (`.systemBlue`).
 ///
 /// Only active when `EditorViewModel.htmlModeActive` is `true` **and**
 /// `SettingsStore.htmlSyntaxCheckEnabled` is `true`. The structural scan runs on a
@@ -24,17 +22,14 @@ public final class HTMLSyntaxChecker {
 
     private weak var textView: NSTextView?
     private weak var viewModel: EditorViewModel?
-    /// Read-only query of the spelling checker's current issues, so HTML underlines that
-    /// overlap a spelling underline can be suppressed (spelling takes priority, invariant 4).
-    private weak var spellingChecker: SpellingGrammarChecker?
     private let settings: SettingsStore
     private let debounce = DebounceTimer()
 
     // MARK: - Annotation model (hit-testable by the editor)
 
-    /// The current HTML issues, including suppressed ones. Rebuilt on every check.
+    /// The current HTML issues. Rebuilt on every check.
     /// Read-only to collaborators; the editor queries it via `annotation(at:)`.
-    public private(set) var annotations: [GrammarAnnotation] = []
+    public private(set) var annotations: [EditorAnnotation] = []
 
     /// Structural issues the user has dismissed this session (keyed by the underlined text).
     /// Re-checks exclude them. Session-only — not persisted.
@@ -43,13 +38,11 @@ public final class HTMLSyntaxChecker {
     public init(
         textView: NSTextView,
         viewModel: EditorViewModel,
-        settings: SettingsStore,
-        spellingChecker: SpellingGrammarChecker? = nil
+        settings: SettingsStore
     ) {
         self.textView = textView
         self.viewModel = viewModel
         self.settings = settings
-        self.spellingChecker = spellingChecker
     }
 
     // MARK: - Public interface
@@ -75,15 +68,15 @@ public final class HTMLSyntaxChecker {
         }
     }
 
-    /// Returns the rendered (non-suppressed) annotation containing `location`, or `nil`.
+    /// Returns the annotation containing `location`, or `nil`.
     /// Reads the in-memory model only — no re-scan (SR-4).
-    public func annotation(at location: Int) -> GrammarAnnotation? {
-        annotations.first { !$0.isSuppressed && NSLocationInRange(location, $0.range) }
+    public func annotation(at location: Int) -> EditorAnnotation? {
+        annotations.first { NSLocationInRange(location, $0.range) }
     }
 
     /// Dismisses an annotation for the rest of this session, then re-checks so the
     /// underline clears.
-    public func dismiss(_ annotation: GrammarAnnotation) {
+    public func dismiss(_ annotation: EditorAnnotation) {
         guard let storage = textView?.textStorage else { return }
         let range = annotation.range
         // Guard against ranges invalidated by a concurrent edit (SR-2).
@@ -141,13 +134,7 @@ public final class HTMLSyntaxChecker {
         let length = storage.length
         let nsString = storage.string as NSString
 
-        // Spelling annotations to defer to (spelling underline wins on overlap, invariant 4).
-        let spellingRanges: [NSRange] =
-            spellingChecker?.annotations
-            .filter { $0.kind == .spelling && !$0.isSuppressed }
-            .map { $0.range } ?? []
-
-        var newAnnotations: [GrammarAnnotation] = []
+        var newAnnotations: [EditorAnnotation] = []
         for finding in findings {
             let range = finding.range
             guard range.location != NSNotFound,
@@ -155,27 +142,23 @@ public final class HTMLSyntaxChecker {
             else { continue }
             let phrase = nsString.substring(with: range)
             if ignoredHTMLPhrases.contains(phrase) { continue }
-            let suppressed = spellingRanges.contains {
-                NSIntersectionRange($0, range).length > 0
-            }
             newAnnotations.append(
-                GrammarAnnotation(
+                EditorAnnotation(
                     range: range,
                     kind: .htmlSyntax,
-                    suggestions: [finding.message],
-                    isSuppressed: suppressed
+                    suggestions: [finding.message]
                 )
             )
         }
 
         annotations = newAnnotations
 
-        // Render: clear previous underlines, then draw only non-suppressed annotations.
+        // Render: clear previous underlines, then draw the new annotations.
         let full = NSRange(location: 0, length: length)
         storage.beginEditing()
         storage.removeAttribute(.underlineStyle, range: full)
         storage.removeAttribute(.underlineColor, range: full)
-        for annotation in newAnnotations where !annotation.isSuppressed {
+        for annotation in newAnnotations {
             storage.addAttribute(
                 .underlineStyle,
                 value: NSUnderlineStyle.single.rawValue,

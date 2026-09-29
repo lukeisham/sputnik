@@ -142,20 +142,6 @@ public actor InteractionProvider: InteractionProviding {
         content: String, preview: String, score: Double
     )] {
         switch lookup {
-        case .lexicalDefinition:
-            let topics = await GrammarHelpIndex.shared.searchByTerm(
-                selection, preferStructural: false)
-            return topics.prefix(3).map { t in
-                (content: t.body, preview: t.title, score: 0.8)
-            }
-
-        case .structuralAnalysis:
-            let topics = await GrammarHelpIndex.shared.searchByTerm(
-                selection, preferStructural: true)
-            return topics.prefix(3).map { t in
-                (content: t.body, preview: t.title, score: 0.8)
-            }
-
         case .markdownTopic:
             let topics = await MarkdownHelpIndex.shared.search(query: selection)
             return topics.prefix(3).map { t in
